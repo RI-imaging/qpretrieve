@@ -1,0 +1,8 @@
+include CHANGELOG
+include LICENSE
+include README.rst
+recursive-include examples *.py *.jpg *.npy *.npz
+recursive-include docs *.py *.md *.txt *.rst *.bib
+recursive-include tests *.py *.md *.zip *.h5
+prune docs/_build
+exclude docs/_version_save.py

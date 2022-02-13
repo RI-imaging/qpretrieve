@@ -1,2 +1,7 @@
+0.1.1
+ - fix: some Fourier filters did not work properly due to earlier
+   refactorization
+ - enh: support hologram data that are RGB(A) (by only taking R)
+ - tests: imported tests from qpimage
 0.1.0
  - initial release

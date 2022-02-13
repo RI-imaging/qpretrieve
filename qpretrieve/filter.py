@@ -77,27 +77,33 @@ def get_filter_array(filter_name, filter_size, freq_pos, fft_shape):
     elif filter_name == "gauss":
         sigma = filter_size * .6
         tau = 2 * sigma ** 2
-        filter_arr = np.exp(-(fx ** 2 + fy ** 2) / tau)
+        filter_arr = np.exp(-(fxc ** 2 + fyc ** 2) / tau)
         filter_arr /= filter_arr.max()
     elif filter_name == "square":
-        filter_arr = (np.abs(fx) <= filter_size) * (np.abs(fy) <= filter_size)
+        filter_arr = (np.abs(fxc) <= filter_size) \
+                      * (np.abs(fyc) <= filter_size)
     elif filter_name == "smooth square":
         blur = filter_size / 5
         tau = 2 * blur ** 2
-        square = (np.abs(fx) < filter_size) * (np.abs(fy) < filter_size)
+        square = (np.abs(fxc) < filter_size) * (np.abs(fyc) < filter_size)
         gauss = np.exp(-(fy ** 2) / tau) * np.exp(-(fy ** 2) / tau)
         filter_arr = signal.convolve(square, gauss, mode="same")
         filter_arr /= filter_arr.max()
     elif filter_name == "tukey":
+        # TODO: avoid the np.roll, instead use the indices directly
         alpha = 0.1
         rsize = int(min(fx.size, fy.size) * filter_size) * 2
         tukey_window_x = signal.tukey(rsize, alpha=alpha).reshape(-1, 1)
         tukey_window_y = signal.tukey(rsize, alpha=alpha).reshape(1, -1)
         tukey = tukey_window_x * tukey_window_y
-        filter_arr = np.zeros(fft_shape)
+        base = np.zeros(fft_shape)
         s1 = (np.array(fft_shape) - rsize) // 2
         s2 = (np.array(fft_shape) + rsize) // 2
-        filter_arr[s1[0]:s2[0], s1[1]:s2[1]] = tukey
+        base[s1[0]:s2[0], s1[1]:s2[1]] = tukey
+        # roll the filter to the peak position
+        px = int(freq_pos[0] * fft_shape[0])
+        py = int(freq_pos[1] * fft_shape[1])
+        filter_arr = np.roll(np.roll(base, px, axis=0), py, axis=1)
     else:
         raise ValueError(f"Unknown filter: {filter_name}")
 

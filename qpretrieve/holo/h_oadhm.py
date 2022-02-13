@@ -7,6 +7,9 @@ class OffAxisHologram:
     def __init__(self, data, subtract_mean=True, copy=True):
         """Generic class for off-axis hologram data analysis"""
         ff_iface = get_best_interface()
+        if len(data.shape) == 3:
+            # take the first slice (we have alpha or RGB information)
+            data = data[:, :, 0]
         #: qpretrieve Fourier transform interface class
         self.fft = ff_iface(data=data,
                             subtract_mean=subtract_mean,
@@ -71,8 +74,9 @@ class OffAxisHologram:
             # Fourier space, so we use the unpadded size and translate it.
             if filter_size <= 0 or filter_size >= self.fft.shape[0] / 2:
                 raise ValueError("For frequency index interpretation, "
-                                 "`filter_size` must be between 0 and "
-                                 f"{self.fft.shape[0]}, got '{filter_size}'!")
+                                 + "`filter_size` must be between 0 and "
+                                 + f"{self.fft.shape[0] / 2}, got "
+                                 + f"'{filter_size}'!")
             # convert to frequencies (compatible with fx and fy)
             fsize = filter_size / self.fft.shape[0]
         else:

@@ -1,7 +1,8 @@
 .. _index:
 
 The qpretrieve Python library provides algorithms for the retrieval
-of quantitative phase information from experimental data. Currently,
+of quantitative phase information from experimental data, based on
+Fourier analysis (peak detection in Fourier space and filtering). Currently,
 qpretrieve only supports the analysis of holograms (with the characteristic
 fringe patterns).
 If you are looking for a library to load quantitative phase data from disk,

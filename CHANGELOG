@@ -1,3 +1,5 @@
+0.1.2
+ - ref: add base class for Fourier hologram analysis
 0.1.1
  - fix: some Fourier filters did not work properly due to earlier
    refactorization

@@ -122,8 +122,11 @@ class FFTFilter(ABC):
             fft_shape=self.fft_origin.shape)
 
         self.fft_filtered[:] = self.fft_origin * filt_array
-        image = self._ifft(self.fft_filtered)
+        px = np.int(freq_pos[0] * self.shape[0])
+        py = np.int(freq_pos[1] * self.shape[1])
+        shifted = np.roll(np.roll(self.fft_filtered, -px, axis=0), -py, axis=1)
+        field = self._ifft(np.fft.ifftshift(shifted))
         if self.padding:
             sx, sy = self.origin.shape
-            image = image[:sx, :sy]
-        return image
+            field = field[:sx, :sy]
+        return field

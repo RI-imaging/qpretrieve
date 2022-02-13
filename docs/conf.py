@@ -202,6 +202,6 @@ intersphinx_mapping = {
     "drymass": ('http://drymass.readthedocs.io/en/'+rtd_link, None),
     "qpsphere": ('http://qpsphere.readthedocs.io/en/'+rtd_link, None),
     "qpformat": ('http://qpformat.readthedocs.io/en/'+rtd_link, None),
-    "qpimage": ('http://qpformat.readthedocs.io/en/'+rtd_link, None),
+    "qpimage": ('http://qpimage.readthedocs.io/en/'+rtd_link, None),
     "cellsino": ('http://cellsino.readthedocs.io/en/'+rtd_link, None),
 }

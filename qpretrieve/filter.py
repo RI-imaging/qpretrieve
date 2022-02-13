@@ -50,25 +50,27 @@ def get_filter_array(filter_name, filter_size, freq_pos, fft_shape):
                          + "the Fourier space or be negative. Got a filter "
                          + f"size of '{filter_size}' and a shape of "
                          + f"'{fft_shape}'!")
-    if not (0 < abs(min(freq_pos)) <= abs(max(freq_pos)) < max(fft_shape)/2):
+    if not (0
+            < min(np.abs(freq_pos))
+            <= max(np.abs(freq_pos))
+            < max(fft_shape)/2):
         raise ValueError("The frequency position must be within the Fourier "
                          + f"domain. Got '{freq_pos}' and shape "
-                         + "'{fft_shape}'!")
+                         + f"'{fft_shape}'!")
 
     fx = np.fft.fftshift(np.fft.fftfreq(fft_shape[0])).reshape(-1, 1)
     fy = fx.reshape(1, -1)
 
-    # rotate the freque
-    fx -= freq_pos[0]
-    fy -= freq_pos[1]
+    fxc = freq_pos[0] - fx
+    fyc = freq_pos[1] - fy
 
     if filter_name == "disk":
-        filter_arr = (fx ** 2 + fy ** 2) <= filter_size ** 2
+        filter_arr = (fxc ** 2 + fyc ** 2) <= filter_size ** 2
     elif filter_name == "smooth disk":
         sigma = filter_size / 5
         tau = 2 * sigma ** 2
+        disk = (fxc ** 2 + fyc ** 2) <= filter_size ** 2
         radsq = fx ** 2 + fy ** 2
-        disk = radsq <= filter_size ** 2
         gauss = np.exp(-radsq / tau)
         filter_arr = signal.convolve(gauss, disk, mode="same")
         filter_arr /= filter_arr.max()

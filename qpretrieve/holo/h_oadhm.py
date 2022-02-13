@@ -4,22 +4,22 @@ from ..fourier import get_best_interface
 
 
 class OffAxisHologram:
-    def __init__(self, data, subtract_mean=True, copy=True,
-                 sideband_freq=None):
+    def __init__(self, data, subtract_mean=True, copy=True):
         """Generic class for off-axis hologram data analysis"""
         ff_iface = get_best_interface()
+        #: qpretrieve Fourier transform interface class
         self.fft = ff_iface(data=data,
                             subtract_mean=subtract_mean,
                             padding=True,
                             copy=copy)
+        #: originally computed Fourier transform
         self.fft_origin = self.fft.fft_origin
-
-        if sideband_freq is None:
-            self.sideband_freq = find_peak_cosine(self.fft.fft_origin)
-        else:
-            self.sideband_freq = sideband_freq
-
+        #: filtered Fourier data from last run of `run_pipeline`
+        self.fft_filtered = self.fft.fft_filtered
+        #: last result of `run_pipeline`
         self.field = None
+        #: hologram pipeline parameters
+        self.pipeline_kws = {}
 
     @property
     def phase(self):
@@ -33,27 +33,38 @@ class OffAxisHologram:
             self.run_pipeline()
         return np.abs(self.field)
 
-    def run_pipeline(self, sideband=+1, filter_name="disk", filter_size=1/3,
-                     filter_size_interpretation="sideband distance"):
+    def process_like(self, other):
+        self.pipeline_kws.clear()
+        if not other.pipeline_kws:
+            # run default pipeline
+            other.run_pipeline()
+        self.run_pipeline(**other.pipeline_kws)
+
+    def run_pipeline(self, filter_name="disk", filter_size=1/3,
+                     filter_size_interpretation="sideband distance",
+                     sideband_freq=None, sideband=+1):
+        if sideband_freq is None:
+            sideband_freq = find_peak_cosine(self.fft.fft_origin)
+
         # Get the position of the sideband in frequencies
         if sideband == +1:
-            freq_pos = self.sideband_freq
-        if sideband == -1:
-            freq_pos = list(-np.array(self.sideband_freq))
+            freq_pos = sideband_freq
+        elif sideband == -1:
+            freq_pos = list(-np.array(sideband_freq))
         else:
             raise ValueError("`sideband` must be +1 or -1!")
 
-        if filter_size_interpretation == "sideband distance":
+        if filter_size_interpretation == "frequency":
+            # convert frequency to frequency index
+            # We always have padded Fourier data with sizes of order 2.
+            fsize = filter_size
+        elif filter_size_interpretation == "sideband distance":
             # filter size based on distance b/w central band and sideband
             if filter_size <= 0 or filter_size >= 1:
                 raise ValueError("For sideband distance interpretation, "
                                  "`filter_size` must be between 0 and 1; "
                                  f"got '{filter_size}'!")
-            fsize = np.sqrt(np.sum(filter_size**2)) * filter_size
-        elif filter_size_interpretation == "frequency":
-            # convert frequency to frequency index
-            # We always have padded Fourier data with sizes of order 2.
-            fsize = filter_size
+            fsize = np.sqrt(np.sum(np.array(freq_pos)**2)) * filter_size
         elif filter_size_interpretation == "frequency index":
             # filter size given in Fourier index (number of Fourier pixels)
             # The user probably does not know that we are padding in
@@ -68,16 +79,23 @@ class OffAxisHologram:
             raise ValueError("Invalid value for `filter_size_interpretation`: "
                              + f"'{filter_size_interpretation}'")
 
+        self.pipeline_kws = {
+            "filter_name": filter_name,
+            "filter_size": fsize,
+            "filter_size_interpretation": "frequency",
+            "sideband_freq": sideband_freq,
+            "sideband": sideband
+        }
+
         # perform filtering
         self.field = self.fft.filter(
             filter_name=filter_name, filter_size=fsize, freq_pos=freq_pos)
-        self.fft_filtered = self.fft.fft_filtered
 
         return self.field
 
 
 def find_peak_cosine(ft_data, copy=True):
-    """Find the side band position of a regular fringe hologram
+    """Find the side band position of a regular off-axis hologram
 
     The Fourier transform of a cosine function (known as the
     striped fringe pattern in off-axis holography) results in

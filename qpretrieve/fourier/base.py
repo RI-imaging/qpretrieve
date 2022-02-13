@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 
-from nrefocus import pad
 import numpy as np
 
 from .. import filter
@@ -35,9 +34,17 @@ class FFTFilter(ABC):
             # because of zero-padding)
             data -= data.mean()
         if padding:
-            data = pad.pad_add(data)
+            # zero padding size is next order of 2
+            (N, M) = data.shape
+            order = int(
+                max(64., 2 ** np.ceil(np.log(2 * max(N, M)) / np.log(2))))
+
+            # this is faster than np.pad
+            datapad = np.zeros((order, order), dtype=float)
+            datapad[:data.shape[0], :data.shape[1]] = data
             #: padded input data
-            self.origin_padded = data
+            self.origin_padded = datapad
+            data = datapad
         else:
             self.origin_padded = None
         #: frequency-shifted Fourier transform
@@ -117,5 +124,6 @@ class FFTFilter(ABC):
         self.fft_filtered[:] = self.fft_origin * filt_array
         image = self._ifft(self.fft_filtered)
         if self.padding:
-            image = pad.pad_rem(image, size=self.origin.shape)
+            sx, sy = self.origin.shape
+            image = image[:sx, :sy]
         return image

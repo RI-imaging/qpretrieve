@@ -6,10 +6,7 @@ and higher. qpretrieve depends on several other scientific Python packages,
 including:
 
  - `numpy <https://docs.scipy.org/doc/numpy/>`_,
- - `scipy <https://docs.scipy.org/doc/scipy/reference/>`_,
- - `h5py <https://docs.h5py.org/en/stable>`_ (caching),
- - `lmfit <https://lmfit.github.io/lmfit-py/>`_ (background estimation),
- - `nrefocus <https://nrefocus.readthedocs.io/>`_ (numerical focusing), and
+ - `scipy <https://docs.scipy.org/doc/scipy/reference/>`_, and
  - `scikit-image <http://scikit-image.org/>`_ (phase unwrapping using :py:func:`skimage.restoration.unwrap_phase`).
     
 

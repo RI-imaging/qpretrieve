@@ -83,11 +83,6 @@ class FFTFilter(ABC):
         -------
         fft_fdata: 2d complex-valued ndarray
             Fourier transform `data`
-
-        Notes
-        -----
-        Any subclass should perform padding with
-        :func:`nrefocus.pad.padd_add` during initialization.
         """
 
     def filter(self, filter_name, filter_size, freq_pos):

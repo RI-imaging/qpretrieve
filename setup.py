@@ -7,7 +7,7 @@ author = u"Paul Müller"
 authors = [author]
 description = 'library for phase retrieval from holograms'
 name = 'qpretrieve'
-year = "2017"
+year = "2022"
 
 sys.path.insert(0, realpath(dirname(__file__)) + "/" + name)
 from _version import version  # noqa: E402
@@ -23,12 +23,12 @@ setup(
     license="MIT",
     description=description,
     long_description=open('README.rst').read() if exists('README.rst') else '',
-    install_requires=["h5py>=2.7.0",
-                      "lmfit",
-                      "numpy>=1.9.0",
-                      "scikit-image>=0.11.0",
-                      "scipy>=0.18.0",
-                      ],
+    install_requires=[
+        "numpy>=1.9.0",
+        "scikit-image>=0.11.0",
+        "scipy>=0.18.0",
+        ],
+    extras_require={"FFTW": "pyfftw>=0.12.0"},
     python_requires='>=3.6, <4',
     keywords=["digital holographic microscopy",
               "optics",

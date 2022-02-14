@@ -10,8 +10,8 @@ except ImportError:
 def get_best_interface():
     """Return the fastest refocusing interface available
 
-    If `pyfftw` is installed, :class:`nrefocus.RefocusPyFFTW`
-    is returned. The fallback is :class:`nrefocus.RefocusNumpy`.
+    If `pyfftw` is installed, :class:`.FFTFilterPyFFTW`
+    is returned. The fallback is :class:`.FFTFilterNumpy`.
     """
     ordered_candidates = [
         FFTFilterPyFFTW,

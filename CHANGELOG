@@ -1,3 +1,6 @@
+0.2.0
+ - feat: implement FFT with PyFFTW
+ - setup: remove unused install_requires
 0.1.2
  - ref: add base class for Fourier hologram analysis
 0.1.1

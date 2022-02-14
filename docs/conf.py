@@ -196,8 +196,6 @@ intersphinx_mapping = {
     "numpy": ('http://docs.scipy.org/doc/numpy', None),
     "scipy": ('https://docs.scipy.org/doc/scipy/reference/', None),
     "skimage": ('http://scikit-image.org/docs/stable/', None),
-    "h5py": ('http://docs.h5py.org/en/stable/', None),
-    "lmfit": ('http://lmfit.github.io/lmfit-py/', None),
     "nrefocus": ('http://nrefocus.readthedocs.io/en/'+rtd_link, None),
     "drymass": ('http://drymass.readthedocs.io/en/'+rtd_link, None),
     "qpsphere": ('http://qpsphere.readthedocs.io/en/'+rtd_link, None),

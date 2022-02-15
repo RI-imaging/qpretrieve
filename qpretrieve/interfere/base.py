@@ -5,7 +5,7 @@ import numpy as np
 from ..fourier import get_best_interface
 
 
-class BaseHologram(ABC):
+class BaseInterferogram(ABC):
     def __init__(self, data, subtract_mean=True, copy=True):
         """Generic class for off-axis hologram data analysis"""
         ff_iface = get_best_interface()

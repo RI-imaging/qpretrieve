@@ -1,9 +1,9 @@
 import numpy as np
 
-from .base import BaseHologram
+from .base import BaseInterferogram
 
 
-class OffAxisHologram(BaseHologram):
+class OffAxisHologram(BaseInterferogram):
     """Generic class for off-axis hologram data analysis"""
     def run_pipeline(self, filter_name="disk", filter_size=1/3,
                      filter_size_interpretation="sideband distance",

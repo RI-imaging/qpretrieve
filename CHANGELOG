@@ -1,4 +1,5 @@
 0.2.0
+ - feat: add quadri-wave lateral shearing interferogram analysis
  - feat: implement FFT with PyFFTW
  - setup: remove unused install_requires
 0.1.2

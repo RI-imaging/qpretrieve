@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 
 import qpretrieve
-from qpretrieve.holo import h_oadhm
+from qpretrieve.interfere import if_oadhm
 
 
 def hologram(size=64):
@@ -31,7 +31,7 @@ def test_find_sideband():
     ft_data[2, 3] = 1
     ft_data[-3, -2] = 1
 
-    sb1 = h_oadhm.find_peak_cosine(ft_data=ft_data)
+    sb1 = if_oadhm.find_peak_cosine(ft_data=ft_data)
     assert np.allclose(sb1, (fx[2], fx[3]))
 
 

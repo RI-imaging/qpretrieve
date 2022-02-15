@@ -23,7 +23,12 @@ class FFTFilter(ABC):
             If set to True, make sur that `data` is not edited.
         """
         super(FFTFilter, self).__init__()
-        data = np.array(data, dtype=float, copy=copy)
+        if np.iscomplexobj(data):
+            dtype = complex
+        else:
+            # convert integer-arrays to floating point arrays
+            dtype = float
+        data = np.array(data, dtype=dtype, copy=copy)
         #: original data (with subtracted mean)
         self.origin = data
         #: whether padding is enabled

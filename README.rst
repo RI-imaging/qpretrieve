@@ -4,10 +4,10 @@ qpretrieve
 |PyPI Version| |Tests Status| |Coverage Status| |Docs Status|
 
 
-**qpretrieve** is a Python3 library for Fourier-based retrieval if quantitative
+**qpretrieve** is a Python3 library for Fourier-based retrieval of quantitative
 phase information from experimental data. If you are looking for a library to
 load quantitative phase data from various file formats, please take a glance at
-`qpformat <https://github.com/RI-imaging/qpformat>`.
+`qpformat <https://github.com/RI-imaging/qpformat>`__.
 
 
 Documentation

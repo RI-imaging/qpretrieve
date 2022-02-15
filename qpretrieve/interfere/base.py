@@ -70,7 +70,7 @@ class BaseInterferogram(ABC):
         return fsize
 
     def process_like(self, other):
-        assert other.__class__.name == self.__class__.__name__
+        assert other.__class__.__name__ == self.__class__.__name__
         self.pipeline_kws.clear()
         if not other.pipeline_kws:
             # run default pipeline

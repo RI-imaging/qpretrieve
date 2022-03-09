@@ -96,11 +96,13 @@ class QLSInterferogram(BaseInterferogram):
         rotated1 = rotate_noreshape(gradpad1, -angle)
         rotated2 = rotate_noreshape(gradpad2, -angle)
         ff_iface = get_best_interface()
+
+        # retrieve scalar field by integrating the vectorial components
+        # (integrate the total differential)
         rfft = ff_iface(data=rotated1 + 1j * rotated2,
                         subtract_mean=False,
                         padding=False,
                         copy=False)
-
         fx = np.fft.fftfreq(rfft.shape[0]).reshape(-1, 1)
         fy = np.fft.fftfreq(rfft.shape[1]).reshape(1, -1)
         fxy = -2*np.pi*1j * (fx + 1j*fy)

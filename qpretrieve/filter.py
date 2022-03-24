@@ -81,7 +81,7 @@ def get_filter_array(filter_name, filter_size, freq_pos, fft_shape):
         filter_arr /= filter_arr.max()
     elif filter_name == "square":
         filter_arr = (np.abs(fxc) <= filter_size) \
-                      * (np.abs(fyc) <= filter_size)
+            * (np.abs(fyc) <= filter_size)
     elif filter_name == "smooth square":
         blur = filter_size / 5
         tau = 2 * blur ** 2

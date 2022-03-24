@@ -2,6 +2,8 @@
  - feat: add quadri-wave lateral shearing interferogram analysis
  - feat: implement FFT with PyFFTW
  - setup: remove unused install_requires
+ - ref: clean up BaseInterferogram and support passing pipeline
+   keyword arguments during init
 0.1.2
  - ref: add base class for Fourier hologram analysis
 0.1.1

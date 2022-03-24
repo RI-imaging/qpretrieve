@@ -222,13 +222,13 @@ def test_get_field_sideband():
     data = hologram()
     holo = qpretrieve.OffAxisHologram(data)
     holo.run_pipeline()
-    sideband = holo.pipeline_kws["sideband"]
+    invert_phase = holo.pipeline_kws["invert_phase"]
 
     kwargs = dict(filter_name="disk",
                   filter_size=1 / 3)
 
-    res1 = holo.run_pipeline(sideband=+1, **kwargs)
-    res2 = holo.run_pipeline(sideband=sideband, **kwargs)
+    res1 = holo.run_pipeline(invert_phase=False, **kwargs)
+    res2 = holo.run_pipeline(invert_phase=invert_phase, **kwargs)
     assert np.all(res1 == res2)
 
 

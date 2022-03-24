@@ -5,37 +5,43 @@ from .base import BaseInterferogram
 
 class OffAxisHologram(BaseInterferogram):
     """Generic class for off-axis hologram data analysis"""
-    def run_pipeline(self, filter_name="disk", filter_size=1/3,
-                     filter_size_interpretation="sideband distance",
-                     sideband_freq=None, sideband=+1):
-        if sideband_freq is None:
-            sideband_freq = find_peak_cosine(self.fft.fft_origin)
+    default_pipeline_kws = {
+        "filter_name": "disk",
+        "filter_size": 1 / 3,
+        "filter_size_interpretation": "sideband distance",
+        "sideband_freq": None,
+        "invert_phase": False,
+    }
 
-        # Get the position of the sideband in frequencies
-        if sideband == +1:
-            freq_pos = sideband_freq
-        elif sideband == -1:
-            freq_pos = list(-np.array(sideband_freq))
-        else:
-            raise ValueError("`sideband` must be +1 or -1!")
+    def run_pipeline(self, **pipeline_kws):
+        for key in self.default_pipeline_kws:
+            if key not in pipeline_kws:
+                pipeline_kws[key] = self.get_pipeline_kw(key)
+
+        if pipeline_kws["sideband_freq"] is None:
+            pipeline_kws["sideband_freq"] = find_peak_cosine(
+                self.fft.fft_origin)
 
         # convert filter_size to frequency coordinates
         fsize = self.compute_filter_size(
-            filter_size=filter_size,
-            filter_size_interpretation=filter_size_interpretation,
-            sideband_freq=sideband_freq)
+            filter_size=pipeline_kws["filter_size"],
+            filter_size_interpretation=(
+                pipeline_kws["filter_size_interpretation"]),
+            sideband_freq=pipeline_kws["sideband_freq"])
 
-        self.pipeline_kws = {
-            "filter_name": filter_name,
-            "filter_size": fsize,
-            "filter_size_interpretation": "frequency",
-            "sideband_freq": sideband_freq,
-            "sideband": sideband
-        }
+        # Invert phase by negating the frequency
+        if pipeline_kws["invert_phase"]:
+            freq_pos = list(-np.array(pipeline_kws["sideband_freq"]))
+        else:
+            freq_pos = pipeline_kws["sideband_freq"]
 
         # perform filtering
         self.field = self.fft.filter(
-            filter_name=filter_name, filter_size=fsize, freq_pos=freq_pos)
+            filter_name=pipeline_kws["filter_name"],
+            filter_size=fsize,
+            freq_pos=freq_pos)
+
+        self.pipeline_kws.update(pipeline_kws)
 
         return self.field
 

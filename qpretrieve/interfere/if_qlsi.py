@@ -33,6 +33,14 @@ class QLSReference:
 
 class QLSInterferogram(BaseInterferogram):
     """Generic class for quadri-wave lateral shearing holograms"""
+    default_pipeline_kws = {
+        "filter_name": "square",
+        "filter_size": 400,
+        "filter_size_interpretation": "frequency index",
+        "sideband_freq": None,
+        "invert_phase": False,
+    }
+
     def __init__(self, data, reference=None, *args, **kwargs):
         super(QLSInterferogram, self).__init__(data, *args, **kwargs)
         if reference is not None:
@@ -54,23 +62,27 @@ class QLSInterferogram(BaseInterferogram):
             self.run_pipeline()
         return self._phase
 
-    def run_pipeline(self, filter_name="square", filter_size=400,
-                     filter_size_interpretation="frequency index",
-                     sideband_freq=None, sideband=+1):
-        if sideband_freq is None:
-            sideband_freq = find_peaks_qlsi(self.fft.fft_origin)
+    def run_pipeline(self, **pipeline_kws):
+        for key in self.default_pipeline_kws:
+            if key not in pipeline_kws:
+                pipeline_kws[key] = self.get_pipeline_kw(key)
+
+        if pipeline_kws["sideband_freq"] is None:
+            pipeline_kws["filter_name"], = find_peaks_qlsi(
+                self.fft.fft_origin)
 
         # convert filter_size to frequency coordinates
         fsize = self.compute_filter_size(
-            filter_size=filter_size,
-            filter_size_interpretation=filter_size_interpretation,
-            sideband_freq=sideband_freq)
+            filter_size=pipeline_kws["filter_size"],
+            filter_size_interpretation=(
+                pipeline_kws["filter_size_interpretation"]),
+            sideband_freq=pipeline_kws["sideband_freq"])
 
-        fx, fy = sideband_freq
-        hx = self.fft.filter(filter_name=filter_name,
+        fx, fy = pipeline_kws["sideband_freq"]
+        hx = self.fft.filter(filter_name=pipeline_kws["filter_name"],
                              filter_size=fsize,
                              freq_pos=(fx, fy))
-        hy = self.fft.filter(filter_name=filter_name,
+        hy = self.fft.filter(filter_name=pipeline_kws["filter_name"],
                              filter_size=fsize,
                              freq_pos=(-fy, fx))
 
@@ -78,9 +90,9 @@ class QLSInterferogram(BaseInterferogram):
         py = unwrap_phase(np.angle(hy))
 
         pbgx, pbgy = self.reference.get_gradients(
-            filter_name=filter_name,
+            filter_name=pipeline_kws["filter_name"],
             filter_size=fsize,
-            sideband_freq=sideband_freq)
+            sideband_freq=pipeline_kws["sideband_freq"])
 
         px -= pbgx
         py -= pbgy
@@ -116,6 +128,9 @@ class QLSInterferogram(BaseInterferogram):
         self._amplitude = amp / self.reference.amplitude
 
         self.field = self._amplitude * np.exp(1j*2*np.pi*self._phase)
+
+        self.pipeline_kws.update(pipeline_kws)
+
         return self.field
 
     def set_reference(self, reference):

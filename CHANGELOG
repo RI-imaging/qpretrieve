@@ -1,5 +1,6 @@
 0.2.0
- - feat: add quadri-wave lateral shearing interferogram analysis
+ - feat: add quadri-wave prototype for quadriwave lateral shearing
+   interferometry (subject to future refactoring and breaking changes)
  - feat: implement FFT with PyFFTW
  - setup: remove unused install_requires
  - ref: clean up BaseInterferogram and support passing pipeline

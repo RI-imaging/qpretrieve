@@ -29,18 +29,16 @@ class OffAxisHologram(BaseInterferogram):
                 pipeline_kws["filter_size_interpretation"]),
             sideband_freq=pipeline_kws["sideband_freq"])
 
-        # Invert phase by negating the frequency
-        if pipeline_kws["invert_phase"]:
-            freq_pos = list(-np.array(pipeline_kws["sideband_freq"]))
-        else:
-            freq_pos = pipeline_kws["sideband_freq"]
-
         # perform filtering
-        self.field = self.fft.filter(
+        field = self.fft.filter(
             filter_name=pipeline_kws["filter_name"],
             filter_size=fsize,
-            freq_pos=freq_pos)
+            freq_pos=tuple(pipeline_kws["sideband_freq"]))
 
+        if pipeline_kws["invert_phase"]:
+            field.imag *= -1
+
+        self.field = field
         self.pipeline_kws.update(pipeline_kws)
 
         return self.field

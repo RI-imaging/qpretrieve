@@ -1,3 +1,5 @@
+import multiprocessing as mp
+
 import pyfftw
 
 from .base import FFTFilter
@@ -24,7 +26,9 @@ class FFTFilterPyFFTW(FFTFilter):
         """
         in_arr = pyfftw.empty_aligned(data.shape, dtype='complex128')
         out_arr = pyfftw.empty_aligned(data.shape, dtype='complex128')
-        fft_obj = pyfftw.FFTW(in_arr, out_arr, axes=(0, 1))
+        fft_obj = pyfftw.FFTW(in_arr, out_arr,
+                              axes=(0, 1),
+                              threads=mp.cpu_count())
         in_arr[:] = data
         fft_obj()
         return out_arr

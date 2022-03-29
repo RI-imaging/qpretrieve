@@ -1,3 +1,5 @@
+0.2.2
+ - enh: use multiprocessing.cpu_count() as threads argument for FFTW
 0.2.1
  - ref: invert phase by multiplying field.imag by -1 in OAH
 0.2.0

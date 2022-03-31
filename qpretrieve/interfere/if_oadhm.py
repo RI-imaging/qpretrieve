@@ -13,6 +13,22 @@ class OffAxisHologram(BaseInterferogram):
         "invert_phase": False,
     }
 
+    @property
+    def phase(self):
+        """Retrieved phase information"""
+        if self._field is None:
+            self.run_pipeline()
+            self._phase = np.angle(self._field)
+        return self._phase
+
+    @property
+    def amplitude(self):
+        """Retrieved amplitude information"""
+        if self._field is None:
+            self.run_pipeline()
+            self._amplitude = np.abs(self._field)
+        return self._amplitude
+
     def run_pipeline(self, **pipeline_kws):
         for key in self.default_pipeline_kws:
             if key not in pipeline_kws:
@@ -38,7 +54,7 @@ class OffAxisHologram(BaseInterferogram):
         if pipeline_kws["invert_phase"]:
             field.imag *= -1
 
-        self.field = field
+        self._field = field
         self.pipeline_kws.update(pipeline_kws)
 
         return self.field

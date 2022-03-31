@@ -49,24 +49,33 @@ class BaseInterferogram(ABC):
         self.fft_origin = self.fft.fft_origin
         #: filtered Fourier data from last run of `run_pipeline`
         self.fft_filtered = self.fft.fft_filtered
-        #: last result of `run_pipeline`
-        self.field = None
         #: pipeline keyword arguments
         self.pipeline_kws = pipeline_kws
+        # Subclasses con override the properties phase, amplitude, and field
+        self._field = None
+        self._phase = None
+        self._ampltitude = None
 
     @property
     def phase(self):
         """Retrieved phase information"""
-        if self.field is None:
+        if self._phase is None:
             self.run_pipeline()
-        return np.angle(self.field)
+        return self._phase
 
     @property
     def amplitude(self):
         """Retrieved amplitude information"""
-        if self.field is None:
+        if self._ampltitude is None:
             self.run_pipeline()
-        return np.abs(self.field)
+        return self._ampltitude
+
+    @property
+    def field(self):
+        """Retrieved amplitude information"""
+        if self._field is None:
+            self.run_pipeline()
+        return self._field
 
     def compute_filter_size(self, filter_size, filter_size_interpretation,
                             sideband_freq=None):

@@ -1,3 +1,7 @@
+0.2.3
+ - fix: allow computation of QLSI wavefront without reference image
+ - ref: turn field into a property and let subclasses define how to
+   compute phase and amplitude
 0.2.2
  - enh: use multiprocessing.cpu_count() as threads argument for FFTW
 0.2.1

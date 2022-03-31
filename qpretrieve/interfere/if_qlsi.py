@@ -47,14 +47,23 @@ class QLSInterferogram(BaseInterferogram):
             self.set_reference(reference)
         else:
             self.reference = None
+
+        self.wavefront = None
         self._phase = None
         self._amplitude = None
+        self._field = None
 
     @property
     def amplitude(self):
         if self._amplitude is None:
             self.run_pipeline()
         return self._amplitude
+
+    @property
+    def field(self):
+        if self._field is None:
+            self._field = self.amplitude * np.exp(1j*2*np.pi*self.phase)
+        return self._field
 
     @property
     def phase(self):
@@ -68,7 +77,7 @@ class QLSInterferogram(BaseInterferogram):
                 pipeline_kws[key] = self.get_pipeline_kw(key)
 
         if pipeline_kws["sideband_freq"] is None:
-            pipeline_kws["filter_name"], = find_peaks_qlsi(
+            pipeline_kws["sideband_freq"] = find_peaks_qlsi(
                 self.fft.fft_origin)
 
         # convert filter_size to frequency coordinates
@@ -89,13 +98,14 @@ class QLSInterferogram(BaseInterferogram):
         px = unwrap_phase(np.angle(hx))
         py = unwrap_phase(np.angle(hy))
 
-        pbgx, pbgy = self.reference.get_gradients(
-            filter_name=pipeline_kws["filter_name"],
-            filter_size=fsize,
-            sideband_freq=pipeline_kws["sideband_freq"])
+        if self.reference:
+            pbgx, pbgy = self.reference.get_gradients(
+                filter_name=pipeline_kws["filter_name"],
+                filter_size=fsize,
+                sideband_freq=pipeline_kws["sideband_freq"])
 
-        px -= pbgx
-        py -= pbgy
+            px -= pbgx
+            py -= pbgy
 
         angle = np.arctan2(fy, fx)
 
@@ -120,18 +130,23 @@ class QLSInterferogram(BaseInterferogram):
         fxy = -2*np.pi*1j * (fx + 1j*fy)
         fxy[0, 0] = 1
 
-        phaser = rfft._ifft(np.fft.ifftshift(rfft.fft_origin)/fxy).real
+        wfr = rfft._ifft(np.fft.ifftshift(rfft.fft_origin)/fxy).real
 
-        self._phase = rotate_noreshape(phaser,
-                                       angle)[sx//2:-sx//2, sy//2:-sy//2]
+        raw_wavefront = rotate_noreshape(wfr,
+                                         angle)[sx//2:-sx//2, sy//2:-sy//2]
+
+        self._phase = raw_wavefront
         amp = np.abs(hx) + np.abs(hy)
-        self._amplitude = amp / self.reference.amplitude
 
-        self.field = self._amplitude * np.exp(1j*2*np.pi*self._phase)
+        self._amplitude = amp
+        if self.reference:
+            self._amplitude /= self.reference.amplitude
 
         self.pipeline_kws.update(pipeline_kws)
 
-        return self.field
+        self.wavefront = raw_wavefront
+
+        return raw_wavefront
 
     def set_reference(self, reference):
         self.reference = QLSReference(reference)

@@ -6,7 +6,7 @@ from .. import filter
 
 
 class FFTFilter(ABC):
-    def __init__(self, data, subtract_mean=True, padding=True, copy=True):
+    def __init__(self, data, subtract_mean=True, padding=2, copy=True):
         r"""
         Parameters
         ----------
@@ -17,10 +17,15 @@ class FFTFilter(ABC):
             the Fourier transform. This setting is recommended as it
             can reduce artifacts from frequencies around the central
             band.
-        padding: bool
-            Whether to perform boundary-padding with linear ramp
+        padding: int
+            Boundary padding with zeros; This value determines how
+            large the padding region should be. If set to zero, then
+            no padding is performed. If set to a positive integer, the
+            size is computed to the next power of two (square image)::
+
+                2 ** np.ceil(np.log(padding * max(data.shape) / np.log(2)))
         copy: bool
-            If set to True, make sur that `data` is not edited.
+            If set to True, make sure that `data` is not edited.
         """
         super(FFTFilter, self).__init__()
         if np.iscomplexobj(data):
@@ -40,18 +45,17 @@ class FFTFilter(ABC):
             data -= data.mean()
         if padding:
             # zero padding size is next order of 2
-            (N, M) = data.shape
-            order = int(
-                max(64., 2 ** np.ceil(np.log(2 * max(N, M)) / np.log(2))))
-
+            logfact = np.log(padding * max(data.shape))
+            order = int(2 ** np.ceil(logfact / np.log(2)))
             # this is faster than np.pad
-            datapad = np.zeros((order, order), dtype=float)
+            datapad = np.zeros((order, order), dtype=dtype)
             datapad[:data.shape[0], :data.shape[1]] = data
             #: padded input data
             self.origin_padded = datapad
             data = datapad
         else:
             self.origin_padded = None
+
         #: frequency-shifted Fourier transform
         self.fft_origin = np.fft.fftshift(self._init_fft(data))
         #: filtered Fourier transform
@@ -127,6 +131,7 @@ class FFTFilter(ABC):
         shifted = np.roll(np.roll(self.fft_filtered, -px, axis=0), -py, axis=1)
         field = self._ifft(np.fft.ifftshift(shifted))
         if self.padding:
+            # revert padding
             sx, sy = self.origin.shape
             field = field[:sx, :sy]
         return field

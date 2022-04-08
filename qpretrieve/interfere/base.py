@@ -14,7 +14,7 @@ class BaseInterferogram(ABC):
         "invert_phase": False,
     }
 
-    def __init__(self, data, subtract_mean=True, padding=True, copy=True,
+    def __init__(self, data, subtract_mean=True, padding=2, copy=True,
                  **pipeline_kws):
         """Generic class for off-axis hologram data analysis
 
@@ -26,10 +26,12 @@ class BaseInterferogram(ABC):
             can reduce artifacts from frequencies around the central
             band.
         padding: bool
-            Whether to perform boundary-padding with linear ramp.
-            Setting `padding` to `False` increases speed but might
-            introduce image distortions such as tilts in the phase
-            and amplitude data or dark borders in the amplitude data.
+            Boundary padding with zeros; This value determines how
+            large the padding region should be. If set to zero, then
+            no padding is performed. If set to a positive integer, the
+            size is computed to the next power of two (square image)::
+
+                2 ** np.ceil(np.log(padding * max(data.shape) / np.log(2)))
         copy: bool
             Whether to create a copy of the input data.
         pipeline_kws: dict

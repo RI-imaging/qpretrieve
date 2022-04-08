@@ -1,3 +1,7 @@
+0.2.4
+ - enh: allow to specify approximate padding size in FFTFilter
+ - docs: update wrong docs stated padding with linear ramp, but
+   we are doing zero-padding
 0.2.3
  - fix: allow computation of QLSI wavefront without reference image
  - ref: turn field into a property and let subclasses define how to

@@ -148,6 +148,7 @@ class QLSInterferogram(BaseInterferogram):
         return raw_wavefront
 
     def set_reference(self, reference):
+        # TODO: cache reference datasets
         self.reference = QLSReference(
             reference,
             padding=self.fft.padding,

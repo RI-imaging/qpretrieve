@@ -9,12 +9,11 @@ from ..fourier import get_best_interface
 
 
 class QLSReference:
-    def __init__(self, reference):
+    def __init__(self, reference, **fft_kwargs):
         ff_iface = get_best_interface()
         self.fft = ff_iface(data=reference,
-                            subtract_mean=True,
-                            padding=True,
-                            copy=True)
+                            copy=True,
+                            **fft_kwargs)
 
     @lru_cache(maxsize=32)
     def get_gradients(self, filter_name, filter_size, sideband_freq):
@@ -149,7 +148,11 @@ class QLSInterferogram(BaseInterferogram):
         return raw_wavefront
 
     def set_reference(self, reference):
-        self.reference = QLSReference(reference)
+        self.reference = QLSReference(
+            reference,
+            padding=self.fft.padding,
+            subtract_mean=self.fft.subtract_mean,
+        )
 
 
 def find_peaks_qlsi(ft_data, periodicity=4, copy=True):

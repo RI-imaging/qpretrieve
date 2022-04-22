@@ -38,6 +38,8 @@ class FFTFilter(ABC):
         self.origin = data
         #: whether padding is enabled
         self.padding = padding
+        #: whether the mean was subtracted
+        self.subtract_mean = subtract_mean
         if subtract_mean:
             # remove contributions of the central band
             # (this affects more than one pixel in the FFT

@@ -1,3 +1,6 @@
+0.2.5
+ - fix: make sure the reference QLSI image is treated exactly like
+   the data QLSI image in terms of padding and subtracting mean
 0.2.4
  - enh: allow to specify approximate padding size in FFTFilter
  - docs: update wrong docs stated padding with linear ramp, but

@@ -221,7 +221,7 @@ def find_peaks_qlsi(ft_data, periodicity=4, copy=True):
 
 
 def rotate_noreshape(arr, angle, mode="mirror", reshape=False):
-    return scipy.ndimage.interpolation.rotate(
+    return scipy.ndimage.rotate(
         arr,  # input
         angle=np.rad2deg(angle),  # angle
         reshape=reshape,  # reshape

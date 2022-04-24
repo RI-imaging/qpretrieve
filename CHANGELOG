@@ -1,4 +1,6 @@
 0.2.6
+ - enh: allow to select preferred Fourier transform interface via
+   e.g. `qpretrieve.fourier.PREFERRED_INTERFACE = "FFTFilterNumpy"`
  - ref: rename OAH module internally
 0.2.5
  - fix: make sure the reference QLSI image is treated exactly like

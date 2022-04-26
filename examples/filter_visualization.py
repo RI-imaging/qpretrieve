@@ -32,7 +32,7 @@ for fn in qpretrieve.filter.available_filters:
 num_filters = len(results)
 
 # plot the properties of `qpi`
-fig = plt.figure(figsize=(3.6, 10))
+fig = plt.figure(figsize=(8, 22))
 
 for row, name in enumerate(results):
     ax1 = plt.subplot(num_filters, 2, 2*row+1)

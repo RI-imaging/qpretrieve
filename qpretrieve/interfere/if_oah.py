@@ -18,6 +18,7 @@ class OffAxisHologram(BaseInterferogram):
         """Retrieved phase information"""
         if self._field is None:
             self.run_pipeline()
+        if self._phase is None:
             self._phase = np.angle(self._field)
         return self._phase
 

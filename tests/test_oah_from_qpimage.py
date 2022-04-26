@@ -96,7 +96,7 @@ def test_get_field_filter_names():
 
     r_smsquare = holo.run_pipeline(filter_name="smooth square", **kwargs)
     assert np.allclose(
-        r_smsquare[32, 32], 105.23157221309754 - 70.593282942004862j)
+        r_smsquare[32, 32], 108.36651862466393-67.17988960794392j)
 
     r_tukey = holo.run_pipeline(filter_name="tukey", **kwargs)
     assert np.allclose(

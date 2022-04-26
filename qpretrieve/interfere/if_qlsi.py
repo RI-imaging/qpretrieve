@@ -1,4 +1,5 @@
 from functools import lru_cache
+import warnings
 
 import numpy as np
 import scipy
@@ -38,6 +39,8 @@ class QLSInterferogram(BaseInterferogram):
         "filter_size_interpretation": "frequency index",
         "sideband_freq": None,
         "invert_phase": False,
+        "wavelength": None,
+        "qlsi_pitch_term": None,
     }
 
     def __init__(self, data, reference=None, *args, **kwargs):
@@ -71,6 +74,50 @@ class QLSInterferogram(BaseInterferogram):
         return self._phase
 
     def run_pipeline(self, **pipeline_kws):
+        """Run QLSI analysis pipeline
+
+        Parameters
+        ----------
+        filter_name: str
+            specifies the filter to use, see
+            :func:`qpretrieve.filter.get_filter_array`.
+        filter_size: float
+            Size of the filter in Fourier space. The interpretation
+            of this value depends on `filter_size_interpretation`.
+        filter_size_interpretation: str
+            If set to "sideband distance", the filter size is interpreted
+            as the relative distance between central band and sideband
+            (this is the default). If set to "frequency index", the filter
+            size is interpreted as a Fourier frequency index ("pixel size")
+            and must be between 0 and `max(hologram.shape)/2`.
+        sideband_freq: tuple of floats
+            Frequency coordinates of the sideband to use. By default,
+            a heuristic search for the sideband is done.
+        invert_phase: bool
+            Invert the phase data.
+        wavelength: float
+            Wavelength to convert from the wavefront in meters to radians.
+        qlsi_pitch_term: float
+            Scaling term converting the integrated gradient image to
+            the unit meters. This term is dependent on the lattice
+            constant of the grating :math:`L`, the distance between the
+            grating and the camera sensor :math:`d` and the physical camera
+            pixel width :math:`a` according to
+
+            .. math::
+
+                \text{pitch_term} = \frac{La}{d}
+
+            For the case where the lattice constant is four times the
+            pixel width, this simplifies to :math:`4a^2/d`. Note
+            that for a relay-lens system (grating not directly attached
+            to the sensor) this factor is wavelength dependent due to
+            chromatic aberrations introduced by the lenses. For
+            gratings-on-a-camera configurations (e.g. Phasics SID4Bio),
+            this is a device-specific quantity which has to be determined
+            only once. E.g. for our SID4Bio camera, this value is
+            0.01887711 µm (1.87711e-08 m).
+        """
         for key in self.default_pipeline_kws:
             if key not in pipeline_kws:
                 pipeline_kws[key] = self.get_pipeline_kw(key)
@@ -85,6 +132,20 @@ class QLSInterferogram(BaseInterferogram):
             filter_size_interpretation=(
                 pipeline_kws["filter_size_interpretation"]),
             sideband_freq=pipeline_kws["sideband_freq"])
+
+        # get pitch ratio
+        qlsi_pitch_term = pipeline_kws["qlsi_pitch_term"]
+        if qlsi_pitch_term is None:
+            warnings.warn("No `qlsi_pitch_term` specified! Your phase data "
+                          "is only qualitative, not quantitatively correct!")
+            qlsi_pitch_term = 1
+
+        # get pitch ratio
+        wavelength = pipeline_kws["wavelength"]
+        if wavelength is None:
+            warnings.warn("No `wavelength` specified! Your phase data "
+                          "is only qualitative, not quantitatively correct!")
+            wavelength = 1
 
         fx, fy = pipeline_kws["sideband_freq"]
         hx = self.fft.filter(filter_name=pipeline_kws["filter_name"],
@@ -133,8 +194,9 @@ class QLSInterferogram(BaseInterferogram):
 
         raw_wavefront = rotate_noreshape(wfr,
                                          angle)[sx//2:-sx//2, sy//2:-sy//2]
+        raw_wavefront *= qlsi_pitch_term
 
-        self._phase = raw_wavefront
+        self._phase = raw_wavefront / wavelength * 2 * np.pi
         amp = np.abs(hx) + np.abs(hy)
 
         self._amplitude = amp

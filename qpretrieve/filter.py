@@ -4,6 +4,16 @@ import numpy as np
 from scipy import signal
 
 
+available_filters = [
+    "disk",
+    "smooth disk",
+    "gauss",
+    "square",
+    "smooth square",
+    "tukey",
+]
+
+
 @lru_cache(maxsize=32)
 def get_filter_array(filter_name, filter_size, freq_pos, fft_shape):
     """Create a Fourier filter for holography
@@ -13,12 +23,12 @@ def get_filter_array(filter_name, filter_size, freq_pos, fft_shape):
     filter_name: str
         specifies the filter to use, one of
 
-        - "disk": binary disk with radius `filter_size`
-        - "smooth disk": disk with radius `filter_size` convolved
+        - "disk": binary disk with diameter `filter_size`
+        - "smooth disk": disk with diameter `filter_size` convolved
           with a radial gaussian (`sigma=filter_size/5`)
         - "gauss": radial gaussian (`sigma=0.6*filter_size`)
-        - "square": binary square with side length `filter_size`
-        - "smooth square": square with side length `filter_size`
+        - "square": binary square with side length `2*filter_size`
+        - "smooth square": square with side length `2*filter_size`
           convolved with square gaussian (`sigma=filter_size/5`)
         - "tukey": a square tukey window of width `2*filter_size` and
           `alpha=0.1`
@@ -85,8 +95,9 @@ def get_filter_array(filter_name, filter_size, freq_pos, fft_shape):
     elif filter_name == "smooth square":
         blur = filter_size / 5
         tau = 2 * blur ** 2
-        square = (np.abs(fxc) < filter_size) * (np.abs(fyc) < filter_size)
-        gauss = np.exp(-(fy ** 2) / tau) * np.exp(-(fy ** 2) / tau)
+        square = (np.abs(fxc) <= filter_size) \
+            * (np.abs(fyc) <= filter_size)
+        gauss = np.exp(-(fx ** 2) / tau) * np.exp(-(fy ** 2) / tau)
         filter_arr = signal.convolve(square, gauss, mode="same")
         filter_arr /= filter_arr.max()
     elif filter_name == "tukey":

@@ -1,3 +1,8 @@
+0.2.7
+ - enh: allow to specify qlsi_pitch_term and use wavelength to convert
+   wavefront distances to phase for QLSI data
+ - fix: smooth square filter was not symmetric in x and y
+ - docs: fix filter description for square filters (double filter size)
 0.2.6
  - enh: allow to select preferred Fourier transform interface via
    e.g. `qpretrieve.fourier.PREFERRED_INTERFACE = "FFTFilterNumpy"`

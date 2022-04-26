@@ -35,8 +35,8 @@ class QLSInterferogram(BaseInterferogram):
     """Generic class for quadri-wave lateral shearing holograms"""
     default_pipeline_kws = {
         "filter_name": "square",
-        "filter_size": 400,
-        "filter_size_interpretation": "frequency index",
+        "filter_size": 0.5,
+        "filter_size_interpretation": "sideband distance",
         "sideband_freq": None,
         "invert_phase": False,
         "wavelength": None,

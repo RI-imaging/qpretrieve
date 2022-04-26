@@ -1,3 +1,6 @@
+0.2.8
+ - fix: replace hard-coded filter size of 400 with half the sideband
+   distance for QLSI data
 0.2.7
  - enh: allow to specify qlsi_pitch_term and use wavelength to convert
    wavefront distances to phase for QLSI data

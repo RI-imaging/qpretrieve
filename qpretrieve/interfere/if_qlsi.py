@@ -147,6 +147,8 @@ class QLSInterferogram(BaseInterferogram):
                           "is only qualitative, not quantitatively correct!")
             wavelength = 1
 
+        # Obtain Hx and Hy by filtering the Fourier transform at the
+        # two frequencies and performing an inverse Fourier transform.
         fx, fy = pipeline_kws["sideband_freq"]
         hx = self.fft.filter(filter_name=pipeline_kws["filter_name"],
                              filter_size=fsize,
@@ -155,9 +157,14 @@ class QLSInterferogram(BaseInterferogram):
                              filter_size=fsize,
                              freq_pos=(-fy, fx))
 
+        # Obtain the phase gradients in x and y by taking the argument
+        # of Hx and Hy.
         px = unwrap_phase(np.angle(hx))
         py = unwrap_phase(np.angle(hy))
 
+        # Compute reference phase gradients (if applicable) and subtract
+        # them from the phase.
+        # TODO: This can be avoided by dividing fft with the ref fft?
         if self.reference:
             pbgx, pbgy = self.reference.get_gradients(
                 filter_name=pipeline_kws["filter_name"],
@@ -167,36 +174,53 @@ class QLSInterferogram(BaseInterferogram):
             px -= pbgx
             py -= pbgy
 
+        # Determine the angle by which we have to rotate the gradients in
+        # order for them to be aligned with x and y. This angle is defined
+        # by the frequency positions.
         angle = np.arctan2(fy, fx)
 
+        # Pad the gradient information so that we can rotate with cropping
+        # (keeping the image shape the same).
+        # TODO: Make padding dependent on rotation angle to save time?
         sx, sy = self.fft_origin.shape
         gradpad1 = np.pad(px, ((sx // 2, sx // 2), (sy // 2, sy // 2)),
                           mode="median")
         gradpad2 = np.pad(py, ((sx // 2, sx // 2), (sy // 2, sy // 2)),
                           mode="median")
 
+        # Perform rotation of the gradients.
         rotated1 = rotate_noreshape(gradpad1, -angle)
         rotated2 = rotate_noreshape(gradpad2, -angle)
-        ff_iface = get_best_interface()
 
-        # retrieve scalar field by integrating the vectorial components
-        # (integrate the total differential)
+        # Retrieve the wavefront by integrating the vectorial components
+        # (integrate the total differential). This magical approach
+        # puts the x gradient in the real and the y gradient in the imaginary
+        # part.
+        ff_iface = get_best_interface()
         rfft = ff_iface(data=rotated1 + 1j * rotated2,
                         subtract_mean=False,
                         padding=False,
                         copy=False)
+        # Compute the frequencies that correspond to the frequencies of the
+        # Fourier-transformed image.
         fx = np.fft.fftfreq(rfft.shape[0]).reshape(-1, 1)
         fy = np.fft.fftfreq(rfft.shape[1]).reshape(1, -1)
         fxy = -2*np.pi*1j * (fx + 1j*fy)
         fxy[0, 0] = 1
 
+        # The wavefront is the real part of the inverse Fourier transform
+        # of the filtered (divided by frequencies) data.
         wfr = rfft._ifft(np.fft.ifftshift(rfft.fft_origin)/fxy).real
 
+        # Rotate the wavefront back and crop it so that the FOV matches
+        # the input data.
         raw_wavefront = rotate_noreshape(wfr,
                                          angle)[sx//2:-sx//2, sy//2:-sy//2]
+        # Multiply by qlsi pitch term to get a quantitative wavefront.
         raw_wavefront *= qlsi_pitch_term
 
         self._phase = raw_wavefront / wavelength * 2 * np.pi
+        # TODO: Is adding these abs values really the amplitude?
         amp = np.abs(hx) + np.abs(hy)
 
         self._amplitude = amp

@@ -1,3 +1,5 @@
+0.2.9
+ - enh: add comments in QLSI source code explaining what is being done
 0.2.8
  - fix: replace hard-coded filter size of 400 with half the sideband
    distance for QLSI data

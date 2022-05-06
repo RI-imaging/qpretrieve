@@ -9,28 +9,6 @@ from .base import BaseInterferogram
 from ..fourier import get_best_interface
 
 
-class QLSReference:
-    def __init__(self, reference, **fft_kwargs):
-        ff_iface = get_best_interface()
-        self.fft = ff_iface(data=reference,
-                            copy=True,
-                            **fft_kwargs)
-
-    @lru_cache(maxsize=32)
-    def get_gradients(self, filter_name, filter_size, sideband_freq):
-        fx, fy = sideband_freq
-        hx = self.fft.filter(filter_name=filter_name,
-                             filter_size=filter_size,
-                             freq_pos=(fx, fy))
-        px = unwrap_phase(np.angle(hx))
-        hy = self.fft.filter(filter_name=filter_name,
-                             filter_size=filter_size,
-                             freq_pos=(-fy, fx))
-        py = unwrap_phase(np.angle(hy))
-        self.amplitude = np.abs(hx) + np.abs(hy)
-        return px, py
-
-
 class QLSInterferogram(BaseInterferogram):
     """Generic class for quadri-wave lateral shearing holograms"""
     default_pipeline_kws = {
@@ -45,10 +23,12 @@ class QLSInterferogram(BaseInterferogram):
 
     def __init__(self, data, reference=None, *args, **kwargs):
         super(QLSInterferogram, self).__init__(data, *args, **kwargs)
+        ff_iface = get_best_interface()
+
         if reference is not None:
-            self.set_reference(reference)
-        else:
-            self.reference = None
+            self.fft_ref = ff_iface(data=reference,
+                                    subtract_mean=self.fft.subtract_mean,
+                                    padding=self.fft.padding)
 
         self.wavefront = None
         self._phase = None
@@ -157,22 +137,21 @@ class QLSInterferogram(BaseInterferogram):
                              filter_size=fsize,
                              freq_pos=(-fy, fx))
 
+        # Subtract the reference from the gradient data
+        if self.fft_ref is not None:
+            hbx = self.fft_ref.filter(filter_name=pipeline_kws["filter_name"],
+                                      filter_size=fsize,
+                                      freq_pos=(fx, fy))
+            hby = self.fft_ref.filter(filter_name=pipeline_kws["filter_name"],
+                                      filter_size=fsize,
+                                      freq_pos=(-fy, fx))
+            hx /= hbx
+            hy /= hby
+
         # Obtain the phase gradients in x and y by taking the argument
         # of Hx and Hy.
         px = unwrap_phase(np.angle(hx))
         py = unwrap_phase(np.angle(hy))
-
-        # Compute reference phase gradients (if applicable) and subtract
-        # them from the phase.
-        # TODO: This can be avoided by dividing fft with the ref fft?
-        if self.reference:
-            pbgx, pbgy = self.reference.get_gradients(
-                filter_name=pipeline_kws["filter_name"],
-                filter_size=fsize,
-                sideband_freq=pipeline_kws["sideband_freq"])
-
-            px -= pbgx
-            py -= pbgy
 
         # Determine the angle by which we have to rotate the gradients in
         # order for them to be aligned with x and y. This angle is defined
@@ -224,22 +203,12 @@ class QLSInterferogram(BaseInterferogram):
         amp = np.abs(hx) + np.abs(hy)
 
         self._amplitude = amp
-        if self.reference:
-            self._amplitude /= self.reference.amplitude
 
         self.pipeline_kws.update(pipeline_kws)
 
         self.wavefront = raw_wavefront
 
         return raw_wavefront
-
-    def set_reference(self, reference):
-        # TODO: cache reference datasets
-        self.reference = QLSReference(
-            reference,
-            padding=self.fft.padding,
-            subtract_mean=self.fft.subtract_mean,
-        )
 
 
 def find_peaks_qlsi(ft_data, periodicity=4, copy=True):

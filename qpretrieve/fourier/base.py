@@ -1,8 +1,35 @@
 from abc import ABC, abstractmethod
+import weakref
 
 import numpy as np
 
 from .. import filter
+
+
+class FFTCache:
+    """Cache for Fourier transforms
+
+    This class does not do any Fourier-transforming.
+
+    Whenever a data object is garbage collected, then its
+    corresponding Fourier transform is removed from this
+    cache.
+    """
+    cached_output = {}
+
+    @staticmethod
+    def add_item(key, data, fft_data):
+        weakref.finalize(data, FFTCache.cleanup, key)
+        FFTCache.cached_output[key] = fft_data
+
+    @staticmethod
+    def get_item(key):
+        return FFTCache.cached_output.get(key)
+
+    @staticmethod
+    def cleanup(key):
+        if key in FFTCache.cached_output:
+            FFTCache.cached_output.pop(key)
 
 
 class FFTFilter(ABC):
@@ -26,16 +53,24 @@ class FFTFilter(ABC):
                 2 ** np.ceil(np.log(padding * max(data.shape) / np.log(2)))
         copy: bool
             If set to True, make sure that `data` is not edited.
+            If you set this to False, then caching FFT results will not
+            work anymore.
+
+        Notes
+        -----
+        The initial Fourier transform of the input data is cached
+        using weak references (only if `copy` is True).
         """
         super(FFTFilter, self).__init__()
+        # check dtype
         if np.iscomplexobj(data):
             dtype = complex
         else:
             # convert integer-arrays to floating point arrays
             dtype = float
-        data = np.array(data, dtype=dtype, copy=copy)
+        data_ed = np.array(data, dtype=dtype, copy=copy)
         #: original data (with subtracted mean)
-        self.origin = data
+        self.origin = data_ed
         #: whether padding is enabled
         self.padding = padding
         #: whether the mean was subtracted
@@ -44,22 +79,37 @@ class FFTFilter(ABC):
             # remove contributions of the central band
             # (this affects more than one pixel in the FFT
             # because of zero-padding)
-            data -= data.mean()
+            data_ed -= data_ed.mean()
         if padding:
             # zero padding size is next order of 2
-            logfact = np.log(padding * max(data.shape))
+            logfact = np.log(padding * max(data_ed.shape))
             order = int(2 ** np.ceil(logfact / np.log(2)))
             # this is faster than np.pad
             datapad = np.zeros((order, order), dtype=dtype)
-            datapad[:data.shape[0], :data.shape[1]] = data
+            datapad[:data_ed.shape[0], :data_ed.shape[1]] = data_ed
             #: padded input data
             self.origin_padded = datapad
-            data = datapad
+            data_ed = datapad
         else:
             self.origin_padded = None
 
-        #: frequency-shifted Fourier transform
-        self.fft_origin = np.fft.fftshift(self._init_fft(data))
+        # Check if we can used cached data
+        weakref_key = "-".join([str(hex(id(data))),
+                                str(self.__class__.__name__),
+                                str(subtract_mean),
+                                str(padding)])
+        # Attempt to get the FFT data from a previous run
+        fft_data = FFTCache.get_item(weakref_key)
+        if fft_data is not None:
+            #: frequency-shifted Fourier transform
+            self.fft_origin = fft_data
+        else:
+            #: frequency-shifted Fourier transform
+            self.fft_origin = np.fft.fftshift(self._init_fft(data_ed))
+            # Add it to the cached FFTs
+            if copy:
+                FFTCache.add_item(weakref_key, data, self.fft_origin)
+
         #: filtered Fourier transform
         self.fft_filtered = np.zeros_like(self.fft_origin)
 
@@ -120,20 +170,50 @@ class FFTFilter(ABC):
         freq_pos: tuple of floats
             The position of the filter in frequency coordinates as
             returned by :func:`nunpy.fft.fftfreq`.
-        """
-        filt_array = filter.get_filter_array(
-            filter_name=filter_name,
-            filter_size=filter_size,
-            freq_pos=freq_pos,
-            fft_shape=self.fft_origin.shape)
 
-        self.fft_filtered[:] = self.fft_origin * filt_array
-        px = int(freq_pos[0] * self.shape[0])
-        py = int(freq_pos[1] * self.shape[1])
-        shifted = np.roll(np.roll(self.fft_filtered, -px, axis=0), -py, axis=1)
-        field = self._ifft(np.fft.ifftshift(shifted))
-        if self.padding:
-            # revert padding
-            sx, sy = self.origin.shape
-            field = field[:sx, :sy]
+        Notes
+        -----
+        The FFT result is cached using weak references in
+        :class:`FFTCache`. If you call this function a lot of
+        times with different arguments, then it might look like
+        a memory leak. However, you just have to delete the
+        FFTFilter isntance and everything will get garbage-
+        collected.
+        """
+        weakref_key = "-".join([str(hex(id(self.fft_origin))),
+                                str(self.__class__.__name__),
+                                str(filter_name),
+                                str(filter_size),
+                                str(freq_pos),
+                                str(self.padding),
+                                str(self.shape),
+                                str(self.fft_origin.shape)])
+
+        inv_data = FFTCache.get_item(weakref_key)
+
+        if inv_data is not None:
+            # Retrieve FFT from cache
+            filt_array, field = inv_data
+            fft_filtered = self.fft_origin * filt_array
+        else:
+            filt_array = filter.get_filter_array(
+                filter_name=filter_name,
+                filter_size=filter_size,
+                freq_pos=freq_pos,
+                fft_shape=self.fft_origin.shape)
+            fft_filtered = self.fft_origin * filt_array
+            px = int(freq_pos[0] * self.shape[0])
+            py = int(freq_pos[1] * self.shape[1])
+            shifted = np.roll(np.roll(fft_filtered, -px, axis=0), -py, axis=1)
+            field = self._ifft(np.fft.ifftshift(shifted))
+            if self.padding:
+                # revert padding
+                sx, sy = self.origin.shape
+                field = field[:sx, :sy]
+            # Add FFT to cache
+            # (The cache will only be cleared if this instance is deleted)
+            FFTCache.add_item(weakref_key, self.fft_origin,
+                              (filt_array, field))
+
+        self.fft_filtered[:] = fft_filtered
         return field

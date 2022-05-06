@@ -1,6 +1,8 @@
 0.2.10
+ - enh: Cache Fourier transforms using weak references of the
+   input data (useful for the reference data)
  - ref: QLSI background correction by division with reference
-   gradient data Hx and Hy (minor speed-up)
+   gradient data Hx and Hy (minor speed-up) (#1)
 0.2.9
  - enh: add comments in QLSI source code explaining what is being done
 0.2.8

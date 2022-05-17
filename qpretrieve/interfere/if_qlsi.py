@@ -29,6 +29,8 @@ class QLSInterferogram(BaseInterferogram):
             self.fft_ref = ff_iface(data=reference,
                                     subtract_mean=self.fft.subtract_mean,
                                     padding=self.fft.padding)
+        else:
+            self.fft_ref = None
 
         self.wavefront = None
         self._phase = None

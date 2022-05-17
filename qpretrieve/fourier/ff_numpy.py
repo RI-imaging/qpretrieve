@@ -5,7 +5,7 @@ from .base import FFTFilter
 
 
 class FFTFilterNumpy(FFTFilter):
-    """Wrapper for numpy Fourier transform
+    """Wraps the numpy Fourier transform
     """
     # always available, because numpy is a dependency
     is_available = True

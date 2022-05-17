@@ -6,7 +6,7 @@ from .base import FFTFilter
 
 
 class FFTFilterPyFFTW(FFTFilter):
-    """Wrapper for numpy Fourier transform
+    """Fourier transform using `PyFFTW <https://pyfftw.readthedocs.io/>`_
     """
     # always available, because numpy is a dependency
     is_available = True

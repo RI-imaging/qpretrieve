@@ -16,8 +16,7 @@ class BaseInterferogram(ABC):
 
     def __init__(self, data, subtract_mean=True, padding=2, copy=True,
                  **pipeline_kws):
-        """Generic class for off-axis hologram data analysis
-
+        """
         Parameters
         ----------
         subtract_mean: bool
@@ -35,8 +34,8 @@ class BaseInterferogram(ABC):
         copy: bool
             Whether to create a copy of the input data.
         pipeline_kws: dict
-            Dictionary with defaults for `run_pipeline` as defined in
-            `self.default_pipeline_kws`.
+            Dictionary with defaults for :func:`run_pipeline` as defined in
+            :const:`default_pipeline_kws`.
         """
         ff_iface = get_best_interface()
         if len(data.shape) == 3:

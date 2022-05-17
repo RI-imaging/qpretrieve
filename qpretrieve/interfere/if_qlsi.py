@@ -9,7 +9,8 @@ from ..fourier import get_best_interface
 
 
 class QLSInterferogram(BaseInterferogram):
-    """Generic class for quadri-wave lateral shearing holograms"""
+    """Interferometric analysis of quadri-wave lateral shearing holograms"""
+    #: Default QLSI pipeline keyword arguments
     default_pipeline_kws = {
         "filter_name": "square",
         "filter_size": 0.5,
@@ -53,7 +54,7 @@ class QLSInterferogram(BaseInterferogram):
         return self._phase
 
     def run_pipeline(self, **pipeline_kws):
-        """Run QLSI analysis pipeline
+        r"""Run QLSI analysis pipeline
 
         Parameters
         ----------
@@ -78,14 +79,14 @@ class QLSInterferogram(BaseInterferogram):
             Wavelength to convert from the wavefront in meters to radians.
         qlsi_pitch_term: float
             Scaling term converting the integrated gradient image to
-            the unit meters. This term is dependent on the lattice
+            the unit meters. This term is computed from the lattice
             constant of the grating :math:`L`, the distance between the
             grating and the camera sensor :math:`d` and the physical camera
             pixel width :math:`a` according to
 
             .. math::
 
-                \text{pitch_term} = \frac{La}{d}
+               \text{pitch_term} = \frac{La}{d}
 
             For the case where the lattice constant is four times the
             pixel width, this simplifies to :math:`4a^2/d`. Note
@@ -96,6 +97,7 @@ class QLSInterferogram(BaseInterferogram):
             this is a device-specific quantity which has to be determined
             only once. E.g. for our SID4Bio camera, this value is
             0.01887711 µm (1.87711e-08 m).
+
         """
         for key in self.default_pipeline_kws:
             if key not in pipeline_kws:
@@ -233,8 +235,8 @@ def find_peaks_qlsi(ft_data, periodicity=4, copy=True):
         Coordinates of the second gradient peak in frequency
         coordinates.
 
-    TODO
-    ----
+    Notes
+    -----
     At some point it might be necessary to add an `angle` keyword
     argument that gives the algorithm a hint about te rotation of
     the QLSI grid. Currently, peak detection is only done in the

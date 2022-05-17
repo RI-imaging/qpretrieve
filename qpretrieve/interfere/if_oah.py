@@ -4,7 +4,8 @@ from .base import BaseInterferogram
 
 
 class OffAxisHologram(BaseInterferogram):
-    """Generic class for off-axis hologram data analysis"""
+    """Off-axis hologram data analysis"""
+    #: Default OAH pipeline keyword arguments
     default_pipeline_kws = {
         "filter_name": "disk",
         "filter_size": 1 / 3,

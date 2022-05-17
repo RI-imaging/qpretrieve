@@ -38,7 +38,7 @@ bg.process_like(holo)
 
 phase = holo.phase - bg.phase
 
-# plot the properties of `qpi`
+# plot the intermediate steps of the analysis pipeline
 fig = plt.figure(figsize=(8, 10))
 
 ax1 = plt.subplot(321, title="cell hologram")

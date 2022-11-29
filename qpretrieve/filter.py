@@ -23,8 +23,8 @@ def get_filter_array(filter_name, filter_size, freq_pos, fft_shape):
     filter_name: str
         specifies the filter to use, one of
 
-        - "disk": binary disk with diameter `filter_size`
-        - "smooth disk": disk with diameter `filter_size` convolved
+        - "disk": binary disk with radius `filter_size`
+        - "smooth disk": disk with radius `filter_size` convolved
           with a radial gaussian (`sigma=filter_size/5`)
         - "gauss": radial gaussian (`sigma=0.6*filter_size`)
         - "square": binary square with side length `2*filter_size`

@@ -147,7 +147,7 @@ class FFTFilter(ABC):
         """
 
     def filter(self, filter_name: str, filter_size: float,
-               freq_pos: (float, float):
+               freq_pos: (float, float)):
         """
 
         Parameters

@@ -29,7 +29,7 @@ setup(
         "scipy>=0.18.0",
         ],
     extras_require={"FFTW": "pyfftw>=0.12.0"},
-    python_requires='>=3.6, <4',
+    python_requires='>=3.10, <4',
     keywords=["digital holographic microscopy",
               "optics",
               "quantitative phase imaging",

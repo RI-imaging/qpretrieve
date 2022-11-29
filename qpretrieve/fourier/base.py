@@ -146,7 +146,8 @@ class FFTFilter(ABC):
             Fourier transform `data`
         """
 
-    def filter(self, filter_name, filter_size, freq_pos):
+    def filter(self, filter_name: str, filter_size: float,
+               freq_pos: (float, float):
         """
 
         Parameters

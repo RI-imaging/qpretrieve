@@ -1,7 +1,7 @@
 Installing qpretrieve
 =====================
 
-qpretrieve is written in pure Python and supports Python version 3.6
+qpretrieve is written in pure Python and supports Python version 3.10
 and higher. qpretrieve depends on several other scientific Python packages,
 including:
 

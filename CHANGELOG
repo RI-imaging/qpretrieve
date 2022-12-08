@@ -1,6 +1,6 @@
 0.3.0
  - feat: introduce scaling by cropping in Fourier space (#2)
- - fix: set padding vlaue of gradient data to zero (not median)
+ - fix: set padding value of gradient data to zero (not median)
  - fix: amplitude retrieval not possible due to typo
  - ref: change default padding for QLSI
  - enh: introduce `fft_used` property in FFTFilter

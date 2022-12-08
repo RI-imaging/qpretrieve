@@ -1,3 +1,5 @@
+0.3.1
+ - ci: fix build pipeline
 0.3.0
  - feat: introduce scaling by cropping in Fourier space (#2)
  - fix: set padding value of gradient data to zero (not median)

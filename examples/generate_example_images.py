@@ -19,12 +19,12 @@ if __name__ == "__main__":
     files = sorted([op.join(thisdir, f) for f in files])
 
     for f in files:
-        fname = f[:-3] + ".jpg"
+        fname = f[:-3] + ".png"
         if not op.exists(fname):
             exec_str = open(f).read()
             if exec_str.count("plt.show()"):
                 exec(exec_str)
-                plt.savefig(fname, dpi=DPI)
+                plt.savefig(fname, dpi=DPI, pil_kwargs={"optimize": True})
                 print("Image created: '{}'".format(fname))
             else:
                 print("No image: '{}'".format(fname))

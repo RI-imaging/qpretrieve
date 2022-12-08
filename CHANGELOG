@@ -1,6 +1,13 @@
 0.3.0
- - docs: filter size for disk is radius not diameter
+ - feat: introduce scaling by cropping in Fourier space (#2)
+ - fix: set padding vlaue of gradient data to zero (not median)
+ - fix: amplitude retrieval not possible due to typo
+ - ref: change default padding for QLSI
+ - enh: introduce `fft_used` property in FFTFilter
+ - enh: allow filtering at the center of the Fourier domain
  - setup: bump minimal Python requirement to 3.10
+ - docs: filter size for disk is radius not diameter
+ - docs: use png for example images (better quality)
 0.2.12
  - fix: performing QLSI without reference did not work anymore
 0.2.11

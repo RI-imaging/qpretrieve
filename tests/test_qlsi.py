@@ -22,10 +22,10 @@ def test_qlsi_phase():
         qlsi.run_pipeline()
         assert qlsi.pipeline_kws["wavelength"] == 550e-9
         assert qlsi.pipeline_kws["qlsi_pitch_term"] == 1.87711e-08
-        assert qlsi.wavefront.argmax() == 241575
-        assert np.allclose(qlsi.wavefront.max(), 6.270214993392721e-08,
+        assert qlsi.wavefront.argmax() == 242294
+        assert np.allclose(qlsi.wavefront.max(), 8.179288852406586e-08,
                            atol=0, rtol=1e-12)
 
-        assert qlsi.phase.argmax() == 241575
-        assert np.allclose(qlsi.phase.max(), 0.7163076858062234,
+        assert qlsi.phase.argmax() == 242294
+        assert np.allclose(qlsi.phase.max(), 0.9343997734657971,
                            atol=0, rtol=1e-12)

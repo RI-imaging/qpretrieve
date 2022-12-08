@@ -15,6 +15,7 @@ class QLSInterferogram(BaseInterferogram):
         "filter_name": "square",
         "filter_size": 0.5,
         "filter_size_interpretation": "sideband distance",
+        "scale_to_filter": False,
         "sideband_freq": None,
         "invert_phase": False,
         "wavelength": None,
@@ -72,6 +73,18 @@ class QLSInterferogram(BaseInterferogram):
             (this is the default). If set to "frequency index", the filter
             size is interpreted as a Fourier frequency index ("pixel size")
             and must be between 0 and `max(hologram.shape)/2`.
+        scale_to_filter: bool or float
+            Crop the image in Fourier space after applying the filter,
+            effectively removing surplus (zero-padding) data and
+            increasing the pixel size in the output image. If True is
+            given, then the cropped area is defined by the filter size,
+            if a float is given, the cropped area is defined by the
+            filter size multiplied by `scale_to_filter`. You can safely
+            set this to True for filters with a binary support. For
+            filters such as "smooth square" or "gauss" (filter is not
+            a boolean array but a floating-point array), the higher you
+            set `scale_to_filter`, the more information will be included
+            in the scaled image.
         sideband_freq: tuple of floats
             Frequency coordinates of the sideband to use. By default,
             a heuristic search for the sideband is done.
@@ -135,18 +148,24 @@ class QLSInterferogram(BaseInterferogram):
         fx, fy = pipeline_kws["sideband_freq"]
         hx = self.fft.filter(filter_name=pipeline_kws["filter_name"],
                              filter_size=fsize,
+                             scale_to_filter=pipeline_kws["scale_to_filter"],
                              freq_pos=(fx, fy))
         hy = self.fft.filter(filter_name=pipeline_kws["filter_name"],
                              filter_size=fsize,
+                             scale_to_filter=pipeline_kws["scale_to_filter"],
                              freq_pos=(-fy, fx))
 
         # Subtract the reference from the gradient data
         if self.fft_ref is not None:
             hbx = self.fft_ref.filter(filter_name=pipeline_kws["filter_name"],
                                       filter_size=fsize,
+                                      scale_to_filter=pipeline_kws[
+                                          "scale_to_filter"],
                                       freq_pos=(fx, fy))
             hby = self.fft_ref.filter(filter_name=pipeline_kws["filter_name"],
                                       filter_size=fsize,
+                                      scale_to_filter=pipeline_kws[
+                                          "scale_to_filter"],
                                       freq_pos=(-fy, fx))
             hx /= hbx
             hy /= hby
@@ -164,11 +183,11 @@ class QLSInterferogram(BaseInterferogram):
         # Pad the gradient information so that we can rotate with cropping
         # (keeping the image shape the same).
         # TODO: Make padding dependent on rotation angle to save time?
-        sx, sy = self.fft_origin.shape
+        sx, sy = px.shape
         gradpad1 = np.pad(px, ((sx // 2, sx // 2), (sy // 2, sy // 2)),
-                          mode="median")
+                          mode="constant", constant_values=0)
         gradpad2 = np.pad(py, ((sx // 2, sx // 2), (sy // 2, sy // 2)),
-                          mode="median")
+                          mode="constant", constant_values=0)
 
         # Perform rotation of the gradients.
         rotated1 = rotate_noreshape(gradpad1, -angle)
@@ -198,8 +217,10 @@ class QLSInterferogram(BaseInterferogram):
         # the input data.
         raw_wavefront = rotate_noreshape(wfr,
                                          angle)[sx//2:-sx//2, sy//2:-sy//2]
-        # Multiply by qlsi pitch term to get a quantitative wavefront.
-        raw_wavefront *= qlsi_pitch_term
+        # Multiply by qlsi pitch term and the scaling factor to get
+        # the quantitative wavefront.
+        scaling_factor = self.fft_origin.shape[0] / wfr.shape[0]
+        raw_wavefront *= qlsi_pitch_term * scaling_factor
 
         self._phase = raw_wavefront / wavelength * 2 * np.pi
         # TODO: Is adding these abs values really the amplitude?

@@ -11,3 +11,4 @@ Examples
 
 .. fancy_include:: filter_visualization.py
 
+.. fancy_include:: fourier_scale.py

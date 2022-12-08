@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 import weakref
 
@@ -113,6 +115,9 @@ class FFTFilter(ABC):
         #: filtered Fourier transform
         self.fft_filtered = np.zeros_like(self.fft_origin)
 
+        #: used Fourier transform (can have a different shape)
+        self.fft_used = None
+
     @property
     def shape(self):
         """Shape of the Fourier transform data"""
@@ -147,9 +152,9 @@ class FFTFilter(ABC):
         """
 
     def filter(self, filter_name: str, filter_size: float,
-               freq_pos: (float, float)):
+               freq_pos: (float, float),
+               scale_to_filter: bool | float = False):
         """
-
         Parameters
         ----------
         filter_name: str
@@ -159,8 +164,8 @@ class FFTFilter(ABC):
             - "smooth disk": disk with radius `filter_size` convolved
               with a radial gaussian (`sigma=filter_size/5`)
             - "gauss": radial gaussian (`sigma=0.6*filter_size`)
-            - "square": binary square with side length `filter_size`
-            - "smooth square": square with side length `filter_size`
+            - "square": binary square with side length `2*filter_size`
+            - "smooth square": square with side length `2*filter_size`
               convolved with square gaussian (`sigma=filter_size/5`)
             - "tukey": a square tukey window of width `2*filter_size` and
               `alpha=0.1`
@@ -171,6 +176,18 @@ class FFTFilter(ABC):
         freq_pos: tuple of floats
             The position of the filter in frequency coordinates as
             returned by :func:`nunpy.fft.fftfreq`.
+        scale_to_filter: bool or float
+            Crop the image in Fourier space after applying the filter,
+            effectively removing surplus (zero-padding) data and
+            increasing the pixel size in the output image. If True is
+            given, then the cropped area is defined by the filter size,
+            if a float is given, the cropped area is defined by the
+            filter size multiplied by `scale_to_filter`. You can safely
+            set this to True for filters with a binary support. For
+            filters such as "smooth square" or "gauss" (filter is not
+            a boolean array but a floating-point array), the higher you
+            set `scale_to_filter`, the more information will be included
+            in the scaled image.
 
         Notes
         -----
@@ -188,13 +205,15 @@ class FFTFilter(ABC):
                                 str(freq_pos),
                                 str(self.padding),
                                 str(self.shape),
-                                str(self.fft_origin.shape)])
+                                str(self.fft_origin.shape),
+                                str(scale_to_filter),
+                                ])
 
         inv_data = FFTCache.get_item(weakref_key)
 
         if inv_data is not None:
             # Retrieve FFT from cache
-            filt_array, field = inv_data
+            filt_array, fft_used, field = inv_data
             fft_filtered = self.fft_origin * filt_array
         else:
             filt_array = filter.get_filter_array(
@@ -205,16 +224,37 @@ class FFTFilter(ABC):
             fft_filtered = self.fft_origin * filt_array
             px = int(freq_pos[0] * self.shape[0])
             py = int(freq_pos[1] * self.shape[1])
-            shifted = np.roll(np.roll(fft_filtered, -px, axis=0), -py, axis=1)
-            field = self._ifft(np.fft.ifftshift(shifted))
+            fft_used = np.roll(np.roll(fft_filtered, -px, axis=0), -py, axis=1)
+            if scale_to_filter:
+                # Determine the size of the cropping region.
+                # We compute the "radius" of the region, so we can
+                # crop the data left and right from the center of the
+                # Fourier domain.
+                osize = fft_filtered.shape[0]  # square shaped
+                crad = int(np.ceil(filter_size * osize * scale_to_filter))
+                ccent = osize // 2
+                cslice = slice(ccent - crad, ccent + crad)
+                # We now have the interesting peak already shifted to
+                # the first entry of our array in `shifted`.
+                fft_used = fft_used[cslice, cslice]
+
+            field = self._ifft(np.fft.ifftshift(fft_used))
             if self.padding:
                 # revert padding
                 sx, sy = self.origin.shape
+                if scale_to_filter:
+                    sx = int(np.ceil(sx * 2 * crad / osize))
+                    sy = int(np.ceil(sy * 2 * crad / osize))
                 field = field[:sx, :sy]
+                if scale_to_filter:
+                    # Scale the absolute value of the field. This does not
+                    # have any influence on the phase, but on the amplitude.
+                    field *= (2 * crad / osize)**2
             # Add FFT to cache
             # (The cache will only be cleared if this instance is deleted)
             FFTCache.add_item(weakref_key, self.fft_origin,
-                              (filt_array, field))
+                              (filt_array, fft_used, field))
 
         self.fft_filtered[:] = fft_filtered
+        self.fft_used = fft_used
         return field

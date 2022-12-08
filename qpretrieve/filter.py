@@ -61,7 +61,7 @@ def get_filter_array(filter_name, filter_size, freq_pos, fft_shape):
                          + f"size of '{filter_size}' and a shape of "
                          + f"'{fft_shape}'!")
     if not (0
-            < min(np.abs(freq_pos))
+            <= min(np.abs(freq_pos))
             <= max(np.abs(freq_pos))
             < max(fft_shape)/2):
         raise ValueError("The frequency position must be within the Fourier "

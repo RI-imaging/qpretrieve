@@ -10,6 +10,7 @@ class BaseInterferogram(ABC):
         "filter_name": "disk",
         "filter_size": 1 / 3,
         "filter_size_interpretation": "sideband distance",
+        "scale_to_filter": False,
         "sideband_freq": None,
         "invert_phase": False,
     }
@@ -33,9 +34,9 @@ class BaseInterferogram(ABC):
                 2 ** np.ceil(np.log(padding * max(data.shape) / np.log(2)))
         copy: bool
             Whether to create a copy of the input data.
-        pipeline_kws: dict
-            Dictionary with defaults for :func:`run_pipeline` as defined in
-            :const:`default_pipeline_kws`.
+        pipeline_kws:
+            Any additional keyword arguments for :func:`run_pipeline`
+            as defined in :const:`default_pipeline_kws`.
         """
         ff_iface = get_best_interface()
         if len(data.shape) == 3:
@@ -55,7 +56,7 @@ class BaseInterferogram(ABC):
         # Subclasses con override the properties phase, amplitude, and field
         self._field = None
         self._phase = None
-        self._ampltitude = None
+        self._amplitude = None
 
     @property
     def phase(self):
@@ -67,9 +68,9 @@ class BaseInterferogram(ABC):
     @property
     def amplitude(self):
         """Retrieved amplitude information"""
-        if self._ampltitude is None:
+        if self._amplitude is None:
             self.run_pipeline()
-        return self._ampltitude
+        return self._amplitude
 
     @property
     def field(self):
@@ -141,6 +142,18 @@ class BaseInterferogram(ABC):
             (this is the default). If set to "frequency index", the filter
             size is interpreted as a Fourier frequency index ("pixel size")
             and must be between 0 and `max(hologram.shape)/2`.
+        scale_to_filter: bool or float
+            Crop the image in Fourier space after applying the filter,
+            effectively removing surplus (zero-padding) data and
+            increasing the pixel size in the output image. If True is
+            given, then the cropped area is defined by the filter size,
+            if a float is given, the cropped area is defined by the
+            filter size multiplied by `scale_to_filter`. You can safely
+            set this to True for filters with a binary support. For
+            filters such as "smooth square" or "gauss" (filter is not
+            a boolean array but a floating-point array), the higher you
+            set `scale_to_filter`, the more information will be included
+            in the scaled image.
         sideband_freq: tuple of floats
             Frequency coordinates of the sideband to use. By default,
             a heuristic search for the sideband is done.

@@ -10,6 +10,7 @@ class OffAxisHologram(BaseInterferogram):
         "filter_name": "disk",
         "filter_size": 1 / 3,
         "filter_size_interpretation": "sideband distance",
+        "scale_to_filter": False,
         "sideband_freq": None,
         "invert_phase": False,
     }
@@ -32,6 +33,40 @@ class OffAxisHologram(BaseInterferogram):
         return self._amplitude
 
     def run_pipeline(self, **pipeline_kws):
+        r"""Run OAH analysis pipeline
+
+        Parameters
+        ----------
+        filter_name: str
+            specifies the filter to use, see
+            :func:`qpretrieve.filter.get_filter_array`.
+        filter_size: float
+            Size of the filter in Fourier space. The interpretation
+            of this value depends on `filter_size_interpretation`.
+        filter_size_interpretation: str
+            If set to "sideband distance", the filter size is interpreted
+            as the relative distance between central band and sideband
+            (this is the default). If set to "frequency index", the filter
+            size is interpreted as a Fourier frequency index ("pixel size")
+            and must be between 0 and `max(hologram.shape)/2`.
+        scale_to_filter: bool or float
+            Crop the image in Fourier space after applying the filter,
+            effectively removing surplus (zero-padding) data and
+            increasing the pixel size in the output image. If True is
+            given, then the cropped area is defined by the filter size,
+            if a float is given, the cropped area is defined by the
+            filter size multiplied by `scale_to_filter`. You can safely
+            set this to True for filters with a binary support. For
+            filters such as "smooth square" or "gauss" (filter is not
+            a boolean array but a floating-point array), the higher you
+            set `scale_to_filter`, the more information will be included
+            in the scaled image.
+        sideband_freq: tuple of floats
+            Frequency coordinates of the sideband to use. By default,
+            a heuristic search for the sideband is done.
+        invert_phase: bool
+            Invert the phase data.
+        """
         for key in self.default_pipeline_kws:
             if key not in pipeline_kws:
                 pipeline_kws[key] = self.get_pipeline_kw(key)
@@ -51,12 +86,15 @@ class OffAxisHologram(BaseInterferogram):
         field = self.fft.filter(
             filter_name=pipeline_kws["filter_name"],
             filter_size=fsize,
-            freq_pos=tuple(pipeline_kws["sideband_freq"]))
+            freq_pos=tuple(pipeline_kws["sideband_freq"]),
+            scale_to_filter=pipeline_kws["scale_to_filter"])
 
         if pipeline_kws["invert_phase"]:
             field.imag *= -1
 
         self._field = field
+        self._phase = None
+        self._amplitude = None
         self.pipeline_kws.update(pipeline_kws)
 
         return self.field

@@ -37,7 +37,7 @@ Testing
 
 .. |PyPI Version| image:: https://img.shields.io/pypi/v/qpretrieve.svg
    :target: https://pypi.python.org/pypi/qpretrieve
-.. |Tests Status| image:: https://img.shields.io/github/workflow/status/RI-Imaging/qpretrieve/Checks
+.. |Tests Status| image:: https://img.shields.io/github/actions/workflow/status/RI-Imaging/qpretrieve/check.yml
    :target: https://github.com/RI-Imaging/qpretrieve/actions?query=workflow%3AChecks
 .. |Coverage Status| image:: https://img.shields.io/codecov/c/github/RI-imaging/qpretrieve/master.svg
    :target: https://codecov.io/gh/RI-imaging/qpretrieve

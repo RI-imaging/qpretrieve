@@ -38,7 +38,7 @@ def get_filter_array(filter_name, filter_size, freq_pos, fft_shape):
         and must be between 0 and `max(fft_shape)/2`
     freq_pos: tuple of floats
         The position of the filter in frequency coordinates as
-        returned by :func:`nunpy.fft.fftfreq`.
+        returned by :func:`numpy.fft.fftfreq`.
     fft_shape: tuple of int
         The shape of the Fourier transformed image for which the
         filter will be applied. The shape must be squared (two

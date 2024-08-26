@@ -22,6 +22,13 @@ class BaseInterferogram(ABC):
         """
         Parameters
         ----------
+        fft_interface: FFTFilter
+            A Fourier transform interface.
+            See :func:`qpretrieve.fourier.get_available_interfaces`
+            to get a list of implemented interfaces.
+            Default is None, which will use
+            :func:`qpretrieve.fourier.get_best_interface`. This is in line
+            with old behaviour.
         subtract_mean: bool
             If True, remove the mean of the hologram before performing
             the Fourier transform. This setting is recommended as it

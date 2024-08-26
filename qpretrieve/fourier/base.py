@@ -178,7 +178,7 @@ class FFTFilter(ABC):
             and must be between 0 and `max(fft_shape)/2`
         freq_pos: tuple of floats
             The position of the filter in frequency coordinates as
-            returned by :func:`nunpy.fft.fftfreq`.
+            returned by :func:`numpy.fft.fftfreq`.
         scale_to_filter: bool or float
             Crop the image in Fourier space after applying the filter,
             effectively removing surplus (zero-padding) data and

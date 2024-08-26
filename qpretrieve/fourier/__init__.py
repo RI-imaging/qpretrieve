@@ -9,6 +9,11 @@ try:
 except ImportError:
     FFTFilterPyFFTW = None
 
+try:
+    from .ff_cupy import FFTFilterCupy
+except ImportError:
+    FFTFilterCupy = None
+
 PREFERRED_INTERFACE = None
 
 
@@ -18,6 +23,7 @@ def get_available_interfaces():
         FFTFilterPyFFTW,
         FFTFilterNumpy,
         FFTFilterScipy,
+        FFTFilterCupy,
     ]
     interfaces_available = []
     for interface in interfaces:

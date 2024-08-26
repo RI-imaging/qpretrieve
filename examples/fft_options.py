@@ -1,12 +1,17 @@
-"""Fourier Transform options available
+"""Fourier Transform interfaces available
 
 This example visualizes the different backends and packages available to the
 user for performing Fourier transforms.
+
+- PyFFTW is initially slow, but over many FFTs is very quick.
+- CuPy using CUDA can be very fast, but is currently limited because we are
+  transferring one image at a time to the GPU.
+
 """
+import time
 import matplotlib.pylab as plt
 import numpy as np
 import qpretrieve
-from skimage.restoration import unwrap_phase
 
 # load the experimental data
 edata = np.load("./data/hologram_cell.npz")
@@ -14,38 +19,55 @@ edata = np.load("./data/hologram_cell.npz")
 # get the available fft interfaces
 interfaces_available = qpretrieve.fourier.get_available_interfaces()
 
-prange = (-1, 5)
-frange = (0, 12)
+n_transforms = 100
 
-results = {}
-
+# one transform
+results_1 = {}
 for fft_interface in interfaces_available:
+    t0 = time.time()
     holo = qpretrieve.OffAxisHologram(data=edata["data"],
                                       fft_interface=fft_interface)
-    holo.run_pipeline(filter_name="disk", filter_size=1/2)
+    holo.run_pipeline(filter_name="disk", filter_size=1 / 2)
     bg = qpretrieve.OffAxisHologram(data=edata["bg_data"])
     bg.process_like(holo)
-    phase = unwrap_phase(holo.phase - bg.phase)
-    mask = np.log(1 + np.abs(holo.fft_filtered))
-    results[fft_interface.__name__] = mask, phase
+    t1 = time.time()
+    results_1[fft_interface.__name__] = t1 - t0
+num_interfaces = len(results_1)
 
-num_filters = len(results)
+# multiple transforms (should see speed increase for PyFFTW)
+results = {}
+for fft_interface in interfaces_available:
+    t0 = time.time()
+    for _ in range(n_transforms):
+        holo = qpretrieve.OffAxisHologram(data=edata["data"],
+                                          fft_interface=fft_interface)
+        holo.run_pipeline(filter_name="disk", filter_size=1 / 2)
+        bg = qpretrieve.OffAxisHologram(data=edata["bg_data"])
+        bg.process_like(holo)
+    t1 = time.time()
+    results[fft_interface.__name__] = t1 - t0
+num_interfaces = len(results)
 
-# plot the properties of `qpi`
-fig = plt.figure(figsize=(8, 22))
+fft_interfaces = list(results.keys())
+speed_1 = list(results_1.values())
+speed = list(results.values())
 
-for row, name in enumerate(results):
-    ax1 = plt.subplot(num_filters, 2, 2*row+1)
-    ax1.set_title(name, loc="left")
-    ax1.imshow(results[name][0], vmin=frange[0], vmax=frange[1])
+fig, axes = plt.subplots(1, 2, figsize=(8, 5))
+ax1, ax2 = axes
+labels = [fftstr[9:] for fftstr in fft_interfaces]
 
-    ax2 = plt.subplot(num_filters, 2, 2*row+2)
-    map2 = ax2.imshow(results[name][1], cmap="coolwarm",
-                      vmin=prange[0], vmax=prange[1])
-    plt.colorbar(map2, ax=ax2, fraction=.046, pad=0.02, label="phase [rad]")
+ax1.bar(range(num_interfaces), height=speed_1, color='lightseagreen')
+ax1.set_xticks(range(num_interfaces), labels=labels,
+               rotation=45)
+ax1.set_ylabel("Speed (s)")
+ax1.set_title("1 Transform")
 
-    ax1.axis("off")
-    ax2.axis("off")
+ax2.bar(range(num_interfaces), height=speed, color='lightseagreen')
+ax2.set_xticks(range(num_interfaces), labels=labels,
+               rotation=45)
+ax2.set_ylabel("Speed (s)")
+ax2.set_title(f"{n_transforms} Transforms")
 
+plt.suptitle("Speed of FFT Interfaces")
 plt.tight_layout()
 plt.show()

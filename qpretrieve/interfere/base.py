@@ -47,8 +47,9 @@ class BaseInterferogram(ABC):
                 self.ff_iface = fft_interface
             else:
                 raise ValueError(
-                    f"User-chosen FFT Interface '{fft_interface}' is not available. "
-                    f"The available interfaces are: {get_available_interfaces()}.\n"
+                    f"User-chosen FFT Interface '{fft_interface}' is not "
+                    f"available. The available interfaces are: "
+                    f"{get_available_interfaces()}.\n"
                     f"You can use `fft_interface='auto'` to get the best "
                     f"available interface.")
         if len(data.shape) == 3:
@@ -56,9 +57,9 @@ class BaseInterferogram(ABC):
             data = data[:, :, 0]
         #: qpretrieve Fourier transform interface class
         self.fft = self.ff_iface(data=data,
-                            subtract_mean=subtract_mean,
-                            padding=padding,
-                            copy=copy)
+                                 subtract_mean=subtract_mean,
+                                 padding=padding,
+                                 copy=copy)
         #: originally computed Fourier transform
         self.fft_origin = self.fft.fft_origin
         #: filtered Fourier data from last run of `run_pipeline`
@@ -106,7 +107,7 @@ class BaseInterferogram(ABC):
                 raise ValueError("For sideband distance interpretation, "
                                  "`filter_size` must be between 0 and 1; "
                                  f"got '{filter_size}'!")
-            fsize = np.sqrt(np.sum(np.array(sideband_freq)**2)) * filter_size
+            fsize = np.sqrt(np.sum(np.array(sideband_freq) ** 2)) * filter_size
         elif filter_size_interpretation == "frequency index":
             # filter size given in Fourier index (number of Fourier pixels)
             # The user probably does not know that we are padding in

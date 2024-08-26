@@ -71,7 +71,8 @@ class FFTFilter(ABC):
             # convert integer-arrays to floating point arrays
             dtype = float
         if not copy:
-            copy = None  # numpy v2.x behaviour requires asarray with copy=False
+            # numpy v2.x behaviour requires asarray with copy=False
+            copy = None
         data_ed = np.array(data, dtype=dtype, copy=copy)
 #: original data (with subtracted mean)
         self.origin = data_ed

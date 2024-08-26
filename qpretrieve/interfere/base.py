@@ -2,7 +2,8 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 
-from ..fourier import get_best_interface
+from ..fourier import get_best_interface, get_available_interfaces
+from ..fourier.base import FFTFilter
 
 
 class BaseInterferogram(ABC):
@@ -15,7 +16,8 @@ class BaseInterferogram(ABC):
         "invert_phase": False,
     }
 
-    def __init__(self, data, subtract_mean=True, padding=2, copy=True,
+    def __init__(self, data, fft_interface: FFTFilter = None,
+                 subtract_mean=True, padding=2, copy=True,
                  **pipeline_kws):
         """
         Parameters
@@ -38,12 +40,22 @@ class BaseInterferogram(ABC):
             Any additional keyword arguments for :func:`run_pipeline`
             as defined in :const:`default_pipeline_kws`.
         """
-        ff_iface = get_best_interface()
+        if fft_interface == 'auto' or fft_interface is None:
+            self.ff_iface = get_best_interface()
+        else:
+            if fft_interface in get_available_interfaces():
+                self.ff_iface = fft_interface
+            else:
+                raise ValueError(
+                    f"User-chosen FFT Interface '{fft_interface}' is not available. "
+                    f"The available interfaces are: {get_available_interfaces()}.\n"
+                    f"You can use `fft_interface='auto'` to get the best "
+                    f"available interface.")
         if len(data.shape) == 3:
             # take the first slice (we have alpha or RGB information)
             data = data[:, :, 0]
         #: qpretrieve Fourier transform interface class
-        self.fft = ff_iface(data=data,
+        self.fft = self.ff_iface(data=data,
                             subtract_mean=subtract_mean,
                             padding=padding,
                             copy=copy)

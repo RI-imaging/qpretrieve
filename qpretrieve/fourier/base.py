@@ -70,8 +70,10 @@ class FFTFilter(ABC):
         else:
             # convert integer-arrays to floating point arrays
             dtype = float
+        if not copy:
+            copy = None  # numpy v2.x behaviour requires asarray with copy=False
         data_ed = np.array(data, dtype=dtype, copy=copy)
-        #: original data (with subtracted mean)
+#: original data (with subtracted mean)
         self.origin = data_ed
         #: whether padding is enabled
         self.padding = padding

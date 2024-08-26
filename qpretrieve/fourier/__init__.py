@@ -2,6 +2,7 @@
 import warnings
 
 from .ff_numpy import FFTFilterNumpy
+from .ff_scipy import FFTFilterScipy
 
 try:
     from .ff_pyfftw import FFTFilterPyFFTW
@@ -9,6 +10,20 @@ except ImportError:
     FFTFilterPyFFTW = None
 
 PREFERRED_INTERFACE = None
+
+
+def get_available_interfaces():
+    """Return a list of available FFT algorithms"""
+    interfaces = [
+        FFTFilterPyFFTW,
+        FFTFilterNumpy,
+        FFTFilterScipy,
+    ]
+    interfaces_available = []
+    for interface in interfaces:
+        if interface is not None and interface.is_available:
+            interfaces_available.append(interface)
+    return interfaces_available
 
 
 def get_best_interface():

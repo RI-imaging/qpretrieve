@@ -59,7 +59,9 @@ class BaseInterferogram(ABC):
                     f"{get_available_interfaces()}.\n"
                     f"You can use `fft_interface='auto'` to get the best "
                     f"available interface.")
-        if len(data.shape) == 3:
+        if self.ff_iface.__name__ == "FFTFilterCupy3D":
+            data = data
+        elif len(data.shape) == 3:
             # take the first slice (we have alpha or RGB information)
             data = data[:, :, 0]
         #: qpretrieve Fourier transform interface class

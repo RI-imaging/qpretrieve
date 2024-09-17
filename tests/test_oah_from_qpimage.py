@@ -4,6 +4,7 @@ import pytest
 
 import qpretrieve
 from qpretrieve.interfere import if_oah
+from qpretrieve.fourier import FFTFilterCupy3D
 
 
 def hologram(size=64):
@@ -246,3 +247,16 @@ def test_get_field_three_axes():
     res1 = holo1.run_pipeline(**kwargs)
     res2 = holo2.run_pipeline(**kwargs)
     assert np.all(res1 == res2)
+
+
+def test_get_field_cupy3d():
+    data1 = hologram()
+    data_rp = np.array([data1, data1, data1, data1, data1])
+
+    holo1 = qpretrieve.OffAxisHologram(data_rp,
+                                       fft_interface=FFTFilterCupy3D)
+
+    kwargs = dict(filter_name="disk",
+                  filter_size=1 / 3)
+    _ = holo1.run_pipeline(**kwargs)
+    # assert np.all(res1 == res2)

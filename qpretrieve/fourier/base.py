@@ -74,7 +74,7 @@ class FFTFilter(ABC):
             # numpy v2.x behaviour requires asarray with copy=False
             copy = None
         data_ed = np.array(data, dtype=dtype, copy=copy)
-#: original data (with subtracted mean)
+        #: original data (with subtracted mean)
         self.origin = data_ed
         #: whether padding is enabled
         self.padding = padding

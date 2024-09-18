@@ -223,7 +223,8 @@ class FFTFilter(ABC):
                 filter_name=filter_name,
                 filter_size=filter_size,
                 freq_pos=freq_pos,
-                fft_shape=self.fft_origin.shape)
+                # only take shape of a single fft
+                fft_shape=self.fft_origin.shape[-2:])
             fft_filtered = self.fft_origin * filt_array
             px = int(freq_pos[0] * self.shape[0])
             py = int(freq_pos[1] * self.shape[1])

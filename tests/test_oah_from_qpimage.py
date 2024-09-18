@@ -1,10 +1,12 @@
 """These are tests from qpimage"""
 import numpy as np
 import pytest
+import matplotlib.pyplot as plt
 
 import qpretrieve
 from qpretrieve.interfere import if_oah
-from qpretrieve.fourier import FFTFilterCupy3D
+from qpretrieve.fourier import FFTFilterCupy3D, FFTFilterCupy,\
+    FFTFilterNumpy, FFTFilterScipy, FFTFilterPyFFTW
 
 
 def hologram(size=64):
@@ -14,14 +16,14 @@ def hologram(size=64):
     amp = np.linspace(.9, 1.1, size * size).reshape(size, size)
     pha = np.linspace(0, 2, size * size).reshape(size, size)
 
-    rad = x**2 + y**2 > (size / 3)**2
+    rad = x ** 2 + y ** 2 > (size / 3) ** 2
     pha[rad] = 0
     amp[rad] = 1
 
     # frequencies must match pixel in Fourier space
     kx = 2 * np.pi * -.3
     ky = 2 * np.pi * -.3
-    image = (amp**2 + np.sin(kx * x + ky * y + pha) + 1) * 255
+    image = (amp ** 2 + np.sin(kx * x + ky * y + pha) + 1) * 255
     return image
 
 
@@ -85,11 +87,11 @@ def test_get_field_filter_names():
 
     r_smooth_disk = holo.run_pipeline(filter_name="smooth disk", **kwargs)
     assert np.allclose(r_smooth_disk[32, 32],
-                       108.36438759594623-67.1806221692573j)
+                       108.36438759594623 - 67.1806221692573j)
 
     r_gauss = holo.run_pipeline(filter_name="gauss", **kwargs)
     assert np.allclose(r_gauss[32, 32],
-                       108.2914187451138-67.1823527237741j)
+                       108.2914187451138 - 67.1823527237741j)
 
     r_square = holo.run_pipeline(filter_name="square", **kwargs)
     assert np.allclose(
@@ -97,7 +99,7 @@ def test_get_field_filter_names():
 
     r_smsquare = holo.run_pipeline(filter_name="smooth square", **kwargs)
     assert np.allclose(
-        r_smsquare[32, 32], 108.36651862466393-67.17988960794392j)
+        r_smsquare[32, 32], 108.36651862466393 - 67.17988960794392j)
 
     r_tukey = holo.run_pipeline(filter_name="tukey", **kwargs)
     assert np.allclose(
@@ -122,11 +124,11 @@ def test_get_field_interpretation_fourier_index(size):
     fsx, fsy = holo.pipeline_kws["sideband_freq"]
 
     kwargs1 = dict(filter_name="disk",
-                   filter_size=1/3,
+                   filter_size=1 / 3,
                    filter_size_interpretation="sideband distance")
     res1 = holo.run_pipeline(**kwargs1)
 
-    filter_size_fi = np.sqrt(fsx**2 + fsy**2) / 3 * ft_data.shape[0]
+    filter_size_fi = np.sqrt(fsx ** 2 + fsy ** 2) / 3 * ft_data.shape[0]
     kwargs2 = dict(filter_name="disk",
                    filter_size=filter_size_fi,
                    filter_size_interpretation="frequency index",
@@ -148,12 +150,12 @@ def test_get_field_interpretation_fourier_index_control(size):
     evil_factor = 1.1
 
     kwargs1 = dict(filter_name="disk",
-                   filter_size=1/3 * evil_factor,
+                   filter_size=1 / 3 * evil_factor,
                    filter_size_interpretation="sideband distance"
                    )
     res1 = holo.run_pipeline(**kwargs1)
 
-    filter_size_fi = np.sqrt(fsx**2 + fsy**2) / 3 * ft_data.shape[0]
+    filter_size_fi = np.sqrt(fsx ** 2 + fsy ** 2) / 3 * ft_data.shape[0]
     kwargs2 = dict(filter_name="disk",
                    filter_size=filter_size_fi,
                    filter_size_interpretation="frequency index",
@@ -179,7 +181,7 @@ def test_get_field_interpretation_fourier_index_mask_1(size, filter_size):
     # We get 17*2+1, because we measure from the center of Fourier
     # space and a pixel is included if its center is withing the
     # perimeter of the disk.
-    assert np.sum(np.sum(mask, axis=0) != 0) == 17*2 + 1
+    assert np.sum(np.sum(mask, axis=0) != 0) == 17 * 2 + 1
 
 
 @pytest.mark.parametrize("size", [62, 63, 64, 134, 135])
@@ -197,7 +199,7 @@ def test_get_field_interpretation_fourier_index_mask_2(size):
 
     # We get two points less than in the previous test, because we
     # loose on each side of the spectrum.
-    assert np.sum(np.sum(mask, axis=0) != 0) == 17*2 - 1
+    assert np.sum(np.sum(mask, axis=0) != 0) == 17 * 2 - 1
 
 
 def test_get_field_int_copy():
@@ -254,9 +256,60 @@ def test_get_field_cupy3d():
     data_rp = np.array([data1, data1, data1, data1, data1])
 
     holo1 = qpretrieve.OffAxisHologram(data_rp,
-                                       fft_interface=FFTFilterCupy3D)
+                                       fft_interface=FFTFilterCupy3D,
+                                       padding=False)
+    kwargs = dict(filter_name="disk", filter_size=1 / 3)
+    res1 = holo1.run_pipeline(**kwargs)
+    assert res1.shape == (5, 64, 64)
 
-    kwargs = dict(filter_name="disk",
-                  filter_size=1 / 3)
-    _ = holo1.run_pipeline(**kwargs)
-    # assert np.all(res1 == res2)
+    holo1 = qpretrieve.OffAxisHologram(data1,
+                                       fft_interface=FFTFilterNumpy,
+                                       padding=False)
+    kwargs = dict(filter_name="disk", filter_size=1 / 3)
+    res2 = holo1.run_pipeline(**kwargs)
+    assert res2.shape == (64, 64)
+
+    assert not np.all(res1[0] == res2)
+
+    fig, axes = plt.subplots(3, 1)
+    ax1, ax2, ax3 = axes
+    ax1.imshow(np.abs(res1[0]))
+    ax2.imshow(np.abs(res2))
+    ax3.imshow(np.abs(res2)-np.abs(res1[0]))
+    plt.show()
+
+
+def test_get_field_compare_FFTFilters():
+    data1 = hologram()
+
+    holo1 = qpretrieve.OffAxisHologram(data1,
+                                       fft_interface=FFTFilterNumpy,
+                                       padding=False)
+    kwargs = dict(filter_name="disk", filter_size=1 / 3)
+    res1 = holo1.run_pipeline(**kwargs)
+    assert res1.shape == (64, 64)
+
+    holo1 = qpretrieve.OffAxisHologram(data1,
+                                       fft_interface=FFTFilterPyFFTW,
+                                       padding=False)
+    kwargs = dict(filter_name="disk", filter_size=1 / 3)
+    res2 = holo1.run_pipeline(**kwargs)
+    assert res2.shape == (64, 64)
+
+    holo1 = qpretrieve.OffAxisHologram(data1,
+                                       fft_interface=FFTFilterScipy,
+                                       padding=False)
+    kwargs = dict(filter_name="disk", filter_size=1 / 3)
+    res3 = holo1.run_pipeline(**kwargs)
+    assert res3.shape == (64, 64)
+
+    holo1 = qpretrieve.OffAxisHologram(data1,
+                                       fft_interface=FFTFilterCupy,
+                                       padding=False)
+    kwargs = dict(filter_name="disk", filter_size=1 / 3)
+    res4 = holo1.run_pipeline(**kwargs)
+    assert res4.shape == (64, 64)
+
+    assert not np.all(res1 == res2)
+    assert not np.all(res2 == res3)
+    assert not np.all(res3 == res4)

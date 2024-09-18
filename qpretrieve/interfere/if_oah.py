@@ -126,6 +126,10 @@ def find_peak_cosine(ft_data, copy=True):
     if copy:
         ft_data = ft_data.copy()
 
+    if len(ft_data.shape) == 3:
+        # then we have a stack of images, just take one for finding the peak
+        ft_data = ft_data[0]
+
     ox, oy = ft_data.shape
     cx = ox // 2
     cy = oy // 2

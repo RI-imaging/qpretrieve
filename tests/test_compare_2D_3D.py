@@ -1,32 +1,44 @@
 import numpy as np
 
+from qpretrieve.utils import padding_2d, padding_3d, mean_2d, mean_3d
+
 
 def test_mean_subtraction():
-    data_3D = np.random.rand(1000, 5, 5).astype(np.float32)
+    data_3d = np.random.rand(1000, 5, 5).astype(np.float32)
     ind = 5
-    data_2D = data_3D.copy()[ind]
+    data_2d = data_3d.copy()[ind]
 
-    data_2D -= data_2D.mean()
-    # calculate mean of the images along the z-axis.
-    # The mean array here is (1000,), so we need to add newaxes for subtraction
-    # (1000, 5, 5) -= (1000, 1, 1)
-    data_3D -= data_3D.mean(axis=(-2, -1))[:, np.newaxis, np.newaxis]
+    data_2d = mean_2d(data_2d)
+    data_3d = mean_3d(data_3d)
 
-    assert np.array_equal(data_3D[ind], data_2D)
+    assert np.array_equal(data_3d[ind], data_2d)
 
 
-def test_mean_subtraction_consistent_2D_3D():
-    """Probably a bit too cumbersome, and changes the default 2D pipeline."""
-    data_3D = np.random.rand(1000, 5, 5).astype(np.float32)
+def test_mean_subtraction_consistent_2d_3d():
+    """Probably a bit too cumbersome, and changes the default 2d pipeline."""
+    data_3d = np.random.rand(1000, 5, 5).astype(np.float32)
     ind = 5
-    data_2D = data_3D.copy()[ind]
+    data_2d = data_3d.copy()[ind]
 
     # too cumbersome
-    data_2D = np.atleast_3d(data_2D)
-    data_2D = np.swapaxes(np.swapaxes(data_2D, 0, 2), 1, 2)
-    data_2D -= data_2D.mean(axis=(-2, -1))[:, np.newaxis, np.newaxis]
+    data_2d = np.atleast_3d(data_2d)
+    data_2d = np.swapaxes(np.swapaxes(data_2d, 0, 2), 1, 2)
+    data_2d -= data_2d.mean(axis=(-2, -1))[:, np.newaxis, np.newaxis]
 
-    data_3D = np.atleast_3d(data_3D.copy())
-    data_3D -= data_3D.mean(axis=(-2, -1))[:, np.newaxis, np.newaxis]
+    data_3d = np.atleast_3d(data_3d.copy())
+    data_3d -= data_3d.mean(axis=(-2, -1))[:, np.newaxis, np.newaxis]
 
-    assert np.array_equal(data_3D[ind], data_2D[0])
+    assert np.array_equal(data_3d[ind], data_2d[0])
+
+
+def test_batch_padding():
+    data_3d = np.random.rand(1000, 100, 320).astype(np.float32)
+    ind = 5
+    data_2d = data_3d.copy()[ind]
+    order = 512
+    dtype = float
+
+    data_2d_padded = padding_2d(data_2d, order, dtype)
+    data_3d_padded = padding_3d(data_3d, order, dtype)
+
+    assert np.array_equal(data_3d_padded[ind], data_2d_padded)

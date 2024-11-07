@@ -260,6 +260,9 @@ class FFTFilter(ABC):
                 fft_used = fft_used[cslice, cslice]
 
             field = self._ifft(np.fft.ifftshift(fft_used))
+            if len(self.origin.shape) != 2:
+                # todo: this must be corrected
+                self.padding = False
             if self.padding:
                 # revert padding
                 sx, sy = self.origin.shape

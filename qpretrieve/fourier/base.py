@@ -6,6 +6,7 @@ import weakref
 import numpy as np
 
 from .. import filter
+from ..utils import padding_2d, padding_3d, mean_2d, mean_3d
 
 
 class FFTCache:
@@ -35,12 +36,16 @@ class FFTCache:
 
 
 class FFTFilter(ABC):
-    def __init__(self, data, subtract_mean=True, padding=2, copy=True):
+    def __init__(self,
+                 data: np.ndarray,
+                 subtract_mean: bool = True,
+                 padding: int = 2,
+                 copy: bool = True):
         r"""
         Parameters
         ----------
-        data: 2d real-valued np.ndarray
-            The experimental input image
+        data
+            The experimental input image (2d or 3d real-valued)
         subtract_mean: bool
             If True, subtract the mean of `data` before performing
             the Fourier transform. This setting is recommended as it
@@ -76,6 +81,7 @@ class FFTFilter(ABC):
         data_ed = np.array(data, dtype=dtype, copy=copy)
         #: original data (with subtracted mean)
         self.origin = data_ed
+        # for `subtract_mean` and `padding`, we could use `np.atleast_3d`
         #: whether padding is enabled
         self.padding = padding
         #: whether the mean was subtracted
@@ -85,17 +91,24 @@ class FFTFilter(ABC):
             # (this affects more than one pixel in the FFT
             # because of zero-padding)
             if len(data_ed.shape) == 2:
-                data_ed -= data_ed.mean()
+                data_ed = mean_2d(data_ed)
             elif len(data_ed.shape) == 3:
-                data_ed -= data_ed.mean(
-                    axis=(-2, -1))[:, np.newaxis,np.newaxis]
+                data_ed = mean_3d(data_ed)
+            else:
+                raise ValueError(f"FFTFilter `data` input must be 2D or 3D, "
+                                 f"got {len(data_ed.shape)=}.")
         if padding:
             # zero padding size is next order of 2
             logfact = np.log(padding * max(data_ed.shape))
             order = int(2 ** np.ceil(logfact / np.log(2)))
-            # this is faster than np.pad
-            datapad = np.zeros((order, order), dtype=dtype)
-            datapad[:data_ed.shape[0], :data_ed.shape[1]] = data_ed
+
+            if len(data_ed.shape) == 2:
+                datapad = padding_2d(data_ed, order, dtype)
+            elif len(data_ed.shape) == 3:
+                datapad = padding_3d(data_ed, order, dtype)
+            else:
+                raise ValueError(f"FFTFilter `data` input must be 2D or 3D, "
+                                 f"got {len(data_ed.shape)=}.")
             #: padded input data
             self.origin_padded = datapad
             data_ed = datapad
@@ -257,7 +270,7 @@ class FFTFilter(ABC):
                 if scale_to_filter:
                     # Scale the absolute value of the field. This does not
                     # have any influence on the phase, but on the amplitude.
-                    field *= (2 * crad / osize)**2
+                    field *= (2 * crad / osize) ** 2
             # Add FFT to cache
             # (The cache will only be cleared if this instance is deleted)
             FFTCache.add_item(weakref_key, self.fft_origin,

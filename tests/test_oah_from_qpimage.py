@@ -1,7 +1,6 @@
 """These are tests from qpimage"""
 import numpy as np
 import pytest
-import matplotlib.pyplot as plt
 
 import qpretrieve
 from qpretrieve.interfere import if_oah
@@ -271,12 +270,13 @@ def test_get_field_cupy3d():
 
     assert not np.all(res1[0] == res2)
 
-    fig, axes = plt.subplots(3, 1)
-    ax1, ax2, ax3 = axes
-    ax1.imshow(np.abs(res1[0]))
-    ax2.imshow(np.abs(res2))
-    ax3.imshow(np.abs(res2)-np.abs(res1[0]))
-    plt.show()
+    # import matplotlib.pyplot as plt
+    # fig, axes = plt.subplots(3, 1)
+    # ax1, ax2, ax3 = axes
+    # ax1.imshow(np.abs(res1[0]))
+    # ax2.imshow(np.abs(res2))
+    # ax3.imshow(np.abs(res2)-np.abs(res1[0]))
+    # plt.show()
 
 
 def test_get_field_compare_FFTFilters():

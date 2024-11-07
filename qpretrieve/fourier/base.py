@@ -84,7 +84,11 @@ class FFTFilter(ABC):
             # remove contributions of the central band
             # (this affects more than one pixel in the FFT
             # because of zero-padding)
-            data_ed -= data_ed.mean()
+            if len(data_ed.shape) == 2:
+                data_ed -= data_ed.mean()
+            elif len(data_ed.shape) == 3:
+                data_ed -= data_ed.mean(
+                    axis=(-2, -1))[:, np.newaxis,np.newaxis]
         if padding:
             # zero padding size is next order of 2
             logfact = np.log(padding * max(data_ed.shape))

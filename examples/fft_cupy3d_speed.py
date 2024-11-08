@@ -1,9 +1,11 @@
 """Fourier Transform speeds for the Cupy 3D interface
 
-This example visualizes the normalised speed for different 3D image stacks for
-the `FFTFilterCupy3D` FFT Filter
+This example visualizes the speed for different batch sizes for
+the `FFTFilterCupy3D` FFT Filter. The y-axis shows the speed of a single
+FFT for the corresponding batch size.
 
-- Optimum stack size for 256 images (incl. padding) is bewteen 128 and 256.
+- Optimum batch size is between 64 and 256 for 256x256pix images (incl. padding).
+- Here, batch size is the size of the 3D stack in z.
 
 """
 import time
@@ -54,11 +56,10 @@ ax1 = axes
 
 ax1.bar(range(len(n_transforms_list)), height=speed_norm, color='darkmagenta')
 ax1.set_xticks(range(len(n_transforms_list)), labels=n_transforms_list)
-ax1.set_xlabel("Number of Transforms")
-ax1.set_ylabel("Speed normalised by number of transforms (s)")
-ax1.set_title(f"Normalised by number of transforms")
+ax1.set_xlabel("Fourier transform batch size")
+ax1.set_ylabel("Speed / batch size (s)")
 
-plt.suptitle("Speed of CuPy 3D")
+plt.suptitle("Speed of FFT Interface CuPy3D")
 plt.tight_layout()
-# plt.show()
-plt.savefig("fft_cupy3d_speed.png", dpi=150)
+plt.show()
+# plt.savefig("fft_cupy3d_speed.png", dpi=150)

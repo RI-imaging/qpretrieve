@@ -245,14 +245,14 @@ def test_get_field_compare_FFTFilters(hologram):
     assert res1.shape == (64, 64)
 
     holo1 = qpretrieve.OffAxisHologram(data1,
-                                       fft_interface=FFTFilterPyFFTW,
+                                       fft_interface=FFTFilterScipy,
                                        padding=False)
     kwargs = dict(filter_name="disk", filter_size=1 / 3)
     res2 = holo1.run_pipeline(**kwargs)
     assert res2.shape == (64, 64)
 
     holo1 = qpretrieve.OffAxisHologram(data1,
-                                       fft_interface=FFTFilterScipy,
+                                       fft_interface=FFTFilterPyFFTW,
                                        padding=False)
     kwargs = dict(filter_name="disk", filter_size=1 / 3)
     res3 = holo1.run_pipeline(**kwargs)

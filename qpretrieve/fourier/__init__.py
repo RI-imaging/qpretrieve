@@ -11,9 +11,13 @@ except ImportError:
 
 try:
     from .ff_cupy import FFTFilterCupy
-    from .ff_cupy3D import FFTFilterCupy3D
 except ImportError:
     FFTFilterCupy = None
+
+try:
+    from .ff_cupy3D import FFTFilterCupy3D
+except ImportError:
+    FFTFilterCupy3D = None
 
 PREFERRED_INTERFACE = None
 

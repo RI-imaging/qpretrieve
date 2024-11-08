@@ -245,7 +245,7 @@ class FFTFilter(ABC):
             fft_filtered = self.fft_origin * filt_array
             px = int(freq_pos[0] * self.shape[-2])
             py = int(freq_pos[1] * self.shape[-1])
-            fft_used = np.roll(np.roll(fft_filtered, -px, axis=0), -py, axis=1)
+            fft_used = np.roll(np.roll(fft_filtered, -px, axis=-2), -py, axis=-1)
             if scale_to_filter:
                 # Determine the size of the cropping region.
                 # We compute the "radius" of the region, so we can
@@ -257,7 +257,10 @@ class FFTFilter(ABC):
                 cslice = slice(ccent - crad, ccent + crad)
                 # We now have the interesting peak already shifted to
                 # the first entry of our array in `shifted`.
-                fft_used = fft_used[cslice, cslice]
+                if len(fft_used.shape) == 2:
+                    fft_used = fft_used[cslice, cslice]
+                elif len(fft_used.shape) == 3:
+                    fft_used = fft_used[:, cslice, cslice]
 
             field = self._ifft(np.fft.ifftshift(fft_used))
             if len(self.origin.shape) != 2:

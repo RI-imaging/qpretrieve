@@ -243,15 +243,15 @@ class FFTFilter(ABC):
                 # only take shape of a single fft
                 fft_shape=self.fft_origin.shape[-2:])
             fft_filtered = self.fft_origin * filt_array
-            px = int(freq_pos[0] * self.shape[0])
-            py = int(freq_pos[1] * self.shape[1])
+            px = int(freq_pos[0] * self.shape[-2])
+            py = int(freq_pos[1] * self.shape[-1])
             fft_used = np.roll(np.roll(fft_filtered, -px, axis=0), -py, axis=1)
             if scale_to_filter:
                 # Determine the size of the cropping region.
                 # We compute the "radius" of the region, so we can
                 # crop the data left and right from the center of the
                 # Fourier domain.
-                osize = fft_filtered.shape[0]  # square shaped
+                osize = fft_filtered.shape[-2]  # square shaped
                 crad = int(np.ceil(filter_size * osize * scale_to_filter))
                 ccent = osize // 2
                 cslice = slice(ccent - crad, ccent + crad)

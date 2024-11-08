@@ -121,13 +121,13 @@ class BaseInterferogram(ABC):
             # filter size given in Fourier index (number of Fourier pixels)
             # The user probably does not know that we are padding in
             # Fourier space, so we use the unpadded size and translate it.
-            if filter_size <= 0 or filter_size >= self.fft.shape[0] / 2:
+            if filter_size <= 0 or filter_size >= self.fft.shape[-2] / 2:
                 raise ValueError("For frequency index interpretation, "
                                  + "`filter_size` must be between 0 and "
-                                 + f"{self.fft.shape[0] / 2}, got "
+                                 + f"{self.fft.shape[-2] / 2}, got "
                                  + f"'{filter_size}'!")
             # convert to frequencies (compatible with fx and fy)
-            fsize = filter_size / self.fft.shape[0]
+            fsize = filter_size / self.fft.shape[-2]
         else:
             raise ValueError("Invalid value for `filter_size_interpretation`: "
                              + f"'{filter_size_interpretation}'")

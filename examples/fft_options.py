@@ -30,14 +30,14 @@ for fft_interface in interfaces_available:
     t0 = time.time()
     holo = qpretrieve.OffAxisHologram(data=edata["data"],
                                       fft_interface=fft_interface,
-                                      subtract_mean=subtract_mean, padding=padding)
+                                      subtract_mean=subtract_mean,
+                                      padding=padding)
     holo.run_pipeline(filter_name="disk", filter_size=1 / 2)
     bg = qpretrieve.OffAxisHologram(data=edata["bg_data"])
     bg.process_like(holo)
     t1 = time.time()
     results_1[fft_interface.__name__] = t1 - t0
 num_interfaces = len(results_1)
-
 
 # multiple transforms (should see speed increase for PyFFTW)
 print(f"Running {n_transforms} transforms...")
@@ -62,16 +62,18 @@ for fft_interface in interfaces_available:
     if fft_interface.__name__ == "FFTFilterCupy3D":
         holo = qpretrieve.OffAxisHologram(data=data_3d,
                                           fft_interface=fft_interface,
-                                          subtract_mean=subtract_mean, padding=padding)
+                                          subtract_mean=subtract_mean,
+                                          padding=padding)
         holo.run_pipeline(filter_name="disk", filter_size=1 / 2)
         bg = qpretrieve.OffAxisHologram(data=data_3d_bg)
         bg.process_like(holo)
     else:
         # 2d
         for _ in range(n_transforms):
-            holo = qpretrieve.OffAxisHologram(data=data_2d,
-                                              fft_interface=fft_interface,
-                                              subtract_mean=subtract_mean, padding=padding)
+            holo = qpretrieve.OffAxisHologram(
+                data=data_2d,
+                fft_interface=fft_interface,
+                subtract_mean=subtract_mean, padding=padding)
             holo.run_pipeline(filter_name="disk", filter_size=1 / 2)
             bg = qpretrieve.OffAxisHologram(data=edata["bg_data"])
             bg.process_like(holo)

@@ -4,7 +4,7 @@ This example visualizes the speed for different batch sizes for
 the `FFTFilterCupy3D` FFT Filter. The y-axis shows the speed of a single
 FFT for the corresponding batch size.
 
-- Optimum batch size is between 64 and 256 for 256x256pix images (incl. padding).
+- Optimum batch size is between 64 and 256 for 256x256pix imgs (incl padding).
 - Here, batch size is the size of the 3D stack in z.
 
 """
@@ -41,7 +41,8 @@ for n_transforms in n_transforms_list:
 
     holo = qpretrieve.OffAxisHologram(data=data_3d,
                                       fft_interface=fft_interface,
-                                      subtract_mean=subtract_mean, padding=padding)
+                                      subtract_mean=subtract_mean,
+                                      padding=padding)
     holo.run_pipeline(filter_name="disk", filter_size=1 / 2)
     bg = qpretrieve.OffAxisHologram(data=data_3d_bg)
     bg.process_like(holo)

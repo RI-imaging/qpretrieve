@@ -245,7 +245,8 @@ class FFTFilter(ABC):
             fft_filtered = self.fft_origin * filt_array
             px = int(freq_pos[0] * self.shape[-2])
             py = int(freq_pos[1] * self.shape[-1])
-            fft_used = np.roll(np.roll(fft_filtered, -px, axis=-2), -py, axis=-1)
+            fft_used = np.roll(np.roll(
+                fft_filtered, -px, axis=-2), -py, axis=-1)
             if scale_to_filter:
                 # Determine the size of the cropping region.
                 # We compute the "radius" of the region, so we can
@@ -263,16 +264,18 @@ class FFTFilter(ABC):
                     fft_used = fft_used[:, cslice, cslice]
 
             field = self._ifft(np.fft.ifftshift(fft_used))
-            if len(self.origin.shape) != 2:
-                # todo: this must be corrected
-                self.padding = False
+
             if self.padding:
                 # revert padding
-                sx, sy = self.origin.shape
+                sx, sy = self.origin.shape[-2:]
                 if scale_to_filter:
                     sx = int(np.ceil(sx * 2 * crad / osize))
                     sy = int(np.ceil(sy * 2 * crad / osize))
-                field = field[:sx, :sy]
+                if len(fft_used.shape) == 2:
+                    field = field[:sx, :sy]
+                elif len(fft_used.shape) == 3:
+                    field = field[:, :sx, :sy]
+
                 if scale_to_filter:
                     # Scale the absolute value of the field. This does not
                     # have any influence on the phase, but on the amplitude.

@@ -4,6 +4,7 @@ import numpy as np
 
 from ..fourier import get_best_interface, get_available_interfaces
 from ..fourier.base import FFTFilter
+from ..data_input import check_data_input
 
 
 class BaseInterferogram(ABC):
@@ -59,11 +60,9 @@ class BaseInterferogram(ABC):
                     f"{get_available_interfaces()}.\n"
                     f"You can use `fft_interface='auto'` to get the best "
                     f"available interface.")
-        if self.ff_iface.__name__ == "FFTFilterCupy3D":
-            data = data
-        elif len(data.shape) == 3:
-            # take the first slice (we have alpha or RGB information)
-            data = data[:, :, 0]
+
+        # figure out what type of data we have
+        data = check_data_input(data)
         #: qpretrieve Fourier transform interface class
         self.fft = self.ff_iface(data=data,
                                  subtract_mean=subtract_mean,

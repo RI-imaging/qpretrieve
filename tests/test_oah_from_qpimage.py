@@ -19,12 +19,13 @@ def test_find_sideband():
 
 
 def test_fourier2dpad():
-    data = np.zeros((100, 120))
+    y, x = 100, 120
+    data = np.zeros((y, x))
     fft1 = qpretrieve.fourier.FFTFilterNumpy(data)
-    assert fft1.shape == (256, 256)
+    assert fft1.shape == (1, 256, 256)
 
     fft2 = qpretrieve.fourier.FFTFilterNumpy(data, padding=False)
-    assert fft2.shape == data.shape
+    assert fft2.shape == (1, y, x)
 
 
 def test_get_field_error_bad_filter_size(hologram):
@@ -109,12 +110,15 @@ def test_get_field_interpretation_fourier_index(hologram):
                    filter_size_interpretation="sideband distance")
     res1 = holo.run_pipeline(**kwargs1)
 
-    filter_size_fi = np.sqrt(fsx ** 2 + fsy ** 2) / 3 * ft_data.shape[0]
+    filter_size_fi = np.sqrt(fsx ** 2 + fsy ** 2) / 3 * ft_data.shape[-2]
     kwargs2 = dict(filter_name="disk",
                    filter_size=filter_size_fi,
                    filter_size_interpretation="frequency index",
                    )
     res2 = holo.run_pipeline(**kwargs2)
+
+    assert res1.shape == hologram.shape
+    assert res2.shape == hologram.shape
     assert np.all(res1 == res2)
 
 
@@ -136,7 +140,7 @@ def test_get_field_interpretation_fourier_index_control(hologram):
                    )
     res1 = holo.run_pipeline(**kwargs1)
 
-    filter_size_fi = np.sqrt(fsx ** 2 + fsy ** 2) / 3 * ft_data.shape[0]
+    filter_size_fi = np.sqrt(fsx ** 2 + fsy ** 2) / 3 * ft_data.shape[-2]
     kwargs2 = dict(filter_name="disk",
                    filter_size=filter_size_fi,
                    filter_size_interpretation="frequency index",
@@ -163,7 +167,7 @@ def test_get_field_interpretation_fourier_index_mask_1(hologram, filter_size):
     # We get 17*2+1, because we measure from the center of Fourier
     # space and a pixel is included if its center is withing the
     # perimeter of the disk.
-    assert np.sum(np.sum(mask, axis=0) != 0) == 17 * 2 + 1
+    assert np.sum(np.sum(mask, axis=-2) != 0) == 17 * 2 + 1
 
 
 @pytest.mark.parametrize("hologram", [62, 63, 64, 134, 135],
@@ -182,7 +186,7 @@ def test_get_field_interpretation_fourier_index_mask_2(hologram):
 
     # We get two points less than in the previous test, because we
     # loose on each side of the spectrum.
-    assert np.sum(np.sum(mask, axis=0) != 0) == 17 * 2 - 1
+    assert np.sum(np.sum(mask, axis=-2) != 0) == 17 * 2 - 1
 
 
 def test_get_field_int_copy(hologram):
@@ -221,7 +225,7 @@ def test_get_field_sideband(hologram):
 def test_get_field_three_axes(hologram):
     data1 = hologram
     # create a copy with empty entry in third axis
-    data2 = np.zeros((data1.shape[0], data1.shape[1], 2))
+    data2 = np.zeros((data1.shape[0], data1.shape[1], 3))
     data2[:, :, 0] = data1
 
     holo1 = qpretrieve.OffAxisHologram(data1)
@@ -231,7 +235,11 @@ def test_get_field_three_axes(hologram):
                   filter_size=1 / 3)
     res1 = holo1.run_pipeline(**kwargs)
     res2 = holo2.run_pipeline(**kwargs)
-    assert np.all(res1 == res2)
+
+    assert res1.shape == (data1.shape[0], data1.shape[1])
+    assert res2.shape == (data1.shape[0], data1.shape[1], 3)
+
+    assert np.all(res1 == res2[:, :, 0])
 
 
 def test_get_field_compare_FFTFilters(hologram):

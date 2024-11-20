@@ -1,4 +1,5 @@
 import numpy as np
+import warnings
 
 allowed_data_formats = [
     "rgb",
@@ -50,6 +51,8 @@ def _convert_rgb_to_3d(data_input):
     data = data_input[:, :, 0]
     data = data[np.newaxis, :, :]
     data_format = "rgb"
+    warnings.warn(f"Format of input data detected as {data_format}. "
+                  f"The first channel will be used for processing")
     return data, data_format
 
 

@@ -5,6 +5,9 @@ import pytest
 import qpretrieve
 from qpretrieve.interfere import if_oah
 from qpretrieve.fourier import FFTFilterNumpy, FFTFilterScipy, FFTFilterPyFFTW
+from qpretrieve.data_input import (
+    _convert_2d_to_3d, _revert_3d_to_rgb, _revert_3d_to_rgba,
+)
 
 
 def test_find_sideband():
@@ -268,3 +271,31 @@ def test_get_field_compare_FFTFilters(hologram):
 
     assert not np.all(res1 == res2)
     assert not np.all(res2 == res3)
+
+
+def test_field_format_consistency(hologram):
+    """The data format provided by the user should be returned"""
+    data_2d = hologram
+
+    # 2d data format
+    holo1 = qpretrieve.OffAxisHologram(data_2d)
+    res1 = holo1.run_pipeline()
+    assert res1.shape == data_2d.shape
+
+    # 3d data format
+    data_3d, _ = _convert_2d_to_3d(data_2d)
+    holo_3d = qpretrieve.OffAxisHologram(data_3d)
+    res_3d = holo_3d.run_pipeline()
+    assert res_3d.shape == data_3d.shape
+
+    # rgb data format
+    data_rgb = _revert_3d_to_rgb(data_3d)
+    holo_rgb = qpretrieve.OffAxisHologram(data_rgb)
+    res_rgb = holo_rgb.run_pipeline()
+    assert res_rgb.shape == data_rgb.shape
+
+    # rgba data format
+    data_rgba = _revert_3d_to_rgba(data_3d)
+    holo_rgba = qpretrieve.OffAxisHologram(data_rgba)
+    res_rgba = holo_rgba.run_pipeline()
+    assert res_rgba.shape == data_rgba.shape

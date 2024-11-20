@@ -37,13 +37,13 @@ def revert_to_data_input_shape(data_format, field):
     assert len(field.shape) == 3, "the field should be 3d"
     field = field.copy()
     if data_format == "rgb":
-        field = _convert_3d_to_rgb(field)
+        field = _revert_3d_to_rgb(field)
     elif data_format == "rgba":
-        field = _convert_3d_to_rgba(field)
+        field = _revert_3d_to_rgba(field)
     elif data_format == "3d":
         field = field
     else:
-        field = _convert_3d_to_2d(field)
+        field = _revert_3d_to_2d(field)
     return field
 
 
@@ -68,17 +68,17 @@ def _convert_2d_to_3d(data_input):
     return data, data_format
 
 
-def _convert_3d_to_rgb(field):
-    field = field[0]
-    field = np.dstack((field, field, field))
-    return field
+def _revert_3d_to_rgb(data_input):
+    data = data_input[0]
+    data = np.dstack((data, data, data))
+    return data
 
 
-def _convert_3d_to_rgba(field):
-    field = field[0]
-    field = np.dstack((field, field, field, np.ones_like(field)))
-    return field
+def _revert_3d_to_rgba(data_input):
+    data = data_input[0]
+    data = np.dstack((data, data, data, np.ones_like(data)))
+    return data
 
 
-def _convert_3d_to_2d(field):
-    return field[0]
+def _revert_3d_to_2d(data_input):
+    return data_input[0]

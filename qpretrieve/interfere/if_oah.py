@@ -1,6 +1,7 @@
 import numpy as np
 
 from .base import BaseInterferogram
+from ..data_input import revert_to_data_input_shape
 
 
 class OffAxisHologram(BaseInterferogram):
@@ -92,6 +93,7 @@ class OffAxisHologram(BaseInterferogram):
         if pipeline_kws["invert_phase"]:
             field.imag *= -1
 
+        field = revert_to_data_input_shape(self.fft.data_format, field)
         self._field = field
         self._phase = None
         self._amplitude = None
@@ -129,7 +131,7 @@ def find_peak_cosine(ft_data, copy=True):
     if len(ft_data.shape) == 3:
         # then we have a stack of images, just take one for finding the peak
         ft_data = ft_data[0]
-
+    assert len(ft_data.shape) == 2
     ox, oy = ft_data.shape
     cx = ox // 2
     cy = oy // 2

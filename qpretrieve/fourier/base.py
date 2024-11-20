@@ -6,7 +6,8 @@ import weakref
 import numpy as np
 
 from .. import filter
-from ..utils import padding_2d, padding_3d, mean_2d, mean_3d
+from ..utils import padding_3d, mean_3d
+from ..data_input import check_data_input_form
 
 
 class FFTCache:
@@ -45,7 +46,10 @@ class FFTFilter(ABC):
         Parameters
         ----------
         data
-            The experimental input image (2d or 3d real-valued)
+            The experimental input real-valued image. Allowed input shapes are:
+              - 2d (y, x)
+              - 3d (z, y, x)
+              - 3d rgb (y, x, 3) or rgba (y, x, 4)
         subtract_mean: bool
             If True, subtract the mean of `data` before performing
             the Fourier transform. This setting is recommended as it
@@ -79,6 +83,8 @@ class FFTFilter(ABC):
             # numpy v2.x behaviour requires asarray with copy=False
             copy = None
         data_ed = np.array(data, dtype=dtype, copy=copy)
+        # figure out what type of data we have
+        data_ed, self.data_format = check_data_input_form(data_ed)
         #: original data (with subtracted mean)
         self.origin = data_ed
         # for `subtract_mean` and `padding`, we could use `np.atleast_3d`
@@ -90,25 +96,13 @@ class FFTFilter(ABC):
             # remove contributions of the central band
             # (this affects more than one pixel in the FFT
             # because of zero-padding)
-            if len(data_ed.shape) == 2:
-                data_ed = mean_2d(data_ed)
-            elif len(data_ed.shape) == 3:
-                data_ed = mean_3d(data_ed)
-            else:
-                raise ValueError(f"FFTFilter `data` input must be 2D or 3D, "
-                                 f"got {len(data_ed.shape)=}.")
+            data_ed = mean_3d(data_ed)
         if padding:
             # zero padding size is next order of 2
             logfact = np.log(padding * max(data_ed.shape))
             order = int(2 ** np.ceil(logfact / np.log(2)))
 
-            if len(data_ed.shape) == 2:
-                datapad = padding_2d(data_ed, order, dtype)
-            elif len(data_ed.shape) == 3:
-                datapad = padding_3d(data_ed, order, dtype)
-            else:
-                raise ValueError(f"FFTFilter `data` input must be 2D or 3D, "
-                                 f"got {len(data_ed.shape)=}.")
+            datapad = padding_3d(data_ed, order, dtype)
             #: padded input data
             self.origin_padded = datapad
             data_ed = datapad
@@ -258,10 +252,7 @@ class FFTFilter(ABC):
                 cslice = slice(ccent - crad, ccent + crad)
                 # We now have the interesting peak already shifted to
                 # the first entry of our array in `shifted`.
-                if len(fft_used.shape) == 2:
-                    fft_used = fft_used[cslice, cslice]
-                elif len(fft_used.shape) == 3:
-                    fft_used = fft_used[:, cslice, cslice]
+                fft_used = fft_used[:, cslice, cslice]
 
             field = self._ifft(np.fft.ifftshift(fft_used))
 
@@ -271,10 +262,8 @@ class FFTFilter(ABC):
                 if scale_to_filter:
                     sx = int(np.ceil(sx * 2 * crad / osize))
                     sy = int(np.ceil(sy * 2 * crad / osize))
-                if len(fft_used.shape) == 2:
-                    field = field[:sx, :sy]
-                elif len(fft_used.shape) == 3:
-                    field = field[:, :sx, :sy]
+
+                field = field[:, :sx, :sy]
 
                 if scale_to_filter:
                     # Scale the absolute value of the field. This does not

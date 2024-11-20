@@ -9,7 +9,7 @@ allowed_data_formats = [
 ]
 
 
-def check_data_input_form(data_input):
+def check_data_input_format(data_input):
     """Figure out what data input is provided."""
     if len(data_input.shape) == 3:
         if data_input.shape[-1] in [1, 2, 3]:
@@ -30,7 +30,7 @@ def check_data_input_form(data_input):
     return data.copy(), data_format
 
 
-def revert_to_data_input_shape(data_format, field):
+def revert_to_data_input_format(data_format, field):
     """Convert the outputted field shape to the original input shape,
     for user convenience."""
     assert data_format in allowed_data_formats

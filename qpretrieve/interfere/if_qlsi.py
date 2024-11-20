@@ -6,6 +6,7 @@ from skimage.restoration import unwrap_phase
 
 from .base import BaseInterferogram
 from ..fourier import get_best_interface
+from ..data_input import revert_to_data_input_format
 
 
 class QLSInterferogram(BaseInterferogram):
@@ -47,7 +48,7 @@ class QLSInterferogram(BaseInterferogram):
     @property
     def field(self):
         if self._field is None:
-            self._field = self.amplitude * np.exp(1j*2*np.pi*self.phase)
+            self._field = self.amplitude * np.exp(1j * 2 * np.pi * self.phase)
         return self._field
 
     @property
@@ -120,7 +121,7 @@ class QLSInterferogram(BaseInterferogram):
 
         if pipeline_kws["sideband_freq"] is None:
             pipeline_kws["sideband_freq"] = find_peaks_qlsi(
-                self.fft.fft_origin)
+                self.fft.fft_origin[0])
 
         # convert filter_size to frequency coordinates
         fsize = self.compute_filter_size(
@@ -183,10 +184,10 @@ class QLSInterferogram(BaseInterferogram):
         # Pad the gradient information so that we can rotate with cropping
         # (keeping the image shape the same).
         # TODO: Make padding dependent on rotation angle to save time?
-        sx, sy = px.shape
-        gradpad1 = np.pad(px, ((sx // 2, sx // 2), (sy // 2, sy // 2)),
+        sx, sy = px.shape[-2:]
+        gradpad1 = np.pad(px, ((0, 0), (sx // 2, sx // 2), (sy // 2, sy // 2)),
                           mode="constant", constant_values=0)
-        gradpad2 = np.pad(py, ((sx // 2, sx // 2), (sy // 2, sy // 2)),
+        gradpad2 = np.pad(py, ((0, 0), (sx // 2, sx // 2), (sy // 2, sy // 2)),
                           mode="constant", constant_values=0)
 
         # Perform rotation of the gradients.
@@ -204,19 +205,19 @@ class QLSInterferogram(BaseInterferogram):
                         copy=False)
         # Compute the frequencies that correspond to the frequencies of the
         # Fourier-transformed image.
-        fx = np.fft.fftfreq(rfft.shape[0]).reshape(-1, 1)
-        fy = np.fft.fftfreq(rfft.shape[1]).reshape(1, -1)
-        fxy = -2*np.pi*1j * (fx + 1j*fy)
+        fx = np.fft.fftfreq(rfft.shape[-1]).reshape(rfft.shape[0], -1, 1)
+        fy = np.fft.fftfreq(rfft.shape[-2]).reshape(rfft.shape[0], 1, -1)
+        fxy = -2 * np.pi * 1j * (fx + 1j * fy)
         fxy[0, 0] = 1
 
         # The wavefront is the real part of the inverse Fourier transform
         # of the filtered (divided by frequencies) data.
-        wfr = rfft._ifft(np.fft.ifftshift(rfft.fft_origin)/fxy).real
+        wfr = rfft._ifft(np.fft.ifftshift(rfft.fft_origin) / fxy).real
 
         # Rotate the wavefront back and crop it so that the FOV matches
         # the input data.
-        raw_wavefront = rotate_noreshape(wfr,
-                                         angle)[sx//2:-sx//2, sy//2:-sy//2]
+        raw_wavefront = rotate_noreshape(
+            wfr, angle)[:, sx // 2:-sx // 2, sy // 2:-sy // 2]
         # Multiply by qlsi pitch term and the scaling factor to get
         # the quantitative wavefront.
         scaling_factor = self.fft_origin.shape[0] / wfr.shape[0]
@@ -230,6 +231,8 @@ class QLSInterferogram(BaseInterferogram):
 
         self.pipeline_kws.update(pipeline_kws)
 
+        raw_wavefront = revert_to_data_input_format(
+            self.fft.data_format, raw_wavefront)
         self.wavefront = raw_wavefront
 
         return raw_wavefront
@@ -287,12 +290,12 @@ def find_peaks_qlsi(ft_data, periodicity=4, copy=True):
     # circular bandpass according to periodicity
     fx = np.fft.fftshift(np.fft.fftfreq(ft_data.shape[0])).reshape(-1, 1)
     fy = np.fft.fftshift(np.fft.fftfreq(ft_data.shape[1])).reshape(1, -1)
-    frmask1 = np.sqrt(fx**2 + fy**2) > 1/(periodicity*.8)
+    frmask1 = np.sqrt(fx ** 2 + fy ** 2) > 1 / (periodicity * .8)
     frmask2 = np.sqrt(fx ** 2 + fy ** 2) < 1 / (periodicity * 1.2)
     ft_data[np.logical_or(frmask1, frmask2)] = 0
 
     # find the peak in the left part
-    am1 = np.argmax(np.abs(ft_data*(fy < 0)))
+    am1 = np.argmax(np.abs(ft_data * (fy < 0)))
     i1y = am1 % oy
     i1x = int((am1 - i1y) / oy)
 

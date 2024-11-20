@@ -136,12 +136,22 @@ def test_scale_to_filter_qlsi():
     }
 
     ifh = interfere.QLSInterferogram(image, **pipeline_kws)
-    ifh.run_pipeline()
+    raw_wavefront = ifh.run_pipeline()
+    assert raw_wavefront.shape == (720, 720)
+    assert ifh.phase.shape == (1, 720, 720)
+    assert ifh.amplitude.shape == (1, 720, 720)
+    assert ifh.field.shape == (1, 720, 720)
 
     ifr = interfere.QLSInterferogram(refer, **pipeline_kws)
     ifr.run_pipeline()
+    assert ifr.phase.shape == (1, 720, 720)
+    assert ifr.amplitude.shape == (1, 720, 720)
+    assert ifr.field.shape == (1, 720, 720)
 
-    phase = unwrap_phase(ifh.phase - ifr.phase)
+    ifh_phase = ifh.phase[0]
+    ifr_phase = ifr.phase[0]
+
+    phase = unwrap_phase(ifh_phase - ifr_phase)
     assert phase.shape == (720, 720)
     assert np.allclose(phase.mean(), 0.12434563269684816, atol=1e-6)
 

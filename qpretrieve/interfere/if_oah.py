@@ -1,7 +1,7 @@
 import numpy as np
 
 from .base import BaseInterferogram
-from ..data_input import revert_to_data_input_shape
+from ..data_input import revert_to_data_input_format
 
 
 class OffAxisHologram(BaseInterferogram):
@@ -74,7 +74,7 @@ class OffAxisHologram(BaseInterferogram):
 
         if pipeline_kws["sideband_freq"] is None:
             pipeline_kws["sideband_freq"] = find_peak_cosine(
-                self.fft.fft_origin)
+                self.fft.fft_origin[0])
 
         # convert filter_size to frequency coordinates
         fsize = self.compute_filter_size(
@@ -93,7 +93,7 @@ class OffAxisHologram(BaseInterferogram):
         if pipeline_kws["invert_phase"]:
             field.imag *= -1
 
-        field = revert_to_data_input_shape(self.fft.data_format, field)
+        field = revert_to_data_input_format(self.fft.data_format, field)
         self._field = field
         self._phase = None
         self._amplitude = None
@@ -103,7 +103,7 @@ class OffAxisHologram(BaseInterferogram):
 
 
 def find_peak_cosine(ft_data, copy=True):
-    """Find the side band position of a regular off-axis hologram
+    """Find the side band position of a 2d regular off-axis hologram
 
     The Fourier transform of a cosine function (known as the
     striped fringe pattern in off-axis holography) results in
@@ -128,10 +128,6 @@ def find_peak_cosine(ft_data, copy=True):
     if copy:
         ft_data = ft_data.copy()
 
-    if len(ft_data.shape) == 3:
-        # then we have a stack of images, just take one for finding the peak
-        ft_data = ft_data[0]
-    assert len(ft_data.shape) == 2
     ox, oy = ft_data.shape
     cx = ox // 2
     cy = oy // 2

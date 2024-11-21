@@ -6,7 +6,6 @@ from skimage.restoration import unwrap_phase
 
 from .base import BaseInterferogram
 from ..fourier import get_best_interface
-from ..data_input import revert_to_data_input_format
 
 
 class QLSInterferogram(BaseInterferogram):
@@ -173,8 +172,14 @@ class QLSInterferogram(BaseInterferogram):
 
         # Obtain the phase gradients in x and y by taking the argument
         # of Hx and Hy.
-        px = unwrap_phase(np.angle(hx))
-        py = unwrap_phase(np.angle(hy))
+        # need to do this along the z axis, as skimage `unwrap_3d` does not
+        # work for our use-case
+        # todo: maybe use np.unwrap for the xy axes instead
+        px = np.zeros_like(hx)
+        py = np.zeros_like(hy)
+        for i, (_hx, _hy) in enumerate(zip(hx, hy)):
+            px[i] = unwrap_phase(np.angle(_hx))
+            py[i] = unwrap_phase(np.angle(_hy))
 
         # Determine the angle by which we have to rotate the gradients in
         # order for them to be aligned with x and y. This angle is defined
@@ -191,8 +196,8 @@ class QLSInterferogram(BaseInterferogram):
                           mode="constant", constant_values=0)
 
         # Perform rotation of the gradients.
-        rotated1 = rotate_noreshape(gradpad1, -angle)
-        rotated2 = rotate_noreshape(gradpad2, -angle)
+        rotated1 = rotate_noreshape(gradpad1, -angle, axes=(-1, -2))
+        rotated2 = rotate_noreshape(gradpad2, -angle, axes=(-1, -2))
 
         # Retrieve the wavefront by integrating the vectorial components
         # (integrate the total differential). This magical approach
@@ -217,10 +222,10 @@ class QLSInterferogram(BaseInterferogram):
         # Rotate the wavefront back and crop it so that the FOV matches
         # the input data.
         raw_wavefront = rotate_noreshape(
-            wfr, angle)[:, sx // 2:-sx // 2, sy // 2:-sy // 2]
+            wfr, angle, axes=(-1, -2))[:, sx // 2:-sx // 2, sy // 2:-sy // 2]
         # Multiply by qlsi pitch term and the scaling factor to get
         # the quantitative wavefront.
-        scaling_factor = self.fft_origin.shape[0] / wfr.shape[0]
+        scaling_factor = self.fft_origin.shape[-2] / wfr.shape[-2]
         raw_wavefront *= qlsi_pitch_term * scaling_factor
 
         self._phase = raw_wavefront / wavelength * 2 * np.pi
@@ -231,8 +236,8 @@ class QLSInterferogram(BaseInterferogram):
 
         self.pipeline_kws.update(pipeline_kws)
 
-        raw_wavefront = revert_to_data_input_format(
-            self.fft.data_format, raw_wavefront)
+        # raw_wavefront = revert_to_data_input_format(
+        #     self.fft.data_format, raw_wavefront)
         self.wavefront = raw_wavefront
 
         return raw_wavefront
@@ -288,8 +293,8 @@ def find_peaks_qlsi(ft_data, periodicity=4, copy=True):
     ft_data[:, cy - 3:cy + 3] = 0
 
     # circular bandpass according to periodicity
-    fx = np.fft.fftshift(np.fft.fftfreq(ft_data.shape[0])).reshape(-1, 1)
-    fy = np.fft.fftshift(np.fft.fftfreq(ft_data.shape[1])).reshape(1, -1)
+    fx = np.fft.fftshift(np.fft.fftfreq(ft_data.shape[-2])).reshape(-1, 1)
+    fy = np.fft.fftshift(np.fft.fftfreq(ft_data.shape[-1])).reshape(1, -1)
     frmask1 = np.sqrt(fx ** 2 + fy ** 2) > 1 / (periodicity * .8)
     frmask2 = np.sqrt(fx ** 2 + fy ** 2) < 1 / (periodicity * 1.2)
     ft_data[np.logical_or(frmask1, frmask2)] = 0
@@ -302,10 +307,11 @@ def find_peaks_qlsi(ft_data, periodicity=4, copy=True):
     return fx[i1x, 0], fy[0, i1y]
 
 
-def rotate_noreshape(arr, angle, mode="mirror", reshape=False):
+def rotate_noreshape(arr, angle, axes, mode="mirror", reshape=False):
     return scipy.ndimage.rotate(
         arr,  # input
         angle=np.rad2deg(angle),  # angle
+        axes=axes,
         reshape=reshape,  # reshape
         order=0,  # order
         mode=mode,  # mode

@@ -152,6 +152,7 @@ def test_scale_to_filter_qlsi():
     ifr_phase = ifr.phase[0]
 
     phase = unwrap_phase(ifh_phase - ifr_phase)
+
     assert phase.shape == (720, 720)
     assert np.allclose(phase.mean(), 0.12434563269684816, atol=1e-6)
 

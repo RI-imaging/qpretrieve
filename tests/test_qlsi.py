@@ -118,8 +118,16 @@ def test_qlsi_rotate_2d_3d(hologram):
         axes=(-1, -2),  # the y and x axes
         reshape=False,
     )
+    rot_3d_2 = qpretrieve.interfere.if_qlsi.rotate_noreshape(
+        data_3d,
+        angle=2,
+        axes=(-2, -1),  # the y and x axes
+        reshape=False,
+    )
 
+    assert rot_2d.dtype == rot_3d.dtype
     assert np.array_equal(rot_2d, rot_3d[0])
+    assert np.array_equal(rot_2d, rot_3d_2[0])
 
 
 def test_qlsi_pad_2d_3d(hologram):
@@ -134,4 +142,27 @@ def test_qlsi_pad_2d_3d(hologram):
         data_3d, ((0, 0), (sx // 2, sx // 2), (sy // 2, sy // 2)),
         mode="constant", constant_values=0)
 
+    assert gradpad_2d.dtype == gradpad_3d.dtype
     assert np.array_equal(gradpad_2d, gradpad_3d[0])
+
+
+def test_fxy_complex_mul(hologram):
+    data_2d = hologram
+    data_3d, _ = qpretrieve.data_input._convert_2d_to_3d(data_2d)
+
+    assert np.array_equal(data_2d, data_3d[0])
+
+    # 2d
+    fx_2d = data_2d.reshape(-1, 1)
+    fy_2d = data_2d.reshape(1, -1)
+    fxy_2d = -2 * np.pi * 1j * (fx_2d + 1j * fy_2d)
+    fxy_2d[0, 0] = 1
+
+    # 3d
+    fx_3d = data_3d.reshape(data_3d.shape[0], -1, 1)
+    fy_3d = data_3d.reshape(data_3d.shape[0], 1, -1)
+    fxy_3d = -2 * np.pi * 1j * (fx_3d + 1j * fy_3d)
+    fxy_3d[:, 0, 0] = 1
+
+    assert np.array_equal(fx_2d, fx_3d[0])
+    assert np.array_equal(fxy_2d, fxy_3d[0])

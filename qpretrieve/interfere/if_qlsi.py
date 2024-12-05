@@ -175,8 +175,8 @@ class QLSInterferogram(BaseInterferogram):
         # need to do this along the z axis, as skimage `unwrap_3d` does not
         # work for our use-case
         # todo: maybe use np.unwrap for the xy axes instead
-        px = np.zeros_like(hx)
-        py = np.zeros_like(hy)
+        px = np.zeros_like(hx, dtype=float)
+        py = np.zeros_like(hy, dtype=float)
         for i, (_hx, _hy) in enumerate(zip(hx, hy)):
             px[i] = unwrap_phase(np.angle(_hx))
             py[i] = unwrap_phase(np.angle(_hy))
@@ -210,10 +210,10 @@ class QLSInterferogram(BaseInterferogram):
                         copy=False)
         # Compute the frequencies that correspond to the frequencies of the
         # Fourier-transformed image.
-        fx = np.fft.fftfreq(rfft.shape[-1]).reshape(rfft.shape[0], -1, 1)
-        fy = np.fft.fftfreq(rfft.shape[-2]).reshape(rfft.shape[0], 1, -1)
+        fx = np.fft.fftfreq(rfft.shape[-2]).reshape(rfft.shape[0], -1, 1)
+        fy = np.fft.fftfreq(rfft.shape[-1]).reshape(rfft.shape[0], 1, -1)
         fxy = -2 * np.pi * 1j * (fx + 1j * fy)
-        fxy[0, 0] = 1
+        fxy[:, 0, 0] = 1
 
         # The wavefront is the real part of the inverse Fourier transform
         # of the filtered (divided by frequencies) data.

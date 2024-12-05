@@ -23,12 +23,12 @@ def test_interfere_base_choose_interface():
 
     holo = qpretrieve.OffAxisHologram(
         data=edata["data"],
-        fft_interface=qpretrieve.fourier.FFTFilterScipy)
+        fft_interface=qpretrieve.fourier.FFTFilterNumpy)
     assert holo.ff_iface.is_available
     assert issubclass(holo.ff_iface,
                       qpretrieve.fourier.base.FFTFilter)
     assert issubclass(holo.ff_iface,
-                      qpretrieve.fourier.ff_scipy.FFTFilterScipy)
+                      qpretrieve.fourier.ff_numpy.FFTFilterNumpy)
 
 
 def test_interfere_base_bad_interface():

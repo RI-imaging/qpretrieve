@@ -36,20 +36,6 @@ PyFFTW
    :members:
    :inherited-members:
 
-.. _sec_code_fourier_scipy:
-Scipy
-------
-.. automodule:: qpretrieve.fourier.ff_scipy
-   :members:
-   :inherited-members:
-
-.. _sec_code_fourier_cupy:
-Cupy
-----
-.. automodule:: qpretrieve.fourier.ff_cupy
-   :members:
-   :inherited-members:
-
 
 .. _sec_code_ifer:
 

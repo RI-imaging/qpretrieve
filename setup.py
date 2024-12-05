@@ -29,9 +29,6 @@ setup(
     ],
     extras_require={
         "FFTW": "pyfftw>=0.12.0",
-        # manually install 'cupy-cuda11x' if you have older CUDA.
-        # See https://cupy.dev/
-        "CUPY": "cupy-cuda12x",
     },
     python_requires='>=3.10, <4',
     keywords=["digital holographic microscopy",

@@ -12,7 +12,3 @@ Examples
 .. fancy_include:: filter_visualization.py
 
 .. fancy_include:: fourier_scale.py
-
-.. fancy_include:: fft_options.py
-
-.. fancy_include:: fft_cupy3d_speed.py

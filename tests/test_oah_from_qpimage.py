@@ -4,7 +4,7 @@ import pytest
 
 import qpretrieve
 from qpretrieve.interfere import if_oah
-from qpretrieve.fourier import FFTFilterNumpy, FFTFilterScipy, FFTFilterPyFFTW
+from qpretrieve.fourier import FFTFilterNumpy, FFTFilterPyFFTW
 from qpretrieve.data_input import (
     _convert_2d_to_3d, _revert_3d_to_rgb, _revert_3d_to_rgba,
 )
@@ -255,22 +255,14 @@ def test_get_field_compare_FFTFilters(hologram):
     res1 = holo1.run_pipeline(**kwargs)
     assert res1.shape == (64, 64)
 
-    holo1 = qpretrieve.OffAxisHologram(data1,
-                                       fft_interface=FFTFilterScipy,
-                                       padding=False)
-    kwargs = dict(filter_name="disk", filter_size=1 / 3)
-    res2 = holo1.run_pipeline(**kwargs)
-    assert res2.shape == (64, 64)
-
-    holo1 = qpretrieve.OffAxisHologram(data1,
+    holo2 = qpretrieve.OffAxisHologram(data1,
                                        fft_interface=FFTFilterPyFFTW,
                                        padding=False)
     kwargs = dict(filter_name="disk", filter_size=1 / 3)
-    res3 = holo1.run_pipeline(**kwargs)
-    assert res3.shape == (64, 64)
+    res2 = holo2.run_pipeline(**kwargs)
+    assert res2.shape == (64, 64)
 
     assert not np.all(res1 == res2)
-    assert not np.all(res2 == res3)
 
 
 def test_field_format_consistency(hologram):

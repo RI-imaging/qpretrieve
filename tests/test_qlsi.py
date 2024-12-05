@@ -1,5 +1,4 @@
 import pathlib
-import pytest
 
 import h5py
 import numpy as np
@@ -47,7 +46,6 @@ def test_qlsi_fftfreq_reshape_2d_3d(hologram):
     assert np.array_equal(fy_2d, fy_3d[0])
 
 
-@pytest.mark.xfail
 def test_qlsi_unwrap_phase_2d_3d():
     """
     Check whether skimage unwrap_2d and unwrap_3d give the same result.
@@ -91,15 +89,16 @@ def test_qlsi_unwrap_phase_2d_3d():
 
     assert np.array_equal(hx_2d, hx_3d)
 
+    px_2d = unwrap_phase(np.angle(hx_2d[0]))
+
     px_3d_loop = np.zeros_like(hx_3d)
     for i, _hx in enumerate(hx_3d):
         px_3d_loop[i] = unwrap_phase(np.angle(_hx))
 
-    px_2d = unwrap_phase(np.angle(hx_2d[0]))
-    px_3d = unwrap_phase(np.angle(hx_3d))
-
     assert np.array_equal(px_2d, px_3d_loop[0])  # this passes
-    assert np.array_equal(px_2d, px_3d[0])  # this fails
+
+    px_3d = unwrap_phase(np.angle(hx_3d))  # this is not equivalent
+    assert not np.array_equal(px_2d, px_3d[0])
 
 
 def test_qlsi_rotate_2d_3d(hologram):

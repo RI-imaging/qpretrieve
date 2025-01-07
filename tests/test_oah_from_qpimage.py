@@ -4,24 +4,10 @@ import pytest
 
 import qpretrieve
 from qpretrieve.interfere import if_oah
-
-
-def hologram(size=64):
-    x = np.arange(size).reshape(-1, 1) - size / 2
-    y = np.arange(size).reshape(1, -1) - size / 2
-
-    amp = np.linspace(.9, 1.1, size * size).reshape(size, size)
-    pha = np.linspace(0, 2, size * size).reshape(size, size)
-
-    rad = x**2 + y**2 > (size / 3)**2
-    pha[rad] = 0
-    amp[rad] = 1
-
-    # frequencies must match pixel in Fourier space
-    kx = 2 * np.pi * -.3
-    ky = 2 * np.pi * -.3
-    image = (amp**2 + np.sin(kx * x + ky * y + pha) + 1) * 255
-    return image
+from qpretrieve.fourier import FFTFilterNumpy, FFTFilterPyFFTW
+from qpretrieve.data_input import (
+    _convert_2d_to_3d, _revert_3d_to_rgb, _revert_3d_to_rgba,
+)
 
 
 def test_find_sideband():
@@ -36,24 +22,26 @@ def test_find_sideband():
 
 
 def test_fourier2dpad():
-    data = np.zeros((100, 120))
+    y, x = 100, 120
+    data = np.zeros((y, x))
     fft1 = qpretrieve.fourier.FFTFilterNumpy(data)
-    assert fft1.shape == (256, 256)
+    assert fft1.shape == (1, 256, 256)
 
     fft2 = qpretrieve.fourier.FFTFilterNumpy(data, padding=False)
-    assert fft2.shape == data.shape
+    assert fft2.shape == (1, y, x)
 
 
-def test_get_field_error_bad_filter_size():
-    data = hologram()
+def test_get_field_error_bad_filter_size(hologram):
+    data = hologram
 
     holo = qpretrieve.OffAxisHologram(data)
     with pytest.raises(ValueError, match="must be between 0 and 1"):
         holo.run_pipeline(filter_size=2)
 
 
-def test_get_field_error_bad_filter_size_interpretation_frequency_index():
-    data = hologram(size=64)
+def test_get_field_error_bad_filter_size_interpretation_frequency_index(
+        hologram):
+    data = hologram
     holo = qpretrieve.OffAxisHologram(data)
 
     with pytest.raises(ValueError,
@@ -62,8 +50,8 @@ def test_get_field_error_bad_filter_size_interpretation_frequency_index():
                           filter_size=64)
 
 
-def test_get_field_error_invalid_interpretation():
-    data = hologram()
+def test_get_field_error_invalid_interpretation(hologram):
+    data = hologram
     holo = qpretrieve.OffAxisHologram(data)
 
     with pytest.raises(ValueError,
@@ -71,8 +59,8 @@ def test_get_field_error_invalid_interpretation():
         holo.run_pipeline(filter_size_interpretation="blequency")
 
 
-def test_get_field_filter_names():
-    data = hologram()
+def test_get_field_filter_names(hologram):
+    data = hologram
     holo = qpretrieve.OffAxisHologram(data)
 
     kwargs = dict(sideband=+1,
@@ -84,11 +72,11 @@ def test_get_field_filter_names():
 
     r_smooth_disk = holo.run_pipeline(filter_name="smooth disk", **kwargs)
     assert np.allclose(r_smooth_disk[32, 32],
-                       108.36438759594623-67.1806221692573j)
+                       108.36438759594623 - 67.1806221692573j)
 
     r_gauss = holo.run_pipeline(filter_name="gauss", **kwargs)
     assert np.allclose(r_gauss[32, 32],
-                       108.2914187451138-67.1823527237741j)
+                       108.2914187451138 - 67.1823527237741j)
 
     r_square = holo.run_pipeline(filter_name="square", **kwargs)
     assert np.allclose(
@@ -96,7 +84,7 @@ def test_get_field_filter_names():
 
     r_smsquare = holo.run_pipeline(filter_name="smooth square", **kwargs)
     assert np.allclose(
-        r_smsquare[32, 32], 108.36651862466393-67.17988960794392j)
+        r_smsquare[32, 32], 108.36651862466393 - 67.17988960794392j)
 
     r_tukey = holo.run_pipeline(filter_name="tukey", **kwargs)
     assert np.allclose(
@@ -110,10 +98,10 @@ def test_get_field_filter_names():
         assert False, "unknown filter accepted"
 
 
-@pytest.mark.parametrize("size", [62, 63, 64])
-def test_get_field_interpretation_fourier_index(size):
+@pytest.mark.parametrize("hologram", [62, 63, 64], indirect=["hologram"])
+def test_get_field_interpretation_fourier_index(hologram):
     """Filter size in Fourier space using Fourier index new in 0.7.0"""
-    data = hologram(size=size)
+    data = hologram
     holo = qpretrieve.OffAxisHologram(data)
 
     ft_data = holo.fft_origin
@@ -121,23 +109,26 @@ def test_get_field_interpretation_fourier_index(size):
     fsx, fsy = holo.pipeline_kws["sideband_freq"]
 
     kwargs1 = dict(filter_name="disk",
-                   filter_size=1/3,
+                   filter_size=1 / 3,
                    filter_size_interpretation="sideband distance")
     res1 = holo.run_pipeline(**kwargs1)
 
-    filter_size_fi = np.sqrt(fsx**2 + fsy**2) / 3 * ft_data.shape[0]
+    filter_size_fi = np.sqrt(fsx ** 2 + fsy ** 2) / 3 * ft_data.shape[-2]
     kwargs2 = dict(filter_name="disk",
                    filter_size=filter_size_fi,
                    filter_size_interpretation="frequency index",
                    )
     res2 = holo.run_pipeline(**kwargs2)
+
+    assert res1.shape == hologram.shape
+    assert res2.shape == hologram.shape
     assert np.all(res1 == res2)
 
 
-@pytest.mark.parametrize("size", [62, 63, 64])
-def test_get_field_interpretation_fourier_index_control(size):
+@pytest.mark.parametrize("hologram", [62, 63, 64], indirect=["hologram"])
+def test_get_field_interpretation_fourier_index_control(hologram):
     """Filter size in Fourier space using Fourier index new in 0.7.0"""
-    data = hologram(size=size)
+    data = hologram
     holo = qpretrieve.OffAxisHologram(data)
 
     ft_data = holo.fft_origin
@@ -147,12 +138,12 @@ def test_get_field_interpretation_fourier_index_control(size):
     evil_factor = 1.1
 
     kwargs1 = dict(filter_name="disk",
-                   filter_size=1/3 * evil_factor,
+                   filter_size=1 / 3 * evil_factor,
                    filter_size_interpretation="sideband distance"
                    )
     res1 = holo.run_pipeline(**kwargs1)
 
-    filter_size_fi = np.sqrt(fsx**2 + fsy**2) / 3 * ft_data.shape[0]
+    filter_size_fi = np.sqrt(fsx ** 2 + fsy ** 2) / 3 * ft_data.shape[-2]
     kwargs2 = dict(filter_name="disk",
                    filter_size=filter_size_fi,
                    filter_size_interpretation="frequency index",
@@ -161,11 +152,12 @@ def test_get_field_interpretation_fourier_index_control(size):
     assert not np.all(res1 == res2)
 
 
-@pytest.mark.parametrize("size", [62, 63, 64, 134, 135])
+@pytest.mark.parametrize("hologram", [62, 63, 64, 134, 135],
+                         indirect=["hologram"])
 @pytest.mark.parametrize("filter_size", [17, 17.01])
-def test_get_field_interpretation_fourier_index_mask_1(size, filter_size):
+def test_get_field_interpretation_fourier_index_mask_1(hologram, filter_size):
     """Make sure filter size in Fourier space pixels is correct"""
-    data = hologram(size=size)
+    data = hologram
     holo = qpretrieve.OffAxisHologram(data)
 
     kwargs2 = dict(filter_name="disk",
@@ -178,13 +170,14 @@ def test_get_field_interpretation_fourier_index_mask_1(size, filter_size):
     # We get 17*2+1, because we measure from the center of Fourier
     # space and a pixel is included if its center is withing the
     # perimeter of the disk.
-    assert np.sum(np.sum(mask, axis=0) != 0) == 17*2 + 1
+    assert np.sum(np.sum(mask, axis=-2) != 0) == 17 * 2 + 1
 
 
-@pytest.mark.parametrize("size", [62, 63, 64, 134, 135])
-def test_get_field_interpretation_fourier_index_mask_2(size):
+@pytest.mark.parametrize("hologram", [62, 63, 64, 134, 135],
+                         indirect=["hologram"])
+def test_get_field_interpretation_fourier_index_mask_2(hologram):
     """Filter size in Fourier space using Fourier index new in 0.7.0"""
-    data = hologram(size=size)
+    data = hologram
     holo = qpretrieve.OffAxisHologram(data)
 
     kwargs2 = dict(filter_name="disk",
@@ -196,11 +189,11 @@ def test_get_field_interpretation_fourier_index_mask_2(size):
 
     # We get two points less than in the previous test, because we
     # loose on each side of the spectrum.
-    assert np.sum(np.sum(mask, axis=0) != 0) == 17*2 - 1
+    assert np.sum(np.sum(mask, axis=-2) != 0) == 17 * 2 - 1
 
 
-def test_get_field_int_copy():
-    data = hologram()
+def test_get_field_int_copy(hologram):
+    data = hologram
     data = np.array(data, dtype=int)
 
     kwargs = dict(filter_size=1 / 3)
@@ -218,8 +211,8 @@ def test_get_field_int_copy():
     assert np.all(res1 == res3)
 
 
-def test_get_field_sideband():
-    data = hologram()
+def test_get_field_sideband(hologram):
+    data = hologram
     holo = qpretrieve.OffAxisHologram(data)
     holo.run_pipeline()
     invert_phase = holo.pipeline_kws["invert_phase"]
@@ -232,10 +225,10 @@ def test_get_field_sideband():
     assert np.all(res1 == res2)
 
 
-def test_get_field_three_axes():
-    data1 = hologram()
+def test_get_field_three_axes(hologram):
+    data1 = hologram
     # create a copy with empty entry in third axis
-    data2 = np.zeros((data1.shape[0], data1.shape[1], 2))
+    data2 = np.zeros((data1.shape[0], data1.shape[1], 3))
     data2[:, :, 0] = data1
 
     holo1 = qpretrieve.OffAxisHologram(data1)
@@ -245,4 +238,56 @@ def test_get_field_three_axes():
                   filter_size=1 / 3)
     res1 = holo1.run_pipeline(**kwargs)
     res2 = holo2.run_pipeline(**kwargs)
-    assert np.all(res1 == res2)
+
+    assert res1.shape == (data1.shape[0], data1.shape[1])
+    assert res2.shape == (data1.shape[0], data1.shape[1], 3)
+
+    assert np.all(res1 == res2[:, :, 0])
+
+
+def test_get_field_compare_FFTFilters(hologram):
+    data1 = hologram
+
+    holo1 = qpretrieve.OffAxisHologram(data1,
+                                       fft_interface=FFTFilterNumpy,
+                                       padding=False)
+    kwargs = dict(filter_name="disk", filter_size=1 / 3)
+    res1 = holo1.run_pipeline(**kwargs)
+    assert res1.shape == (64, 64)
+
+    holo2 = qpretrieve.OffAxisHologram(data1,
+                                       fft_interface=FFTFilterPyFFTW,
+                                       padding=False)
+    kwargs = dict(filter_name="disk", filter_size=1 / 3)
+    res2 = holo2.run_pipeline(**kwargs)
+    assert res2.shape == (64, 64)
+
+    assert not np.all(res1 == res2)
+
+
+def test_field_format_consistency(hologram):
+    """The data format provided by the user should be returned"""
+    data_2d = hologram
+
+    # 2d data format
+    holo1 = qpretrieve.OffAxisHologram(data_2d)
+    res1 = holo1.run_pipeline()
+    assert res1.shape == data_2d.shape
+
+    # 3d data format
+    data_3d, _ = _convert_2d_to_3d(data_2d)
+    holo_3d = qpretrieve.OffAxisHologram(data_3d)
+    res_3d = holo_3d.run_pipeline()
+    assert res_3d.shape == data_3d.shape
+
+    # rgb data format
+    data_rgb = _revert_3d_to_rgb(data_3d)
+    holo_rgb = qpretrieve.OffAxisHologram(data_rgb)
+    res_rgb = holo_rgb.run_pipeline()
+    assert res_rgb.shape == data_rgb.shape
+
+    # rgba data format
+    data_rgba = _revert_3d_to_rgba(data_3d)
+    holo_rgba = qpretrieve.OffAxisHologram(data_rgba)
+    res_rgba = holo_rgba.run_pipeline()
+    assert res_rgba.shape == data_rgba.shape

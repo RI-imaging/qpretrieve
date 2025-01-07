@@ -2,7 +2,8 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 
-from ..fourier import get_best_interface
+from ..fourier import get_best_interface, get_available_interfaces
+from ..fourier.base import FFTFilter
 
 
 class BaseInterferogram(ABC):
@@ -15,11 +16,19 @@ class BaseInterferogram(ABC):
         "invert_phase": False,
     }
 
-    def __init__(self, data, subtract_mean=True, padding=2, copy=True,
+    def __init__(self, data, fft_interface: FFTFilter = None,
+                 subtract_mean=True, padding=2, copy=True,
                  **pipeline_kws):
         """
         Parameters
         ----------
+        fft_interface: FFTFilter
+            A Fourier transform interface.
+            See :func:`qpretrieve.fourier.get_available_interfaces`
+            to get a list of implemented interfaces.
+            Default is None, which will use
+            :func:`qpretrieve.fourier.get_best_interface`. This is in line
+            with old behaviour.
         subtract_mean: bool
             If True, remove the mean of the hologram before performing
             the Fourier transform. This setting is recommended as it
@@ -38,15 +47,24 @@ class BaseInterferogram(ABC):
             Any additional keyword arguments for :func:`run_pipeline`
             as defined in :const:`default_pipeline_kws`.
         """
-        ff_iface = get_best_interface()
-        if len(data.shape) == 3:
-            # take the first slice (we have alpha or RGB information)
-            data = data[:, :, 0]
+        if fft_interface == 'auto' or fft_interface is None:
+            self.ff_iface = get_best_interface()
+        else:
+            if fft_interface in get_available_interfaces():
+                self.ff_iface = fft_interface
+            else:
+                raise ValueError(
+                    f"User-chosen FFT Interface '{fft_interface}' is not "
+                    f"available. The available interfaces are: "
+                    f"{get_available_interfaces()}.\n"
+                    f"You can use `fft_interface='auto'` to get the best "
+                    f"available interface.")
+
         #: qpretrieve Fourier transform interface class
-        self.fft = ff_iface(data=data,
-                            subtract_mean=subtract_mean,
-                            padding=padding,
-                            copy=copy)
+        self.fft = self.ff_iface(data=data,
+                                 subtract_mean=subtract_mean,
+                                 padding=padding,
+                                 copy=copy)
         #: originally computed Fourier transform
         self.fft_origin = self.fft.fft_origin
         #: filtered Fourier data from last run of `run_pipeline`
@@ -94,18 +112,18 @@ class BaseInterferogram(ABC):
                 raise ValueError("For sideband distance interpretation, "
                                  "`filter_size` must be between 0 and 1; "
                                  f"got '{filter_size}'!")
-            fsize = np.sqrt(np.sum(np.array(sideband_freq)**2)) * filter_size
+            fsize = np.sqrt(np.sum(np.array(sideband_freq) ** 2)) * filter_size
         elif filter_size_interpretation == "frequency index":
             # filter size given in Fourier index (number of Fourier pixels)
             # The user probably does not know that we are padding in
             # Fourier space, so we use the unpadded size and translate it.
-            if filter_size <= 0 or filter_size >= self.fft.shape[0] / 2:
+            if filter_size <= 0 or filter_size >= self.fft.shape[-2] / 2:
                 raise ValueError("For frequency index interpretation, "
                                  + "`filter_size` must be between 0 and "
-                                 + f"{self.fft.shape[0] / 2}, got "
+                                 + f"{self.fft.shape[-2] / 2}, got "
                                  + f"'{filter_size}'!")
             # convert to frequencies (compatible with fx and fy)
-            fsize = filter_size / self.fft.shape[0]
+            fsize = filter_size / self.fft.shape[-2]
         else:
             raise ValueError("Invalid value for `filter_size_interpretation`: "
                              + f"'{filter_size_interpretation}'")

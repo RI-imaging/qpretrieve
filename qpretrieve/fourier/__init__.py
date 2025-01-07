@@ -11,6 +11,19 @@ except ImportError:
 PREFERRED_INTERFACE = None
 
 
+def get_available_interfaces():
+    """Return a list of available FFT algorithms"""
+    interfaces = [
+        FFTFilterPyFFTW,
+        FFTFilterNumpy,
+    ]
+    interfaces_available = []
+    for interface in interfaces:
+        if interface is not None and interface.is_available:
+            interfaces_available.append(interface)
+    return interfaces_available
+
+
 def get_best_interface():
     """Return the fastest refocusing interface available
 

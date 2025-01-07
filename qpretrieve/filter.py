@@ -38,9 +38,9 @@ def get_filter_array(filter_name, filter_size, freq_pos, fft_shape):
         and must be between 0 and `max(fft_shape)/2`
     freq_pos: tuple of floats
         The position of the filter in frequency coordinates as
-        returned by :func:`nunpy.fft.fftfreq`.
+        returned by :func:`numpy.fft.fftfreq`.
     fft_shape: tuple of int
-        The shape of the Fourier transformed image for which the
+        The shape of the Fourier transformed image (2d) for which the
         filter will be applied. The shape must be squared (two
         identical integers).
 
@@ -104,8 +104,10 @@ def get_filter_array(filter_name, filter_size, freq_pos, fft_shape):
         # TODO: avoid the np.roll, instead use the indices directly
         alpha = 0.1
         rsize = int(min(fx.size, fy.size) * filter_size) * 2
-        tukey_window_x = signal.tukey(rsize, alpha=alpha).reshape(-1, 1)
-        tukey_window_y = signal.tukey(rsize, alpha=alpha).reshape(1, -1)
+        tukey_window_x = signal.windows.tukey(
+            rsize, alpha=alpha).reshape(-1, 1)
+        tukey_window_y = signal.windows.tukey(
+            rsize, alpha=alpha).reshape(1, -1)
         tukey = tukey_window_x * tukey_window_y
         base = np.zeros(fft_shape)
         s1 = (np.array(fft_shape) - rsize) // 2

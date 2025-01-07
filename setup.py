@@ -4,7 +4,10 @@ import sys
 
 
 author = u"Paul Müller"
-authors = [author]
+authors = [
+    author,
+    "Eoghan O'Connell"
+]
 description = 'library for phase retrieval from holograms'
 name = 'qpretrieve'
 year = "2022"

@@ -23,7 +23,6 @@ Fourier transform methods
 =========================
 
 .. _sec_code_fourier_numpy:
-
 Numpy
 -----
 .. automodule:: qpretrieve.fourier.ff_numpy
@@ -31,12 +30,12 @@ Numpy
    :inherited-members:
 
 .. _sec_code_fourier_pyfftw:
-
 PyFFTW
 ------
 .. automodule:: qpretrieve.fourier.ff_pyfftw
    :members:
    :inherited-members:
+
 
 .. _sec_code_ifer:
 

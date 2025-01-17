@@ -263,8 +263,9 @@ def test_get_field_compare_FFTFilters(hologram):
     res2 = holo2.run_pipeline(**kwargs)
     assert res2.shape == shape_expected
 
-    assert np.all(res1 == res2)  # fails on linux, passes on windows?!
-    # assert np.allclose(res1, res2, rtol=1e-3)
+    # not exactly the same, but roughly equal to 1e-5
+    assert np.allclose(holo1.fft.fft_used, holo2.fft.fft_used)
+    assert np.allclose(res1, res2)
 
 
 def test_field_format_consistency(hologram):

@@ -27,7 +27,7 @@ class FFTFilterPyFFTW(FFTFilter):
         in_arr = pyfftw.empty_aligned(data.shape, dtype='complex128')
         out_arr = pyfftw.empty_aligned(data.shape, dtype='complex128')
         fft_obj = pyfftw.FFTW(in_arr, out_arr,
-                              axes=(0, 1),
+                              axes=(-2, -1),
                               threads=mp.cpu_count())
         in_arr[:] = data
         fft_obj()
@@ -37,7 +37,7 @@ class FFTFilterPyFFTW(FFTFilter):
         """Perform inverse Fourier transform"""
         in_arr = pyfftw.empty_aligned(data.shape, dtype='complex128')
         ou_arr = pyfftw.empty_aligned(data.shape, dtype='complex128')
-        fft_obj = pyfftw.FFTW(in_arr, ou_arr, axes=(0, 1),
+        fft_obj = pyfftw.FFTW(in_arr, ou_arr, axes=(-2, -1),
                               direction="FFTW_BACKWARD",
                               )
         in_arr[:] = data

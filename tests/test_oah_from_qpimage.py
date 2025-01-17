@@ -247,22 +247,24 @@ def test_get_field_three_axes(hologram):
 
 def test_get_field_compare_FFTFilters(hologram):
     data1 = hologram
+    kwargs = dict(filter_name="disk", filter_size=1 / 3)
+    padding = False
+    shape_expected = (64, 64)
 
     holo1 = qpretrieve.OffAxisHologram(data1,
                                        fft_interface=FFTFilterNumpy,
-                                       padding=False)
-    kwargs = dict(filter_name="disk", filter_size=1 / 3)
+                                       padding=padding)
     res1 = holo1.run_pipeline(**kwargs)
-    assert res1.shape == (64, 64)
+    assert res1.shape == shape_expected
 
     holo2 = qpretrieve.OffAxisHologram(data1,
                                        fft_interface=FFTFilterPyFFTW,
-                                       padding=False)
-    kwargs = dict(filter_name="disk", filter_size=1 / 3)
+                                       padding=padding)
     res2 = holo2.run_pipeline(**kwargs)
-    assert res2.shape == (64, 64)
+    assert res2.shape == shape_expected
 
-    assert not np.all(res1 == res2)
+    assert np.all(res1 == res2)  # fails on linux, passes on windows?!
+    # assert np.allclose(res1, res2, rtol=1e-3)
 
 
 def test_field_format_consistency(hologram):

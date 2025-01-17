@@ -34,7 +34,7 @@ jobs:
         python -m pip install -r tests/requirements.txt
         python -m pip install coverage flake8
         # install dependencies
-        pip install -e .
+        pip install -e .[FFTW]
         # show installed packages
         pip freeze
     - name: Test with pytest

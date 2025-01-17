@@ -1,3 +1,4 @@
+import pytest
 import copy
 import pathlib
 
@@ -117,6 +118,14 @@ def test_scale_to_filter_oah():
     phase_scaled = unwrap_phase(ifh.phase - ifr.phase)
     assert phase_scaled.shape == (33, 34)
     assert np.allclose(phase_scaled.mean(), 1.0469570087033453, atol=1e-5)
+
+
+def test_bad_fft_interface_input():
+    data = np.load(data_path / "hologram_cell.npz")
+    image = data["data"]
+
+    with pytest.raises(ValueError):
+        interfere.OffAxisHologram(image, fft_interface=None)
 
 
 def test_scale_to_filter_qlsi():

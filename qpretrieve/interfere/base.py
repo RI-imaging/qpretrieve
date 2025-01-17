@@ -16,19 +16,19 @@ class BaseInterferogram(ABC):
         "invert_phase": False,
     }
 
-    def __init__(self, data, fft_interface: FFTFilter = None,
+    def __init__(self, data, fft_interface: str | FFTFilter = "auto",
                  subtract_mean=True, padding=2, copy=True,
                  **pipeline_kws):
         """
         Parameters
         ----------
-        fft_interface: FFTFilter
+        fft_interface
             A Fourier transform interface.
             See :func:`qpretrieve.fourier.get_available_interfaces`
             to get a list of implemented interfaces.
-            Default is None, which will use
+            Default is "auto", which will use
             :func:`qpretrieve.fourier.get_best_interface`. This is in line
-            with old behaviour.
+            with old behaviour. See Notes for more details.
         subtract_mean: bool
             If True, remove the mean of the hologram before performing
             the Fourier transform. This setting is recommended as it
@@ -46,8 +46,22 @@ class BaseInterferogram(ABC):
         pipeline_kws:
             Any additional keyword arguments for :func:`run_pipeline`
             as defined in :const:`default_pipeline_kws`.
+
+        Notes
+        -----
+        For `fft_interface`, if you do not have the relevant package installed,
+        then an error will be raised. For example, setting
+        `fft_interface=FFTFilterPyFFTW` will fail if you do not have pyfftw
+        installed.
+
         """
-        if fft_interface == 'auto' or fft_interface is None:
+        if fft_interface is None:
+            raise ValueError(
+                "`fft_interface` is set to None. If you want qpretrieve to "
+                "find the best FFT interface, set it to 'auto'. "
+                "If you trying to use `FFTFilterPyFFTW`, "
+                "you must first install the pyfftw package.")
+        if fft_interface == 'auto':
             self.ff_iface = get_best_interface()
         else:
             if fft_interface in get_available_interfaces():

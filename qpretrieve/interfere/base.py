@@ -94,7 +94,7 @@ class BaseInterferogram(ABC):
         self._phase = None
         self._amplitude = None
 
-    def get_orig_orig_data_fmt(self, data_attr):
+    def get_orig_data_fmt(self, data_attr):
         return revert_to_data_input_format(self.orig_data_fmt, data_attr)
 
     @property

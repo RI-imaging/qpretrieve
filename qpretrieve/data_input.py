@@ -27,24 +27,28 @@ def check_data_input_format(data_input):
     else:
         raise ValueError(f"data_input shape must be 2d or 3d, "
                          f"got shape {data_input.shape}.")
+    warnings.warn(f"Format of input data was detected as '{orig_data_fmt}'. "
+                  f"The new output data format is '3d'. To get your data in "
+                  f"the original format use, for example, "
+                  f"`oah.get_orig_data_fmt(data_attr)`.")
     return data.copy(), orig_data_fmt
 
 
-def revert_to_data_input_format(orig_data_fmt, field):
+def revert_to_data_input_format(orig_data_fmt, data):
     """Convert the outputted field shape to the original input shape,
     for user convenience."""
     assert orig_data_fmt in allowed_orig_data_fmts
-    assert len(field.shape) == 3, "the field should be 3d"
-    field = field.copy()
+    assert len(data.shape) == 3, "the data should be 3d"
+    data = data.copy()
     if orig_data_fmt == "rgb":
-        field = _revert_3d_to_rgb(field)
+        data = _revert_3d_to_rgb(data)
     elif orig_data_fmt == "rgba":
-        field = _revert_3d_to_rgba(field)
+        data = _revert_3d_to_rgba(data)
     elif orig_data_fmt == "3d":
-        field = field
+        data = data
     else:
-        field = _revert_3d_to_2d(field)
-    return field
+        data = _revert_3d_to_2d(data)
+    return data
 
 
 def _convert_rgb_to_3d(data_input):

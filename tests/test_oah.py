@@ -67,27 +67,27 @@ def test_get_field_filter_names(hologram):
 
     r_disk = holo.run_pipeline(filter_name="disk", **kwargs)
     assert np.allclose(
-        r_disk[32, 32], 97.307780444912936 - 76.397860381241372j)
+        r_disk[0, 32, 32], 97.307780444912936 - 76.397860381241372j)
 
     r_smooth_disk = holo.run_pipeline(filter_name="smooth disk", **kwargs)
-    assert np.allclose(r_smooth_disk[32, 32],
+    assert np.allclose(r_smooth_disk[0, 32, 32],
                        108.36438759594623 - 67.1806221692573j)
 
     r_gauss = holo.run_pipeline(filter_name="gauss", **kwargs)
-    assert np.allclose(r_gauss[32, 32],
+    assert np.allclose(r_gauss[0, 32, 32],
                        108.2914187451138 - 67.1823527237741j)
 
     r_square = holo.run_pipeline(filter_name="square", **kwargs)
     assert np.allclose(
-        r_square[32, 32], 102.3285348843612 - 74.139058665601155j)
+        r_square[0, 32, 32], 102.3285348843612 - 74.139058665601155j)
 
     r_smsquare = holo.run_pipeline(filter_name="smooth square", **kwargs)
     assert np.allclose(
-        r_smsquare[32, 32], 108.36651862466393 - 67.17988960794392j)
+        r_smsquare[0, 32, 32], 108.36651862466393 - 67.17988960794392j)
 
     r_tukey = holo.run_pipeline(filter_name="tukey", **kwargs)
     assert np.allclose(
-        r_tukey[32, 32], 113.4826495540899 - 59.546232775481869j)
+        r_tukey[0, 32, 32], 113.4826495540899 - 59.546232775481869j)
 
     try:
         holo.run_pipeline(filter_name="unknown", **kwargs)

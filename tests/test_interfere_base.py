@@ -57,5 +57,5 @@ def test_interfere_base_orig_data_fmt_get_original_format():
     assert holo.field.shape == (1, 200, 210)
 
     field_orig = holo.get_orig_orig_data_fmt(data_attr=holo.field)
-    
+
     assert field_orig.shape == orig_shape

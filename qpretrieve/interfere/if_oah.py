@@ -29,6 +29,7 @@ class OffAxisHologram(BaseInterferogram):
         """Retrieved amplitude information"""
         if self._field is None:
             self.run_pipeline()
+        if self._amplitude is None:
             self._amplitude = np.abs(self._field)
         return self._amplitude
 

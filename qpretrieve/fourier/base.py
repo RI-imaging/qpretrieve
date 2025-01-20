@@ -84,7 +84,7 @@ class FFTFilter(ABC):
             copy = None
         data_ed = np.array(data, dtype=dtype, copy=copy)
         # figure out what type of data we have, change it to 3d-stack
-        data_ed, self.data_format = check_data_input_format(data_ed)
+        data_ed, self.orig_data_fmt = check_data_input_format(data_ed)
         #: original data (with subtracted mean)
         self.origin = data_ed
         # for `subtract_mean` and `padding`, we could use `np.atleast_3d`
@@ -121,7 +121,8 @@ class FFTFilter(ABC):
             self.fft_origin = fft_data
         else:
             #: frequency-shifted Fourier transform
-            self.fft_origin = np.fft.fftshift(self._init_fft(data_ed))
+            self.fft_origin = np.fft.fftshift(
+                self._init_fft(data_ed), axes=(-2, -1))
             # Add it to the cached FFTs
             if copy:
                 FFTCache.add_item(weakref_key, data, self.fft_origin)
@@ -254,7 +255,7 @@ class FFTFilter(ABC):
                 # the first entry of our array in `shifted`.
                 fft_used = fft_used[:, cslice, cslice]
 
-            field = self._ifft(np.fft.ifftshift(fft_used))
+            field = self._ifft(np.fft.ifftshift(fft_used, axes=(-2, -1)))
 
             if self.padding:
                 # revert padding

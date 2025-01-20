@@ -23,8 +23,8 @@ class FFTFilterNumpy(FFTFilter):
         fft_fdata: 2d complex-valued ndarray
             Fourier transform `data`
         """
-        return np.fft.fft2(data)
+        return np.fft.fft2(data, axes=(-2, -1))
 
     def _ifft(self, data):
         """Perform inverse Fourier transform"""
-        return np.fft.ifft2(data)
+        return np.fft.ifft2(data, axes=(-2, -1))

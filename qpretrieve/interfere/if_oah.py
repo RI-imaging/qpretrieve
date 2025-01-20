@@ -1,7 +1,6 @@
 import numpy as np
 
 from .base import BaseInterferogram
-from ..data_input import revert_to_data_input_format
 
 
 class OffAxisHologram(BaseInterferogram):
@@ -93,7 +92,6 @@ class OffAxisHologram(BaseInterferogram):
         if pipeline_kws["invert_phase"]:
             field.imag *= -1
 
-        field = revert_to_data_input_format(self.fft.data_format, field)
         self._field = field
         self._phase = None
         self._amplitude = None

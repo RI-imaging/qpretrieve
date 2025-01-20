@@ -1,4 +1,3 @@
-"""These are tests from qpimage"""
 import numpy as np
 import pytest
 

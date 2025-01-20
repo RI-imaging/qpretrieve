@@ -217,7 +217,8 @@ class QLSInterferogram(BaseInterferogram):
 
         # The wavefront is the real part of the inverse Fourier transform
         # of the filtered (divided by frequencies) data.
-        wfr = rfft._ifft(np.fft.ifftshift(rfft.fft_origin) / fxy).real
+        wfr = rfft._ifft(np.fft.ifftshift(rfft.fft_origin,
+                                          axes=(-2, -1)) / fxy).real
 
         # Rotate the wavefront back and crop it so that the FOV matches
         # the input data.
@@ -239,7 +240,7 @@ class QLSInterferogram(BaseInterferogram):
         # TODO: do we want to revert to the original format, or simply
         #  provide a way for the user to do that, as here:
         # raw_wavefront = revert_to_data_input_format(
-        #     self.fft.data_format, raw_wavefront)
+        #     self.fft.orig_data_fmt, raw_wavefront)
 
         self.wavefront = raw_wavefront
 

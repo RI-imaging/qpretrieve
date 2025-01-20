@@ -17,7 +17,7 @@ def test_scale_sanity_check():
     # create a 2D gaussian test image
     x = np.linspace(-100, 100, 100)
     xx, yy = np.meshgrid(x, -x, indexing="ij")
-    gauss = np.exp(-(xx**2 + yy**2) / 625)
+    gauss = np.exp(-(xx ** 2 + yy ** 2) / 625)
 
     ft = fourier.FFTFilterNumpy(gauss, subtract_mean=False)
 
@@ -107,7 +107,7 @@ def test_scale_to_filter_oah():
     ifr.run_pipeline()
 
     phase = unwrap_phase(ifh.phase - ifr.phase)
-    assert phase.shape == (200, 210)
+    assert phase.shape == (1, 200, 210)
     assert np.allclose(phase.mean(), 1.0840394954441188, atol=1e-5)
 
     # Rescaled pipeline
@@ -116,7 +116,7 @@ def test_scale_to_filter_oah():
     ifh.run_pipeline(**pipeline_kws_scale)
     ifr.run_pipeline(**pipeline_kws_scale)
     phase_scaled = unwrap_phase(ifh.phase - ifr.phase)
-    assert phase_scaled.shape == (33, 34)
+    assert phase_scaled.shape == (1, 33, 34)
     assert np.allclose(phase_scaled.mean(), 1.0469570087033453, atol=1e-5)
 
 
@@ -175,3 +175,59 @@ def test_scale_to_filter_qlsi():
     assert phase_scaled.shape == (1, 126, 126)
 
     assert np.allclose(phase_scaled.mean(), 0.1257080793074251, atol=1e-6)
+
+
+def test_fft_comparison_FFTFilter():
+    image = np.arange(1000).reshape(10, 10, 10)
+    ff_np = fourier.FFTFilterNumpy(image, subtract_mean=False, padding=False)
+    ff_tw = fourier.FFTFilterPyFFTW(image, subtract_mean=False, padding=False)
+    assert ff_np.fft_origin.shape == ff_tw.fft_origin.shape == (10, 10, 10)
+
+    assert np.allclose(ff_np.fft_origin, ff_np.fft_origin, rtol=0, atol=1e-8)
+    assert np.allclose(
+        np.fft.ifft2(np.fft.ifftshift(ff_np.fft_origin, axes=(-2, -1))).real,
+        np.fft.ifft2(np.fft.ifftshift(ff_tw.fft_origin, axes=(-2, -1))).real,
+        rtol=0,
+        atol=1e-8
+    )
+
+
+def test_fft_comparison_data_input_fmt():
+    image = np.arange(1000).reshape(10, 10, 10)
+    FFTFilters = [fourier.FFTFilterNumpy, fourier.FFTFilterPyFFTW]
+
+    for fftfilt in FFTFilters:
+        # 3d input
+        ff_3d = fftfilt(image, subtract_mean=False, padding=False)
+        # 2d input
+        ff_arr_2d = np.zeros_like(ff_3d.fft_origin)
+        for i, img in enumerate(image):
+            ff_2d = fftfilt(img, subtract_mean=False, padding=False)
+            ff_arr_2d[i] = ff_2d.fft_origin
+
+            # ffts are the same
+            assert np.allclose(ff_2d.fft_origin,
+                               ff_3d.fft_origin[i],
+                               rtol=0, atol=1e-8)
+            # iffts are the same
+            assert np.allclose(np.fft.ifft2(ff_2d.fft_origin).real,
+                               np.fft.ifft2(ff_3d.fft_origin[i]).real,
+                               rtol=0, atol=1e-8)
+            # shifted iffts are the same, if you use arg axes
+            assert np.allclose(
+                np.fft.ifft2(np.fft.ifftshift(
+                    ff_2d.fft_origin, axes=(-2, -1))).real,
+                np.fft.ifft2(np.fft.ifftshift(
+                    ff_3d.fft_origin[i], axes=(-2, -1))).real,
+                rtol=0, atol=1e-8)
+            # shifted 2d ifft is the same as the 2d img
+            assert np.allclose(
+                np.fft.ifft2(np.fft.ifftshift(
+                    ff_2d.fft_origin, axes=(-2, -1))).real,
+                img, rtol=0, atol=1e-8)
+
+        # shifted 3d ifft is the same as the 3d img
+        assert np.allclose(
+            np.fft.ifft2(np.fft.ifftshift(ff_3d.fft_origin,
+                                          axes=(-2, -1))).real,
+            image, rtol=0, atol=1e-8)

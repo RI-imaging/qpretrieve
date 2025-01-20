@@ -4,6 +4,7 @@ import numpy as np
 
 from ..fourier import get_best_interface, get_available_interfaces
 from ..fourier.base import FFTFilter
+from ..data_input import check_data_input_format, revert_to_data_input_format
 
 
 class BaseInterferogram(ABC):
@@ -74,6 +75,9 @@ class BaseInterferogram(ABC):
                     f"You can use `fft_interface='auto'` to get the best "
                     f"available interface.")
 
+        # figure out what type of data we have, change it to 3d-stack
+        data, self.orig_data_fmt = check_data_input_format(data)
+
         #: qpretrieve Fourier transform interface class
         self.fft = self.ff_iface(data=data,
                                  subtract_mean=subtract_mean,
@@ -89,6 +93,9 @@ class BaseInterferogram(ABC):
         self._field = None
         self._phase = None
         self._amplitude = None
+
+    def get_orig_orig_data_fmt(self, data_attr):
+        return revert_to_data_input_format(self.orig_data_fmt, data_attr)
 
     @property
     def phase(self):

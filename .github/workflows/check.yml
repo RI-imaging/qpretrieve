@@ -22,7 +22,7 @@ jobs:
     - name: Install fftw3 libs (Linux)
       if: runner.os == 'Linux'
       run: |
-        sudo apt-get install -y libfftw3-dev libfftw3-3
+        sudo apt-get install -y libfftw3-dev libfftw3-double3
     - name: Install fftw3 libs (macOS)
       if: runner.os == 'macOS'
       run: |
@@ -34,7 +34,7 @@ jobs:
         python -m pip install -r tests/requirements.txt
         python -m pip install coverage flake8
         # install dependencies
-        pip install -e .
+        pip install -e .[FFTW]
         # show installed packages
         pip freeze
     - name: Test with pytest

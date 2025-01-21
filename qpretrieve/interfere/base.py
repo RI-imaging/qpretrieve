@@ -7,6 +7,10 @@ from ..fourier.base import FFTFilter
 from ..data_input import check_data_input_format, revert_to_data_input_format
 
 
+class BadFFTFilterError(ValueError):
+    pass
+
+
 class BaseInterferogram(ABC):
     default_pipeline_kws = {
         "filter_name": "disk",
@@ -57,10 +61,10 @@ class BaseInterferogram(ABC):
 
         """
         if fft_interface is None:
-            raise ValueError(
+            raise BadFFTFilterError(
                 "`fft_interface` is set to None. If you want qpretrieve to "
                 "find the best FFT interface, set it to 'auto'. "
-                "If you trying to use `FFTFilterPyFFTW`, "
+                "If you are trying to use `FFTFilterPyFFTW`, "
                 "you must first install the pyfftw package.")
         if fft_interface == 'auto':
             self.ff_iface = get_best_interface()
@@ -68,7 +72,7 @@ class BaseInterferogram(ABC):
             if fft_interface in get_available_interfaces():
                 self.ff_iface = fft_interface
             else:
-                raise ValueError(
+                raise BadFFTFilterError(
                     f"User-chosen FFT Interface '{fft_interface}' is not "
                     f"available. The available interfaces are: "
                     f"{get_available_interfaces()}.\n"

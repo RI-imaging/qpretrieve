@@ -33,11 +33,14 @@ def test_interfere_base_choose_interface():
 
 def test_interfere_base_bad_interface():
     edata = np.load(data_path / "hologram_cell.npz")
+    bad_name = "MyReallyCoolFFTInterface"
 
-    with pytest.raises(ValueError):
+    with pytest.raises(
+            qpretrieve.interfere.BadFFTFilterError,
+            match=f"User-chosen FFT Interface '{bad_name}' is not available."):
         _ = qpretrieve.OffAxisHologram(
             data=edata["data"],
-            fft_interface="MyReallyCoolFFTInterface")
+            fft_interface=bad_name)
 
 
 def test_interfere_base_orig_data_fmt():

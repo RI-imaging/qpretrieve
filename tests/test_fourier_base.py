@@ -121,10 +121,16 @@ def test_scale_to_filter_oah():
 
 
 def test_bad_fft_interface_input():
+    """Fails because inputting PyFFTW without installing defaults to None"""
     data = np.load(data_path / "hologram_cell.npz")
     image = data["data"]
 
-    with pytest.raises(ValueError):
+    with pytest.raises(
+            interfere.BadFFTFilterError,
+            match="`fft_interface` is set to None. If you want qpretrieve to "
+                  "find the best FFT interface, set it to 'auto'. "
+                  "If you are trying to use `FFTFilterPyFFTW`, "
+                  "you must first install the pyfftw package."):
         interfere.OffAxisHologram(image, fft_interface=None)
 
 

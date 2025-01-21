@@ -29,9 +29,9 @@ def pytest_configure(config):
 @pytest.fixture
 def hologram(request):
     # if the user hasn't asked for parametrize, then set default
-    try:
+    if hasattr(request, "param"):
         size = request.param
-    except AttributeError:
+    else:
         size = 64
     x = np.arange(size).reshape(-1, 1) - size / 2
     y = np.arange(size).reshape(1, -1) - size / 2

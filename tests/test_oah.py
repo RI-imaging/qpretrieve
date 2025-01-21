@@ -97,7 +97,7 @@ def test_get_field_filter_names(hologram):
         assert False, "unknown filter accepted"
 
 
-@pytest.mark.parametrize("hologram", [62, 63, 64], indirect=["hologram"])
+@pytest.mark.parametrize("hologram", [62, 63, 64], indirect=True)
 def test_get_field_interpretation_fourier_index(hologram):
     """Filter size in Fourier space using Fourier index new in 0.7.0"""
     data = hologram

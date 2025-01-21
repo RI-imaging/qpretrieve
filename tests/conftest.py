@@ -26,8 +26,9 @@ def pytest_configure(config):
     qpretrieve.fourier.PREFERRED_INTERFACE = "FFTFilterNumpy"
 
 
-@pytest.fixture
-def hologram(size=64):
+@pytest.fixture(scope="function")
+def hologram(request):
+    size = request.param
     x = np.arange(size).reshape(-1, 1) - size / 2
     y = np.arange(size).reshape(1, -1) - size / 2
 

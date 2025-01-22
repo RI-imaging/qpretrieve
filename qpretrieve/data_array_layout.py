@@ -42,9 +42,20 @@ def convert_data_to_3d_array_layout(data):
 
 
 def convert_3d_data_to_array_layout(data, array_layout):
-    """Convert the 3d data to the desired `array_layout`"""
-    assert array_layout in get_allowed_array_layouts()
-    assert len(data.shape) == 3, "the data should be 3d"
+    """Convert the 3d data to the desired `array_layout`.
+
+    Notes
+    -----
+    Currently, this function is limited to converting from 3d to other
+    array layouts. Perhaps if there is demand in the future,
+    this can be generalised for other conversions.
+
+    """
+    assert array_layout in get_allowed_array_layouts(), (
+        f"`array_layout` not allowed. "
+        f"Allowed layouts are: {get_allowed_array_layouts()}.")
+    assert len(data.shape) == 3, (
+        f"The data should be 3d, got {len(data.shape)=}")
     data = data.copy()
     if array_layout == "rgb":
         data = _convert_3d_to_rgb(data)

@@ -1,10 +1,13 @@
+import warnings
 from abc import ABC, abstractmethod
 
 import numpy as np
 
 from ..fourier import get_best_interface, get_available_interfaces
 from ..fourier.base import FFTFilter
-from ..data_input import check_data_input_format, revert_to_data_input_format
+from ..data_array_layout import (
+    convert_data_to_3d_array_layout, convert_3d_data_to_array_layout
+)
 
 
 class BadFFTFilterError(ValueError):
@@ -80,7 +83,7 @@ class BaseInterferogram(ABC):
                     f"available interface.")
 
         # figure out what type of data we have, change it to 3d-stack
-        data, self.orig_data_fmt = check_data_input_format(data)
+        data, self.orig_array_layout = convert_data_to_3d_array_layout(data)
 
         #: qpretrieve Fourier transform interface class
         self.fft = self.ff_iface(data=data,
@@ -98,8 +101,16 @@ class BaseInterferogram(ABC):
         self._phase = None
         self._amplitude = None
 
-    def get_orig_data_fmt(self, data_attr):
-        return revert_to_data_input_format(self.orig_data_fmt, data_attr)
+    def get_array_with_input_layout(self, data):
+        if isinstance(data, str):
+            if data == "fft":
+                data = "fft_filtered"
+                warnings.warn(
+                    "You have asked for 'fft' which is a class. "
+                    "Returning 'fft_filtered'. "
+                    "Alternatively you could use 'fft_origin'.")
+            data = getattr(self, data)
+        return convert_3d_data_to_array_layout(data, self.orig_array_layout)
 
     @property
     def phase(self):

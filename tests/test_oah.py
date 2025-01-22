@@ -4,8 +4,8 @@ import pytest
 import qpretrieve
 from qpretrieve.interfere import if_oah
 from qpretrieve.fourier import FFTFilterNumpy, FFTFilterPyFFTW
-from qpretrieve.data_input import (
-    _convert_2d_to_3d, _revert_3d_to_rgb, _revert_3d_to_rgba,
+from qpretrieve.data_array_layout import (
+    _convert_2d_to_3d, _convert_3d_to_rgb, _convert_3d_to_rgba,
 )
 
 
@@ -286,13 +286,13 @@ def test_field_format_consistency(hologram):
     assert res_3d.shape == shape_expected
 
     # rgb data format
-    data_rgb = _revert_3d_to_rgb(data_3d)
+    data_rgb = _convert_3d_to_rgb(data_3d)
     holo_rgb = qpretrieve.OffAxisHologram(data_rgb)
     res_rgb = holo_rgb.run_pipeline()
     assert res_rgb.shape == shape_expected
 
     # rgba data format
-    data_rgba = _revert_3d_to_rgba(data_3d)
+    data_rgba = _convert_3d_to_rgba(data_3d)
     holo_rgba = qpretrieve.OffAxisHologram(data_rgba)
     res_rgba = holo_rgba.run_pipeline()
     assert res_rgba.shape == shape_expected

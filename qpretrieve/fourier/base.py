@@ -7,7 +7,7 @@ import numpy as np
 
 from .. import filter
 from ..utils import padding_3d, mean_3d
-from ..data_input import check_data_input_format
+from ..data_array_layout import convert_data_to_3d_array_layout
 
 
 class FFTCache:
@@ -84,7 +84,8 @@ class FFTFilter(ABC):
             copy = None
         data_ed = np.array(data, dtype=dtype, copy=copy)
         # figure out what type of data we have, change it to 3d-stack
-        data_ed, self.orig_data_fmt = check_data_input_format(data_ed)
+        data_ed, self.orig_array_layout = convert_data_to_3d_array_layout(
+            data_ed)
         #: original data (with subtracted mean)
         self.origin = data_ed
         # for `subtract_mean` and `padding`, we could use `np.atleast_3d`

@@ -34,7 +34,7 @@ def test_qlsi_phase():
 
 def test_qlsi_fftfreq_reshape_2d_3d(hologram):
     data_2d = hologram
-    data_3d, _ = qpretrieve.data_input._convert_2d_to_3d(data_2d)
+    data_3d, _ = qpretrieve.data_array_layout._convert_2d_to_3d(data_2d)
 
     fx_2d = np.fft.fftfreq(data_2d.shape[-1]).reshape(-1, 1)
     fx_3d = np.fft.fftfreq(data_3d.shape[-1]).reshape(data_3d.shape[0], -1, 1)
@@ -70,7 +70,7 @@ def test_qlsi_unwrap_phase_2d_3d():
     }
 
     data_2d = image
-    data_3d, _ = qpretrieve.data_input._convert_2d_to_3d(data_2d)
+    data_3d, _ = qpretrieve.data_array_layout._convert_2d_to_3d(data_2d)
 
     ft_2d = qpretrieve.fourier.FFTFilterNumpy(data_2d, subtract_mean=False)
     ft_3d = qpretrieve.fourier.FFTFilterNumpy(data_3d, subtract_mean=False)
@@ -103,7 +103,7 @@ def test_qlsi_unwrap_phase_2d_3d():
 
 def test_qlsi_rotate_2d_3d(hologram):
     data_2d = hologram
-    data_3d, _ = qpretrieve.data_input._convert_2d_to_3d(data_2d)
+    data_3d, _ = qpretrieve.data_array_layout._convert_2d_to_3d(data_2d)
 
     rot_2d = qpretrieve.interfere.if_qlsi.rotate_noreshape(
         data_2d,
@@ -131,7 +131,7 @@ def test_qlsi_rotate_2d_3d(hologram):
 
 def test_qlsi_pad_2d_3d(hologram):
     data_2d = hologram
-    data_3d, _ = qpretrieve.data_input._convert_2d_to_3d(data_2d)
+    data_3d, _ = qpretrieve.data_array_layout._convert_2d_to_3d(data_2d)
 
     sx, sy = data_2d.shape[-2:]
     gradpad_2d = np.pad(
@@ -147,7 +147,7 @@ def test_qlsi_pad_2d_3d(hologram):
 
 def test_fxy_complex_mul(hologram):
     data_2d = hologram
-    data_3d, _ = qpretrieve.data_input._convert_2d_to_3d(data_2d)
+    data_3d, _ = qpretrieve.data_array_layout._convert_2d_to_3d(data_2d)
 
     assert np.array_equal(data_2d, data_3d[0])
 

@@ -237,11 +237,6 @@ class QLSInterferogram(BaseInterferogram):
 
         self.pipeline_kws.update(pipeline_kws)
 
-        # TODO: do we want to revert to the original format, or simply
-        #  provide a way for the user to do that, as here:
-        # raw_wavefront = revert_to_data_input_format(
-        #     self.fft.orig_data_fmt, raw_wavefront)
-
         self.wavefront = raw_wavefront
 
         return raw_wavefront

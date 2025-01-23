@@ -1,12 +1,16 @@
 import numpy as np
 import pytest
+import pathlib
 
 import qpretrieve
 from qpretrieve.interfere import if_oah
 from qpretrieve.fourier import FFTFilterNumpy, FFTFilterPyFFTW
 from qpretrieve.data_array_layout import (
+    convert_data_to_3d_array_layout,
     _convert_2d_to_3d, _convert_3d_to_rgb, _convert_3d_to_rgba,
 )
+
+data_path = pathlib.Path(__file__).parent / "data"
 
 
 def test_find_sideband():
@@ -300,3 +304,23 @@ def test_field_format_consistency(hologram):
     assert np.all(res_2d == res_3d)
     assert np.all(res_2d == res_rgb)
     assert np.all(res_2d == res_rgba)
+
+
+def test_oah_2d_vs_3d_processing():
+    edata_2d = np.load(data_path / "hologram_cell.npz")["data"]
+    edata_3d, _ = convert_data_to_3d_array_layout(edata_2d)
+    edata_3d = np.repeat(edata_3d, repeats=5, axis=0)
+
+    # 3d
+    holo_3d = qpretrieve.OffAxisHologram(data=edata_3d, padding=True)
+    fields_3d = holo_3d.run_pipeline()
+
+    # 2d
+    fields_2d = np.zeros_like(fields_3d)
+    for i in range(fields_2d.shape[0]):
+        holo = qpretrieve.OffAxisHologram(data=edata_2d, padding=True)
+        holo.run_pipeline()
+        fields_2d[i] = holo.field[0]  # there is only 1 per input
+
+    assert fields_2d.shape == fields_3d.shape
+    assert np.array_equal(fields_2d, fields_3d)

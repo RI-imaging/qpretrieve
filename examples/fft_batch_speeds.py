@@ -1,12 +1,11 @@
-"""Fourier Transform speeds for different batch sizes
+"""Fourier Transform speed benchmarks
 
 This example visualizes the speed for different batch sizes for
 the available FFT Filters. The y-axis shows the average speed of a single
 FFT for the corresponding batch size.
 
-Notes
-
-- Optimum batch size is between 64 and 256 for 256x256pix imgs (incl padding).
+- Optimum batch size is between 64 and 256 for 256x256pix imgs (incl padding),
+  but will be limited by your computer's RAM.
 - Here, batch size is the size of the 3D stack in z.
 
 """

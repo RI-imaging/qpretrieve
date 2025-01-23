@@ -35,7 +35,8 @@ data_3d_bg_prep, _ = convert_data_to_3d_array_layout(data_2d_bg)
 for fft_interface in fft_interfaces:
     results = {}
     for n_transforms in n_transforms_list:
-        print(f"Running {n_transforms} transforms with {fft_interface.__name__}")
+        print(f"Running {n_transforms} transforms with "
+              f"{fft_interface.__name__}")
 
         # create batches
         data_3d = np.repeat(data_3d_prep, repeats=n_transforms, axis=0)
@@ -73,12 +74,6 @@ for (name, speed), color in zip(speed_norms.items(), colors):
     ax1.bar(x_pos + offset, speed, width, label=name,
             color=color, edgecolor='k')
     multiplier += 1
-
-# offset = width * multiplier
-# rects = ax1.bar(np.array(n_transforms_list) + offset, height=speed_norm, width=width,
-#                 label=fft_interface.__name__)
-# ax1.bar_label(rects, padding=3)
-# multiplier += 1
 
 ax1.set_xticks(x_pos + (width/2), labels=n_transforms_list)
 ax1.set_xlabel("Fourier transform batch size")

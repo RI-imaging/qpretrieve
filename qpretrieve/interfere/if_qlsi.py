@@ -39,24 +39,24 @@ class QLSInterferogram(BaseInterferogram):
         self._field = None
 
     @property
-    def amplitude(self):
+    def amplitude(self) -> np.ndarray:
         if self._amplitude is None:
             self.run_pipeline()
         return self._amplitude
 
     @property
-    def field(self):
+    def field(self) -> np.ndarray:
         if self._field is None:
             self._field = self.amplitude * np.exp(1j * 2 * np.pi * self.phase)
         return self._field
 
     @property
-    def phase(self):
+    def phase(self) -> np.ndarray:
         if self._phase is None:
             self.run_pipeline()
         return self._phase
 
-    def run_pipeline(self, **pipeline_kws):
+    def run_pipeline(self, **pipeline_kws) -> np.ndarray:
         r"""Run QLSI analysis pipeline
 
         Parameters
@@ -242,7 +242,10 @@ class QLSInterferogram(BaseInterferogram):
         return raw_wavefront
 
 
-def find_peaks_qlsi(ft_data, periodicity=4, copy=True):
+def find_peaks_qlsi(
+        ft_data: np.ndarray,
+        periodicity: int = 4,
+        copy: bool = True) -> tuple[tuple[float, float], tuple[float, float]]:
     """Find the two peaks in Fourier space for the x and y gradient
 
     Parameters
@@ -306,7 +309,9 @@ def find_peaks_qlsi(ft_data, periodicity=4, copy=True):
     return fx[i1x, 0], fy[0, i1y]
 
 
-def rotate_noreshape(arr, angle, axes, mode="mirror", reshape=False):
+def rotate_noreshape(
+        arr: np.ndarray, angle: float, axes: tuple[int, ...],
+        mode: str = "mirror", reshape: bool = False) -> np.ndarray:
     return scipy.ndimage.rotate(
         arr,  # input
         angle=np.rad2deg(angle),  # angle

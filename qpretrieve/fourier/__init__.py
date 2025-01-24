@@ -25,7 +25,7 @@ def get_available_interfaces() -> list:
     return interfaces_available
 
 
-def get_best_interface() -> FFTFilter:
+def get_best_interface():
     """Return the fastest refocusing interface available
 
     If `pyfftw` is installed, :class:`.FFTFilterPyFFTW`

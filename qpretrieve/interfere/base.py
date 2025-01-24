@@ -24,9 +24,10 @@ class BaseInterferogram(ABC):
         "invert_phase": False,
     }
 
-    def __init__(self, data, fft_interface: str | FFTFilter = "auto",
+    def __init__(self, data: np.ndarray,
+                 fft_interface: str | FFTFilter = "auto",
                  subtract_mean=True, padding=2, copy=True,
-                 **pipeline_kws):
+                 **pipeline_kws) -> None:
         """
         Parameters
         ----------
@@ -106,7 +107,7 @@ class BaseInterferogram(ABC):
         self._phase = None
         self._amplitude = None
 
-    def get_array_with_input_layout(self, data):
+    def get_array_with_input_layout(self, data: np.ndarray) -> np.ndarray:
         if isinstance(data, str):
             if data == "fft":
                 data = "fft_filtered"
@@ -118,28 +119,31 @@ class BaseInterferogram(ABC):
         return convert_3d_data_to_array_layout(data, self.orig_array_layout)
 
     @property
-    def phase(self):
+    def phase(self) -> np.ndarray:
         """Retrieved phase information"""
         if self._phase is None:
             self.run_pipeline()
         return self._phase
 
     @property
-    def amplitude(self):
+    def amplitude(self) -> np.ndarray:
         """Retrieved amplitude information"""
         if self._amplitude is None:
             self.run_pipeline()
         return self._amplitude
 
     @property
-    def field(self):
+    def field(self) -> np.ndarray:
         """Retrieved amplitude information"""
         if self._field is None:
             self.run_pipeline()
         return self._field
 
-    def compute_filter_size(self, filter_size, filter_size_interpretation,
-                            sideband_freq=None):
+    def compute_filter_size(
+            self,
+            filter_size: float,
+            filter_size_interpretation: str,
+            sideband_freq: tuple[float, float] = None) -> float:
         """Compute the actual filter size in Fourier space"""
         if filter_size_interpretation == "frequency":
             # convert frequency to frequency index

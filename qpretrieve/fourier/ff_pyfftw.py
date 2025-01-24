@@ -9,7 +9,6 @@ from .base import FFTFilter
 class FFTFilterPyFFTW(FFTFilter):
     """Fourier transform using `PyFFTW <https://pyfftw.readthedocs.io/>`_
     """
-    # always available, because numpy is a dependency
     is_available = True
 
     def _init_fft(self, data: np.ndarray) -> np.ndarray:

@@ -16,7 +16,7 @@ class OffAxisHologram(BaseInterferogram):
     }
 
     @property
-    def phase(self):
+    def phase(self) -> np.ndarray:
         """Retrieved phase information"""
         if self._field is None:
             self.run_pipeline()
@@ -25,7 +25,7 @@ class OffAxisHologram(BaseInterferogram):
         return self._phase
 
     @property
-    def amplitude(self):
+    def amplitude(self) -> np.ndarray:
         """Retrieved amplitude information"""
         if self._field is None:
             self.run_pipeline()
@@ -33,7 +33,7 @@ class OffAxisHologram(BaseInterferogram):
             self._amplitude = np.abs(self._field)
         return self._amplitude
 
-    def run_pipeline(self, **pipeline_kws):
+    def run_pipeline(self, **pipeline_kws) -> np.ndarray:
         r"""Run OAH analysis pipeline
 
         Parameters
@@ -101,7 +101,8 @@ class OffAxisHologram(BaseInterferogram):
         return self.field
 
 
-def find_peak_cosine(ft_data, copy=True):
+def find_peak_cosine(
+        ft_data: np.ndarray, copy: bool = True) -> tuple[float, float]:
     """Find the side band position of a 2d regular off-axis hologram
 
     The Fourier transform of a cosine function (known as the

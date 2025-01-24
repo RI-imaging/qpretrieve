@@ -1,14 +1,16 @@
 Basic Use of qpretrieve
 =======================
 
+To run this code locally, you can download the example dataset from the
+`qpretrieve repository <https://github.com/RI-imaging/qpretrieve/blob/main/examples/data/hologram_cell.npz>`_
 
 
 .. code-block:: python
 
 	import qpretrieve
 
-	# load your experimental data
-	edata = np.load("./data/hologram_cell.npz")  # example data from the qpretrieve repository
+	# load your experimental data (data from the qpretrieve repository)
+	edata = np.load("qpretrieve/examples/data/hologram_cell.npz")
 	data = edata["data"]
 	data_bg = edata["bg_data"]
 
@@ -27,19 +29,24 @@ Basic Use of qpretrieve
 
 
 
-Differences between old (2D) and new (3D) image processing
-----------------------------------------------------------
+How qpretrieve now handles data
+-------------------------------
 
-qpretrieve used to only processed 2D array layout. Since version (0.4.0), it accepts
-3D array layout, and always returns the data as 3D, regardless of the input
-array layout.
+In older versions of qpretrieve, only a single image could be processed at a time.
+Since version (0.4.0), it accepts 3D array layouts, and always returns
+the data as 3D, regardless of the input array layout.
+
+Click here for more :ref:`information on array layouts <sec_doc_array_layout>`.
+There are speed benchmarks given for different inputs in the
+:ref:`examples <sec_examples>` section.
+
 
 New version example code and output:
 ....................................
 
 .. code-block:: python
 
-	import qpretrieve  # versions older than 0.4.0
+	import qpretrieve
 
 	hologram = np.ones(shape=(256, 256))
 	oah = qpretrieve.OffAxisHologram(hologram)
@@ -65,5 +72,4 @@ Old version example code and output:
 	hologram = np.ones(shape=(256, 256))
 	oah = qpretrieve.OffAxisHologram(hologram)
 	oah.run_pipeline()
-	assert oah.field.shape == hologram.shape
-
+	assert oah.field.shape == hologram.shape  # <- old version returned a 2D array

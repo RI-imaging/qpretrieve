@@ -41,7 +41,7 @@ class FFTFilter(ABC):
                  data: np.ndarray,
                  subtract_mean: bool = True,
                  padding: int = 2,
-                 copy: bool = True):
+                 copy: bool = True) -> None:
         r"""
         Parameters
         ----------
@@ -135,13 +135,13 @@ class FFTFilter(ABC):
         self.fft_used = None
 
     @property
-    def shape(self):
+    def shape(self) -> tuple:
         """Shape of the Fourier transform data"""
         return self.fft_origin.shape
 
     @property
     @abstractmethod
-    def is_available(self):
+    def is_available(self) -> bool:
         """Whether this method is available given current hardware/software"""
         return True
 
@@ -169,7 +169,7 @@ class FFTFilter(ABC):
 
     def filter(self, filter_name: str, filter_size: float,
                freq_pos: (float, float),
-               scale_to_filter: bool | float = False):
+               scale_to_filter: bool | float = False) -> np.ndarray:
         """
         Parameters
         ----------

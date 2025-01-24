@@ -1,6 +1,7 @@
 # flake8: noqa: F401
 import warnings
 
+from .base import FFTFilter
 from .ff_numpy import FFTFilterNumpy
 
 try:
@@ -11,7 +12,7 @@ except ImportError:
 PREFERRED_INTERFACE = None
 
 
-def get_available_interfaces():
+def get_available_interfaces() -> list:
     """Return a list of available FFT algorithms"""
     interfaces = [
         FFTFilterPyFFTW,
@@ -24,7 +25,7 @@ def get_available_interfaces():
     return interfaces_available
 
 
-def get_best_interface():
+def get_best_interface() -> FFTFilter:
     """Return the fastest refocusing interface available
 
     If `pyfftw` is installed, :class:`.FFTFilterPyFFTW`

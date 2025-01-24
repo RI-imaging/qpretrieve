@@ -10,7 +10,7 @@ class FFTFilterNumpy(FFTFilter):
     # always available, because numpy is a dependency
     is_available = True
 
-    def _init_fft(self, data):
+    def _init_fft(self, data: np.ndarray) -> np.ndarray:
         """Perform initial Fourier transform of the input data
 
         Parameters
@@ -25,6 +25,6 @@ class FFTFilterNumpy(FFTFilter):
         """
         return np.fft.fft2(data, axes=(-2, -1))
 
-    def _ifft(self, data):
+    def _ifft(self, data: np.ndarray) -> np.ndarray:
         """Perform inverse Fourier transform"""
         return np.fft.ifft2(data, axes=(-2, -1))

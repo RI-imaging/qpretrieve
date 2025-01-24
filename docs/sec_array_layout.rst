@@ -27,6 +27,8 @@ all channels contain the same information, so the first channel is used.
 If you use the `oah.get_array_with_input_layout("phase")` method for
 the RGBA array layout, then the alpha (A) channel will be an array of ones.
 
+3D RGB/RGBA array layouts, such as (50, 256, 256, 3), are not allowed (yet).
+
 Converting to and from Array Layouts
 ------------------------------------
 

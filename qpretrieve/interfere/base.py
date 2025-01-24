@@ -30,6 +30,11 @@ class BaseInterferogram(ABC):
         """
         Parameters
         ----------
+        data
+            The experimental input real-valued image. Allowed input shapes are:
+              - 2d (y, x)
+              - 3d (z, y, x)
+              - rgb (y, x, 3) or rgba (y, x, 4)
         fft_interface
             A Fourier transform interface.
             See :func:`qpretrieve.fourier.get_available_interfaces`

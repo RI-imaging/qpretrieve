@@ -49,7 +49,7 @@ class FFTFilter(ABC):
             The experimental input real-valued image. Allowed input shapes are:
               - 2d (y, x)
               - 3d (z, y, x)
-              - 3d rgb (y, x, 3) or rgba (y, x, 4)
+              - rgb (y, x, 3) or rgba (y, x, 4)
         subtract_mean: bool
             If True, subtract the mean of `data` before performing
             the Fourier transform. This setting is recommended as it

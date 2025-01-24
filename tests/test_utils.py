@@ -1,6 +1,6 @@
 import numpy as np
 
-from qpretrieve.utils import padding_2d, padding_3d, mean_2d, mean_3d
+from qpretrieve.utils import _padding_2d, padding_3d, _mean_2d, mean_3d
 
 
 def test_mean_subtraction():
@@ -8,7 +8,7 @@ def test_mean_subtraction():
     ind = 5
     data_2d = data_3d.copy()[ind]
 
-    data_2d = mean_2d(data_2d)
+    data_2d = _mean_2d(data_2d)
     data_3d = mean_3d(data_3d)
 
     assert np.array_equal(data_3d[ind], data_2d)
@@ -38,7 +38,7 @@ def test_batch_padding():
     order = 512
     dtype = float
 
-    data_2d_padded = padding_2d(data_2d, order, dtype)
+    data_2d_padded = _padding_2d(data_2d, order, dtype)
     data_3d_padded = padding_3d(data_3d, order, dtype)
 
     assert np.array_equal(data_3d_padded[ind], data_2d_padded)

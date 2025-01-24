@@ -3,7 +3,6 @@ from functools import lru_cache
 import numpy as np
 from scipy import signal
 
-
 available_filters = [
     "disk",
     "smooth disk",
@@ -15,7 +14,10 @@ available_filters = [
 
 
 @lru_cache(maxsize=32)
-def get_filter_array(filter_name, filter_size, freq_pos, fft_shape):
+def get_filter_array(
+        filter_name: str, filter_size: float,
+        freq_pos: tuple[float, float],
+        fft_shape: tuple[int, int]) -> np.ndarray:
     """Create a Fourier filter for holography
 
     Parameters
@@ -55,7 +57,7 @@ def get_filter_array(filter_name, filter_size, freq_pos, fft_shape):
         raise ValueError("The Fourier transformed data must have a squared "
                          + f"shape, but the input shape is '{fft_shape}'! "
                          + "Please pad your data properly before FFT.")
-    if not (0 < filter_size < max(fft_shape)/2):
+    if not (0 < filter_size < max(fft_shape) / 2):
         raise ValueError("The filter size cannot exceed more than half of "
                          + "the Fourier space or be negative. Got a filter "
                          + f"size of '{filter_size}' and a shape of "
@@ -63,7 +65,7 @@ def get_filter_array(filter_name, filter_size, freq_pos, fft_shape):
     if not (0
             <= min(np.abs(freq_pos))
             <= max(np.abs(freq_pos))
-            < max(fft_shape)/2):
+            < max(fft_shape) / 2):
         raise ValueError("The frequency position must be within the Fourier "
                          + f"domain. Got '{freq_pos}' and shape "
                          + f"'{fft_shape}'!")

@@ -1,5 +1,4 @@
 import numpy as np
-import pytest
 
 from qpretrieve.data_array_layout import convert_data_to_3d_array_layout
 

@@ -213,9 +213,10 @@ class QLSInterferogram(BaseInterferogram):
                         copy=False)
         # Compute the frequencies that correspond to the frequencies of the
         # Fourier-transformed image.
-        fx = np.fft.fftfreq(rfft.shape[-2]).reshape(rfft.shape[0], -1, 1)
-        fy = np.fft.fftfreq(rfft.shape[-1]).reshape(rfft.shape[0], 1, -1)
+        fx = np.fft.fftfreq(rfft.shape[-2]).reshape(-1, 1)
+        fy = np.fft.fftfreq(rfft.shape[-1]).reshape(1, -1)
         fxy = -2 * np.pi * 1j * (fx + 1j * fy)
+        fxy = np.repeat(fxy[np.newaxis, :, :], repeats=rfft.shape[0], axis=0)
         fxy[:, 0, 0] = 1
 
         # The wavefront is the real part of the inverse Fourier transform

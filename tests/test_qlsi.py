@@ -5,6 +5,9 @@ import numpy as np
 from skimage.restoration import unwrap_phase
 
 import qpretrieve
+from qpretrieve.data_array_layout import (
+    convert_data_to_3d_array_layout
+)
 
 data_path = pathlib.Path(__file__).parent / "data"
 
@@ -27,9 +30,33 @@ def test_qlsi_phase():
         assert np.allclose(qlsi.wavefront.max(), 8.179288852406586e-08,
                            atol=0, rtol=1e-12)
 
-        assert qlsi.phase.argmax() == 242294
-        assert np.allclose(qlsi.phase.max(), 0.9343997734657971,
-                           atol=0, rtol=1e-12)
+
+def test_qlsi_phase_3d():
+    with h5py.File(data_path / "qlsi_paa_bead.h5") as h5:
+        data_3d, _ = convert_data_to_3d_array_layout(h5["0"][:])
+        data_3d = np.repeat(data_3d, repeats=10, axis=0)
+        assert data_3d.shape == (10, 720, 720)
+        qlsi = qpretrieve.QLSInterferogram(
+            data=data_3d,
+            reference=h5["reference"][:],
+            filter_name="tukey",
+            filter_size=180,
+            filter_size_interpretation="frequency index",
+            wavelength=h5["0"].attrs["wavelength"],
+            qlsi_pitch_term=h5["0"].attrs["qlsi_pitch_term"],
+        )
+        qlsi.run_pipeline()
+        assert qlsi.pipeline_kws["wavelength"] == 550e-9
+        assert qlsi.pipeline_kws["qlsi_pitch_term"] == 1.87711e-08
+        for wavefront in qlsi.wavefront:
+            assert wavefront.argmax() == 242294
+            assert np.allclose(wavefront.max(), 8.179288852406586e-08,
+                               atol=0, rtol=1e-12)
+
+        for phase in qlsi.phase:
+            assert phase.argmax() == 242294
+            assert np.allclose(qlsi.phase.max(), 0.9343997734657971,
+                               atol=0, rtol=1e-12)
 
 
 def test_qlsi_fftfreq_reshape_2d_3d(hologram):

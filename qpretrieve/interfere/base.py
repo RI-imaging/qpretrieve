@@ -107,7 +107,7 @@ class BaseInterferogram(ABC):
         self._phase = None
         self._amplitude = None
 
-    def get_data_with_input_layout(self, data: np.ndarray) -> np.ndarray:
+    def get_data_with_input_layout(self, data: np.ndarray | str) -> np.ndarray:
         if isinstance(data, str):
             if data == "fft":
                 data = "fft_filtered"

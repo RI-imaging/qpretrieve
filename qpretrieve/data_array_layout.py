@@ -4,7 +4,6 @@ array layouts.
 """
 
 import numpy as np
-import warnings
 
 
 def get_allowed_array_layouts() -> list:
@@ -44,10 +43,6 @@ def convert_data_to_3d_array_layout(
     else:
         raise ValueError(f"data_input shape must be 2d or 3d, "
                          f"got shape {data.shape}.")
-    warnings.warn(f"Format of input data was detected as '{array_layout}'. "
-                  f"The new output data format is '3d'. To get your data in "
-                  f"the original format use, for example, "
-                  f"`oah.get_data_with_input_layout(data)`.")
     return data.copy(), array_layout
 
 
@@ -88,8 +83,6 @@ def _convert_rgb_to_3d(data_input: np.ndarray) -> tuple[np.ndarray, str]:
     data = data_input[:, :, 0]
     data = data[np.newaxis, :, :]
     array_layout = "rgb"
-    warnings.warn(f"Format of input data detected as {array_layout}. "
-                  f"The first channel will be used for processing")
     return data, array_layout
 
 

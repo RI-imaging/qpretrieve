@@ -74,9 +74,8 @@ def test_interfere_base_get_data_with_input_layout_fft_warning():
     assert holo.field.shape == (1, 200, 210)
 
     fft_orig1 = holo.get_data_with_input_layout(data="fft_filtered")
-    with pytest.warns(UserWarning, match="Returning 'fft_filtered'."):
-        fft_orig2 = holo.get_data_with_input_layout(data="fft")
-        assert fft_orig1.shape == fft_orig2.shape
+    fft_orig2 = holo.get_data_with_input_layout(data="fft")
+    assert fft_orig1.shape == fft_orig2.shape
 
 
 def test_get_data_with_input_layout_2d(hologram):

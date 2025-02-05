@@ -27,8 +27,7 @@ def test_check_data_input_3d_image_stack():
 def test_check_data_input_3d_rgb():
     data = np.zeros(shape=(256, 256, 3))
 
-    with pytest.warns(UserWarning):
-        data_new, orig_array_layout = convert_data_to_3d_array_layout(data)
+    data_new, orig_array_layout = convert_data_to_3d_array_layout(data)
 
     assert data_new.shape == (1, 256, 256)
     assert np.array_equal(data_new[0], data[:, :, 0])
@@ -38,8 +37,7 @@ def test_check_data_input_3d_rgb():
 def test_check_data_input_3d_rgba():
     data = np.zeros(shape=(256, 256, 4))
 
-    with pytest.warns(UserWarning):
-        data_new, orig_array_layout = convert_data_to_3d_array_layout(data)
+    data_new, orig_array_layout = convert_data_to_3d_array_layout(data)
 
     assert data_new.shape == (1, 256, 256)
     assert np.array_equal(data_new[0], data[:, :, 0])

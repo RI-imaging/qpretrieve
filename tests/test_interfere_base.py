@@ -51,7 +51,7 @@ def test_interfere_base_orig_array_layout():
     assert holo.orig_array_layout == "2d"
 
 
-def test_interfere_base_get_array_with_input_layout():
+def test_interfere_base_get_data_with_input_layout():
     edata = np.load(data_path / "hologram_cell.npz")
     orig_shape = (200, 210)
     assert edata["data"].shape == orig_shape
@@ -59,13 +59,13 @@ def test_interfere_base_get_array_with_input_layout():
     holo = qpretrieve.OffAxisHologram(data=edata["data"])
     assert holo.field.shape == (1, 200, 210)
 
-    field_orig1 = holo.get_array_with_input_layout(data=holo.field)
-    field_orig2 = holo.get_array_with_input_layout(data="field")
+    field_orig1 = holo.get_data_with_input_layout(data=holo.field)
+    field_orig2 = holo.get_data_with_input_layout(data="field")
 
     assert field_orig1.shape == field_orig2.shape == orig_shape
 
 
-def test_interfere_base_get_array_with_input_layout_fft_warning():
+def test_interfere_base_get_data_with_input_layout_fft_warning():
     edata = np.load(data_path / "hologram_cell.npz")
     orig_shape = (200, 210)
     assert edata["data"].shape == orig_shape
@@ -73,13 +73,13 @@ def test_interfere_base_get_array_with_input_layout_fft_warning():
     holo = qpretrieve.OffAxisHologram(data=edata["data"])
     assert holo.field.shape == (1, 200, 210)
 
-    fft_orig1 = holo.get_array_with_input_layout(data="fft_filtered")
+    fft_orig1 = holo.get_data_with_input_layout(data="fft_filtered")
     with pytest.warns(UserWarning, match="Returning 'fft_filtered'."):
-        fft_orig2 = holo.get_array_with_input_layout(data="fft")
+        fft_orig2 = holo.get_data_with_input_layout(data="fft")
         assert fft_orig1.shape == fft_orig2.shape
 
 
-def test_get_array_with_input_layout_2d(hologram):
+def test_get_data_with_input_layout_2d(hologram):
     """The original data format should be returned correctly"""
     data_2d = hologram
     expected_output_shape = (1, data_2d.shape[-2], data_2d.shape[-1])
@@ -98,11 +98,11 @@ def test_get_array_with_input_layout_2d(hologram):
         if not isinstance(data_attr, str):
             assert data_attr.shape == expected_output_shape
         # original shape was 2d
-        orig_data = oah.get_array_with_input_layout(data_attr)
+        orig_data = oah.get_data_with_input_layout(data_attr)
         assert orig_data.shape == data_2d.shape
 
 
-def test_get_array_with_input_layout_rgb(hologram):
+def test_get_data_with_input_layout_rgb(hologram):
     """The original data format should be returned correctly"""
     data_rgb = np.stack([hologram, hologram, hologram], axis=-1)
     expected_output_shape = (1, hologram.shape[-2], hologram.shape[-1])
@@ -120,11 +120,11 @@ def test_get_array_with_input_layout_rgb(hologram):
         if not isinstance(data_attr, str):
             assert data_attr.shape == expected_output_shape
         # original shape was 2d
-        assert oah.get_array_with_input_layout(
+        assert oah.get_data_with_input_layout(
             data_attr).shape == data_rgb.shape
 
 
-def test_get_array_with_input_layout_rgba(hologram):
+def test_get_data_with_input_layout_rgba(hologram):
     """The original data format should be returned correctly"""
     data_rgba = np.stack([hologram, hologram, hologram,
                           np.zeros_like(hologram)], axis=-1)
@@ -143,5 +143,5 @@ def test_get_array_with_input_layout_rgba(hologram):
         if not isinstance(data_attr, str):
             assert data_attr.shape == expected_output_shape
         # original shape was 2d
-        assert oah.get_array_with_input_layout(
+        assert oah.get_data_with_input_layout(
             data_attr).shape == data_rgba.shape

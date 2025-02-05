@@ -46,6 +46,7 @@ New version example code and output:
 
 .. code-block:: python
 
+	import numpy as np
 	import qpretrieve
 
 	hologram = np.ones(shape=(256, 256))
@@ -53,7 +54,8 @@ New version example code and output:
 	oah.run_pipeline()
 	assert oah.field.shape == (1, 256, 256)  # <- now a 3D array is returned
 	# if you want the original array layout (2d)
-	field_2d = oah.get_array_with_input_layout("field")
+	field_2d = oah.get_data_with_input_layout("field")
+	assert field_2d.shape == (256, 256)
 
 	# this means you can input 3D arrays
 	hologram_3d = np.ones(shape=(50, 256, 256))
@@ -67,6 +69,7 @@ Old version example code and output:
 
 .. code-block:: python
 
+	import numpy as np
 	import qpretrieve  # versions older than 0.4.0
 
 	hologram = np.ones(shape=(256, 256))

@@ -47,7 +47,7 @@ def convert_data_to_3d_array_layout(
     warnings.warn(f"Format of input data was detected as '{array_layout}'. "
                   f"The new output data format is '3d'. To get your data in "
                   f"the original format use, for example, "
-                  f"`oah.get_array_with_input_layout(data)`.")
+                  f"`oah.get_data_with_input_layout(data)`.")
     return data.copy(), array_layout
 
 

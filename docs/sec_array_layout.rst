@@ -4,7 +4,7 @@ Data Array Layouts
 .. _sec_doc_array_layout:
 
 Since version 0.4.0, `qpretrieve` accepts 3D (z,y,x) arrays as input.
-Additionally, it **always** returns in data as the 3D array layout.
+Additionally, it **always** returns data as the 3D array layout.
 
 We use the term "*array layout*" to define the different ways to represent data.
 The currently accepted array layouts are: 2D, RGB, RGBA, 3D.
@@ -24,7 +24,7 @@ If you give either a RGB or RGBA array layout as input, then the first
 channel is taken as the image to process. In other words, it is assumed that
 all channels contain the same information, so the first channel is used.
 
-If you use the `oah.get_array_with_input_layout("phase")` method for
+If you use the :class:`.BaseInterferogram.get_data_with_input_layout` method for
 the RGBA array layout, then the alpha (A) channel will be an array of ones.
 
 3D RGB/RGBA array layouts, such as (50, 256, 256, 3), are not allowed (yet).
@@ -39,7 +39,7 @@ the class will handle everything for you.
 
 However, if you want to have your processed data in the same array layout as when
 you inputted it, then you can use the convenience method
-:meth:`get_array_with_input_layout` to do just that. For example, if
+:meth:`get_data_with_input_layout` to do just that. For example, if
 your input data was a 2D array, you can get the processed field, phase,
 amplitude etc like so:
 
@@ -50,6 +50,6 @@ amplitude etc like so:
 	# do some processing
 	...
 	# get your data as a 2D array layout
-	field_2d = oah.get_array_with_input_layout("field")
-	phase_2d = oah.get_array_with_input_layout("phase")
-	amplitude_2d = oah.get_array_with_input_layout("amplitude")
+	field_2d = oah.get_data_with_input_layout("field")
+	phase_2d = oah.get_data_with_input_layout("phase")
+	amplitude_2d = oah.get_data_with_input_layout("amplitude")

@@ -65,6 +65,8 @@ class OffAxisHologram(BaseInterferogram):
         sideband_freq: tuple of floats
             Frequency coordinates of the sideband to use. By default,
             a heuristic search for the sideband is done.
+            If you pass a 3D array, the first hologram is used to
+            determine the sideband frequencies.
         invert_phase: bool
             Invert the phase data.
         """

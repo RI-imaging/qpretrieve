@@ -48,12 +48,10 @@ def test_qlsi_fftfreq_reshape_2d_3d(hologram):
 
 def test_qlsi_unwrap_phase_2d_3d():
     """
-    Check whether skimage unwrap_2d and unwrap_3d give the same result.
-    In other words, does unwrap_3d apply th unwrapping along the z axis.
-
-    Answer is no, they are different. unwrap_3d is designed for 3D data that
-    is to be unwrapped on all axes at once.
-
+    Check whether `skimage.restoration.unwrap_phase` unwraps 2d
+    images along the z axis when given a 3d array input.
+    Answer is no. `unwrap_phase` is designed for to unwrap data
+    on all axes at once.
     """
     with h5py.File(data_path / "qlsi_paa_bead.h5") as h5:
         image = h5["0"][:]

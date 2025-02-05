@@ -8,7 +8,10 @@ def _mean_2d(data):
 
 
 def mean_3d(data: np.ndarray) -> np.ndarray:
-    """Calculate mean of the data along the z-axis."""
+    """
+    Subtract mean inplace from 3D array `data` for every
+    2D array along z axis.
+    """
     # The mean array here is (1000,), so we need to add newaxes for subtraction
     # (1000, 5, 5) -= (1000, 1, 1)
     data -= data.mean(axis=(-2, -1))[:, np.newaxis, np.newaxis]
@@ -24,21 +27,21 @@ def _padding_2d(data, order, dtype):
     return datapad
 
 
-def padding_3d(data: np.ndarray, order: int, dtype: np.dtype) -> np.ndarray:
-    """Calculate padding of the data along the z-axis.
+def padding_3d(data: np.ndarray, size: int, dtype: np.dtype) -> np.ndarray:
+    """Pad a 3D array in the second and third dimensions (y, x) to `size`
 
     Parameters
     ----------
     data
         3d array. The padding will be applied to the axes (y,x) only.
-    order
-        The data will be padded to this size.
+    size
+        The data will be padded to this size in the (y, x) dimensions.
     dtype
         data type of the padded array.
 
     """
     z, y, x = data.shape
     # this is faster than np.pad
-    datapad = np.zeros((z, order, order), dtype=dtype)
+    datapad = np.zeros((z, size, size), dtype=dtype)
     datapad[:, :y, :x] = data
     return datapad

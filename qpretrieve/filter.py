@@ -14,10 +14,10 @@ available_filters = [
 
 
 @lru_cache(maxsize=32)
-def get_filter_array(
-        filter_name: str, filter_size: float,
-        freq_pos: tuple[float, float],
-        fft_shape: tuple[int, int]) -> np.ndarray:
+def get_filter_array(filter_name: str,
+                     filter_size: float,
+                     freq_pos: tuple[float, float],
+                     fft_shape: tuple[int, int]) -> np.ndarray:
     """Create a Fourier filter for holography
 
     Parameters

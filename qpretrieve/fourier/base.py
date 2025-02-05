@@ -101,9 +101,10 @@ class FFTFilter(ABC):
         if padding:
             # zero padding size is next order of 2
             logfact = np.log(padding * max(data_ed.shape))
-            order = int(2 ** np.ceil(logfact / np.log(2)))
+            order = np.ceil(logfact / np.log(2))
+            size = int(2 ** order)
 
-            datapad = padding_3d(data_ed, order, dtype)
+            datapad = padding_3d(data_ed, size, dtype)
             #: padded input data
             self.origin_padded = datapad
             data_ed = datapad

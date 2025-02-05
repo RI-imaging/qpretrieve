@@ -88,6 +88,8 @@ class QLSInterferogram(BaseInterferogram):
         sideband_freq: tuple of floats
             Frequency coordinates of the sideband to use. By default,
             a heuristic search for the sideband is done.
+            If you pass a 3D array, the first hologram is used to
+            determine the sideband frequencies.
         invert_phase: bool
             Invert the phase data.
         wavelength: float
@@ -172,9 +174,10 @@ class QLSInterferogram(BaseInterferogram):
 
         # Obtain the phase gradients in x and y by taking the argument
         # of Hx and Hy.
-        # need to do this along the z axis, as skimage `unwrap_3d` does not
-        # work for our use-case
-        # todo: maybe use np.unwrap for the xy axes instead
+        # Every image in the 3D stack must be treated individually with
+        # `unwrap_phase`. If we passed the 3D stack, then skimage would
+        # treat this as a 3D phase-unwrapping problem, which it is not [sic!].
+        # see `tests.test_qlsi.test_qlsi_unwrap_phase_2d_3d`.
         px = np.zeros_like(hx, dtype=float)
         py = np.zeros_like(hy, dtype=float)
         for i, (_hx, _hy) in enumerate(zip(hx, hy)):

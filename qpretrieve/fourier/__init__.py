@@ -2,13 +2,40 @@
 import warnings
 
 from .ff_numpy import FFTFilterNumpy
+from .ff_scipy import FFTFilterScipy
 
 try:
     from .ff_pyfftw import FFTFilterPyFFTW
 except ImportError:
     FFTFilterPyFFTW = None
 
+try:
+    from .ff_cupy import FFTFilterCupy
+except ImportError:
+    FFTFilterCupy = None
+
+try:
+    from .ff_cupy3D import FFTFilterCupy3D
+except ImportError:
+    FFTFilterCupy3D = None
+
 PREFERRED_INTERFACE = None
+
+
+def get_available_interfaces():
+    """Return a list of available FFT algorithms"""
+    interfaces = [
+        FFTFilterPyFFTW,
+        FFTFilterNumpy,
+        FFTFilterScipy,
+        FFTFilterCupy,
+        FFTFilterCupy3D,
+    ]
+    interfaces_available = []
+    for interface in interfaces:
+        if interface is not None and interface.is_available:
+            interfaces_available.append(interface)
+    return interfaces_available
 
 
 def get_best_interface():

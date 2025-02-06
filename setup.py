@@ -2,7 +2,6 @@ from os.path import dirname, realpath, exists
 from setuptools import setup, find_packages
 import sys
 
-
 author = u"Paul Müller"
 authors = [author]
 description = 'library for phase retrieval from holograms'
@@ -27,8 +26,13 @@ setup(
         "numpy>=1.9.0",
         "scikit-image>=0.11.0",
         "scipy>=0.18.0",
-        ],
-    extras_require={"FFTW": "pyfftw>=0.12.0"},
+    ],
+    extras_require={
+        "FFTW": "pyfftw>=0.12.0",
+        # manually install 'cupy-cuda11x' if you have older CUDA.
+        # See https://cupy.dev/
+        "CUPY": "cupy-cuda12x",
+    },
     python_requires='>=3.10, <4',
     keywords=["digital holographic microscopy",
               "optics",
@@ -41,6 +45,6 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 3',
         'Intended Audience :: Science/Research'
-                 ],
+    ],
     platforms=['ALL'],
-    )
+)

@@ -1,5 +1,6 @@
 import warnings
 from abc import ABC, abstractmethod
+from typing import Type
 
 import numpy as np
 
@@ -25,7 +26,7 @@ class BaseInterferogram(ABC):
     }
 
     def __init__(self, data: np.ndarray,
-                 fft_interface: str | FFTFilter = "auto",
+                 fft_interface: str | Type[FFTFilter] = "auto",
                  subtract_mean=True, padding=2, copy=True,
                  **pipeline_kws) -> None:
         """

@@ -24,12 +24,11 @@ class QLSInterferogram(BaseInterferogram):
 
     def __init__(self, data, reference=None, *args, **kwargs):
         super(QLSInterferogram, self).__init__(data, *args, **kwargs)
-        ff_iface = get_best_interface()
 
         if reference is not None:
-            self.fft_ref = ff_iface(data=reference,
-                                    subtract_mean=self.fft.subtract_mean,
-                                    padding=self.fft.padding)
+            self.fft_ref = self.ff_iface(data=reference,
+                                         subtract_mean=self.fft.subtract_mean,
+                                         padding=self.fft.padding)
         else:
             self.fft_ref = None
 

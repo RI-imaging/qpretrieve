@@ -21,10 +21,18 @@ def convert_data_to_3d_array_layout(
 
     Returns
     -------
-    data
+    data_out
         3d version of the data
     array_layout
         original array layout for future reference
+
+    Notes
+    -----
+    If input is either a RGB or RGBA array layout as input, the first
+    channel is taken as the image to process. In other words, it is assumed
+    that all channels contain the same information, so the first channel is
+    used. 3D RGB/RGBA array layouts, such as (50, 256, 256, 3), are not allowed
+    (yet).
 
     """
     if len(data.shape) == 3:
@@ -52,7 +60,7 @@ def convert_3d_data_to_array_layout(
 
     Returns
     -------
-    data_out
+    data_out : np.ndarray
         input `data` with the given `array layout`
 
     Notes

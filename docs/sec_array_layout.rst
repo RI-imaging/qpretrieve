@@ -17,17 +17,19 @@ Summary of allowed Array Layouts::
     RGBA (y,x,4)  ->  3D (1,y,x)
     3D   (z,y,x)  ->  3D (z,y,x)
 
+
 Notes on RGB/RGBA Array Layouts
 -------------------------------
 
-If you give either a RGB or RGBA array layout as input, then the first
-channel is taken as the image to process. In other words, it is assumed that
-all channels contain the same information, so the first channel is used.
+**Inputting RGB(A)**: See the Notes section of
+:func:`.convert_data_to_3d_array_layout` for extra information on RGB(A)
+array layouts.
 
-If you use the :class:`.BaseInterferogram.get_data_with_input_layout` method for
-the RGBA array layout, then the alpha (A) channel will be an array of ones.
+**Outputting RGB(A)**: See the Notes section of
+:meth:`.OffAxisHologram.get_data_with_input_layout` or
+:meth:`.QLSInterferogram.get_data_with_input_layout` for information on
+outputting of RGB(A) array layouts.
 
-3D RGB/RGBA array layouts, such as (50, 256, 256, 3), are not allowed (yet).
 
 Converting to and from Array Layouts
 ------------------------------------
@@ -53,3 +55,8 @@ amplitude etc like so:
 	field_2d = oah.get_data_with_input_layout("field")
 	phase_2d = oah.get_data_with_input_layout("phase")
 	amplitude_2d = oah.get_data_with_input_layout("amplitude")
+
+	# you can also use the class attributes
+	field_2d = oah.get_data_with_input_layout(oah.field)
+	phase_2d = oah.get_data_with_input_layout(oah.phase)
+	amplitude_2d = oah.get_data_with_input_layout(oah.amplitude)

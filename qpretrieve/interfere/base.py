@@ -108,6 +108,25 @@ class BaseInterferogram(ABC):
         self._amplitude = None
 
     def get_data_with_input_layout(self, data: np.ndarray | str) -> np.ndarray:
+        """Convert `data` to the original input array layout.
+
+
+        Parameters
+        ----------
+        data
+            Either an array (np.ndarray) or name (str) of the relevant `data`.
+
+        Returns
+        -------
+        data_out : np.ndarray
+            array in the original input array layout
+
+        Notes
+        -----
+        If `data` is the RGBA array layout, then the alpha (A) channel will be
+        an array of ones.
+
+        """
         if isinstance(data, str):
             if data == "fft":
                 data = "fft_filtered"

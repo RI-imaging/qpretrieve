@@ -63,42 +63,39 @@ def test_get_field_error_invalid_interpretation(hologram):
 
 
 def test_get_field_filter_names(hologram):
-    data = hologram
-    holo = qpretrieve.OffAxisHologram(data)
-
+    data_2d = hologram
+    data_3d, _ = convert_data_to_3d_array_layout(data_2d)
+    data_3d = np.repeat(data_3d, repeats=10, axis=0)
     kwargs = dict(sideband=+1,
                   filter_size=1 / 3)
+    bad_filter_name = "sepia"
 
-    r_disk = holo.run_pipeline(filter_name="disk", **kwargs)
-    assert np.allclose(
-        r_disk[0, 32, 32], 97.307780444912936 - 76.397860381241372j)
+    for data in (data_2d, data_3d):
+        holo = qpretrieve.OffAxisHologram(data)
 
-    r_smooth_disk = holo.run_pipeline(filter_name="smooth disk", **kwargs)
-    assert np.allclose(r_smooth_disk[0, 32, 32],
-                       108.36438759594623 - 67.1806221692573j)
+        r_disk = holo.run_pipeline(filter_name="disk", **kwargs)
+        r_smdisk = holo.run_pipeline(filter_name="smooth disk", **kwargs)
+        r_gauss = holo.run_pipeline(filter_name="gauss", **kwargs)
+        r_square = holo.run_pipeline(filter_name="square", **kwargs)
+        r_smsquare = holo.run_pipeline(filter_name="smooth square", **kwargs)
+        r_tukey = holo.run_pipeline(filter_name="tukey", **kwargs)
 
-    r_gauss = holo.run_pipeline(filter_name="gauss", **kwargs)
-    assert np.allclose(r_gauss[0, 32, 32],
-                       108.2914187451138 - 67.1823527237741j)
+        for i in range(len(r_disk)):
+            assert np.allclose(
+                r_disk[i, 32, 32], 97.307780444912936 - 76.397860381241372j)
+            assert np.allclose(
+                r_smdisk[i, 32, 32], 108.36438759594623 - 67.1806221692573j)
+            assert np.allclose(
+                r_gauss[i, 32, 32], 108.2914187451138 - 67.1823527237741j)
+            assert np.allclose(
+                r_square[i, 32, 32], 102.3285348843612 - 74.139058665601155j)
+            assert np.allclose(
+                r_smsquare[i, 32, 32], 108.36651862466393 - 67.17988960794392j)
+            assert np.allclose(
+                r_tukey[i, 32, 32], 113.4826495540899 - 59.546232775481869j)
 
-    r_square = holo.run_pipeline(filter_name="square", **kwargs)
-    assert np.allclose(
-        r_square[0, 32, 32], 102.3285348843612 - 74.139058665601155j)
-
-    r_smsquare = holo.run_pipeline(filter_name="smooth square", **kwargs)
-    assert np.allclose(
-        r_smsquare[0, 32, 32], 108.36651862466393 - 67.17988960794392j)
-
-    r_tukey = holo.run_pipeline(filter_name="tukey", **kwargs)
-    assert np.allclose(
-        r_tukey[0, 32, 32], 113.4826495540899 - 59.546232775481869j)
-
-    try:
-        holo.run_pipeline(filter_name="unknown", **kwargs)
-    except ValueError:
-        pass
-    else:
-        assert False, "unknown filter accepted"
+    with pytest.raises(ValueError, match=f"Unknown filter: {bad_filter_name}"):
+        holo.run_pipeline(filter_name=bad_filter_name, **kwargs)
 
 
 @pytest.mark.parametrize("hologram", [62, 63, 64], indirect=True)

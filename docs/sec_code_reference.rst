@@ -60,3 +60,12 @@ Quadriwave lateral shearing interferometry (QLSI)
 .. automodule:: qpretrieve.interfere.if_qlsi
    :members:
    :inherited-members:
+
+Data Array Layout
+=================
+
+.. _sec_code_array_layout:
+
+.. automodule:: qpretrieve.data_array_layout
+   :members:
+   :inherited-members:

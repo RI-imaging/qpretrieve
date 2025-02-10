@@ -6,6 +6,8 @@ import weakref
 import numpy as np
 
 from .. import filter
+from ..utils import padding_3d, mean_3d
+from ..data_array_layout import convert_data_to_3d_array_layout
 
 
 class FFTCache:
@@ -35,12 +37,19 @@ class FFTCache:
 
 
 class FFTFilter(ABC):
-    def __init__(self, data, subtract_mean=True, padding=2, copy=True):
+    def __init__(self,
+                 data: np.ndarray,
+                 subtract_mean: bool = True,
+                 padding: int = 2,
+                 copy: bool = True) -> None:
         r"""
         Parameters
         ----------
-        data: 2d real-valued np.ndarray
-            The experimental input image
+        data
+            The experimental input real-valued image. Allowed input shapes are:
+              - 2d (y, x)
+              - 3d (z, y, x)
+              - rgb (y, x, 3) or rgba (y, x, 4)
         subtract_mean: bool
             If True, subtract the mean of `data` before performing
             the Fourier transform. This setting is recommended as it
@@ -70,9 +79,16 @@ class FFTFilter(ABC):
         else:
             # convert integer-arrays to floating point arrays
             dtype = float
+        if not copy:
+            # numpy v2.x behaviour requires asarray with copy=False
+            copy = None
         data_ed = np.array(data, dtype=dtype, copy=copy)
+        # figure out what type of data we have, change it to 3d-stack
+        data_ed, self.orig_array_layout = convert_data_to_3d_array_layout(
+            data_ed)
         #: original data (with subtracted mean)
         self.origin = data_ed
+        # for `subtract_mean` and `padding`, we could use `np.atleast_3d`
         #: whether padding is enabled
         self.padding = padding
         #: whether the mean was subtracted
@@ -81,14 +97,14 @@ class FFTFilter(ABC):
             # remove contributions of the central band
             # (this affects more than one pixel in the FFT
             # because of zero-padding)
-            data_ed -= data_ed.mean()
+            data_ed = mean_3d(data_ed)
         if padding:
             # zero padding size is next order of 2
             logfact = np.log(padding * max(data_ed.shape))
-            order = int(2 ** np.ceil(logfact / np.log(2)))
-            # this is faster than np.pad
-            datapad = np.zeros((order, order), dtype=dtype)
-            datapad[:data_ed.shape[0], :data_ed.shape[1]] = data_ed
+            order = np.ceil(logfact / np.log(2))
+            size = int(2 ** order)
+
+            datapad = padding_3d(data_ed, size, dtype)
             #: padded input data
             self.origin_padded = datapad
             data_ed = datapad
@@ -107,7 +123,8 @@ class FFTFilter(ABC):
             self.fft_origin = fft_data
         else:
             #: frequency-shifted Fourier transform
-            self.fft_origin = np.fft.fftshift(self._init_fft(data_ed))
+            self.fft_origin = np.fft.fftshift(
+                self._init_fft(data_ed), axes=(-2, -1))
             # Add it to the cached FFTs
             if copy:
                 FFTCache.add_item(weakref_key, data, self.fft_origin)
@@ -119,13 +136,13 @@ class FFTFilter(ABC):
         self.fft_used = None
 
     @property
-    def shape(self):
+    def shape(self) -> tuple:
         """Shape of the Fourier transform data"""
         return self.fft_origin.shape
 
     @property
     @abstractmethod
-    def is_available(self):
+    def is_available(self) -> bool:
         """Whether this method is available given current hardware/software"""
         return True
 
@@ -153,7 +170,7 @@ class FFTFilter(ABC):
 
     def filter(self, filter_name: str, filter_size: float,
                freq_pos: (float, float),
-               scale_to_filter: bool | float = False):
+               scale_to_filter: bool | float = False) -> np.ndarray:
         """
         Parameters
         ----------
@@ -175,7 +192,7 @@ class FFTFilter(ABC):
             and must be between 0 and `max(fft_shape)/2`
         freq_pos: tuple of floats
             The position of the filter in frequency coordinates as
-            returned by :func:`nunpy.fft.fftfreq`.
+            returned by :func:`numpy.fft.fftfreq`.
         scale_to_filter: bool or float
             Crop the image in Fourier space after applying the filter,
             effectively removing surplus (zero-padding) data and
@@ -220,36 +237,41 @@ class FFTFilter(ABC):
                 filter_name=filter_name,
                 filter_size=filter_size,
                 freq_pos=freq_pos,
-                fft_shape=self.fft_origin.shape)
+                # only take shape of a single fft
+                fft_shape=self.fft_origin.shape[-2:])
             fft_filtered = self.fft_origin * filt_array
-            px = int(freq_pos[0] * self.shape[0])
-            py = int(freq_pos[1] * self.shape[1])
-            fft_used = np.roll(np.roll(fft_filtered, -px, axis=0), -py, axis=1)
+            px = int(freq_pos[0] * self.shape[-2])
+            py = int(freq_pos[1] * self.shape[-1])
+            fft_used = np.roll(np.roll(
+                fft_filtered, -px, axis=-2), -py, axis=-1)
             if scale_to_filter:
                 # Determine the size of the cropping region.
                 # We compute the "radius" of the region, so we can
                 # crop the data left and right from the center of the
                 # Fourier domain.
-                osize = fft_filtered.shape[0]  # square shaped
+                osize = fft_filtered.shape[-2]  # square shaped
                 crad = int(np.ceil(filter_size * osize * scale_to_filter))
                 ccent = osize // 2
                 cslice = slice(ccent - crad, ccent + crad)
                 # We now have the interesting peak already shifted to
                 # the first entry of our array in `shifted`.
-                fft_used = fft_used[cslice, cslice]
+                fft_used = fft_used[:, cslice, cslice]
 
-            field = self._ifft(np.fft.ifftshift(fft_used))
+            field = self._ifft(np.fft.ifftshift(fft_used, axes=(-2, -1)))
+
             if self.padding:
                 # revert padding
-                sx, sy = self.origin.shape
+                sx, sy = self.origin.shape[-2:]
                 if scale_to_filter:
                     sx = int(np.ceil(sx * 2 * crad / osize))
                     sy = int(np.ceil(sy * 2 * crad / osize))
-                field = field[:sx, :sy]
+
+                field = field[:, :sx, :sy]
+
                 if scale_to_filter:
                     # Scale the absolute value of the field. This does not
                     # have any influence on the phase, but on the amplitude.
-                    field *= (2 * crad / osize)**2
+                    field *= (2 * crad / osize) ** 2
             # Add FFT to cache
             # (The cache will only be cleared if this instance is deleted)
             FFTCache.add_item(weakref_key, self.fft_origin,

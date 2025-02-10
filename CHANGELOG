@@ -1,3 +1,5 @@
+0.4.0
+ - feat: move from 2d to 3d array operations (#12)
 0.3.2
  - maintenance release
 0.3.1

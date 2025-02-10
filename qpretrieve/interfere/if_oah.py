@@ -16,7 +16,7 @@ class OffAxisHologram(BaseInterferogram):
     }
 
     @property
-    def phase(self):
+    def phase(self) -> np.ndarray:
         """Retrieved phase information"""
         if self._field is None:
             self.run_pipeline()
@@ -25,14 +25,15 @@ class OffAxisHologram(BaseInterferogram):
         return self._phase
 
     @property
-    def amplitude(self):
+    def amplitude(self) -> np.ndarray:
         """Retrieved amplitude information"""
         if self._field is None:
             self.run_pipeline()
+        if self._amplitude is None:
             self._amplitude = np.abs(self._field)
         return self._amplitude
 
-    def run_pipeline(self, **pipeline_kws):
+    def run_pipeline(self, **pipeline_kws) -> np.ndarray:
         r"""Run OAH analysis pipeline
 
         Parameters
@@ -64,6 +65,8 @@ class OffAxisHologram(BaseInterferogram):
         sideband_freq: tuple of floats
             Frequency coordinates of the sideband to use. By default,
             a heuristic search for the sideband is done.
+            If you pass a 3D array, the first hologram is used to
+            determine the sideband frequencies.
         invert_phase: bool
             Invert the phase data.
         """
@@ -73,7 +76,7 @@ class OffAxisHologram(BaseInterferogram):
 
         if pipeline_kws["sideband_freq"] is None:
             pipeline_kws["sideband_freq"] = find_peak_cosine(
-                self.fft.fft_origin)
+                self.fft.fft_origin[0])
 
         # convert filter_size to frequency coordinates
         fsize = self.compute_filter_size(
@@ -100,8 +103,9 @@ class OffAxisHologram(BaseInterferogram):
         return self.field
 
 
-def find_peak_cosine(ft_data, copy=True):
-    """Find the side band position of a regular off-axis hologram
+def find_peak_cosine(
+        ft_data: np.ndarray, copy: bool = True) -> tuple[float, float]:
+    """Find the side band position of a 2d regular off-axis hologram
 
     The Fourier transform of a cosine function (known as the
     striped fringe pattern in off-axis holography) results in

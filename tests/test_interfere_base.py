@@ -21,14 +21,16 @@ def test_interfere_base_best_interface():
 def test_interfere_base_choose_interface():
     edata = np.load(data_path / "hologram_cell.npz")
 
-    holo = qpretrieve.OffAxisHologram(
-        data=edata["data"],
-        fft_interface=qpretrieve.fourier.FFTFilterNumpy)
-    assert holo.ff_iface.is_available
-    assert issubclass(holo.ff_iface,
-                      qpretrieve.fourier.base.FFTFilter)
-    assert issubclass(holo.ff_iface,
-                      qpretrieve.fourier.ff_numpy.FFTFilterNumpy)
+    for InterferCls in [qpretrieve.OffAxisHologram,
+                        qpretrieve.QLSInterferogram]:
+        interfer_inst = InterferCls(
+            data=edata["data"],
+            fft_interface=qpretrieve.fourier.FFTFilterNumpy)
+        assert interfer_inst.ff_iface.is_available
+        assert issubclass(interfer_inst.ff_iface,
+                          qpretrieve.fourier.base.FFTFilter)
+        assert issubclass(interfer_inst.ff_iface,
+                          qpretrieve.fourier.ff_numpy.FFTFilterNumpy)
 
 
 def test_interfere_base_bad_interface():

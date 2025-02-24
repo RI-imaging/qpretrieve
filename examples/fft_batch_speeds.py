@@ -8,6 +8,7 @@ background data processing. Therefore, four FFTs are run per pipeline.
 - Optimum batch size is between 64 and 256 for 256x256pix imgs (incl padding),
   but will be limited by your computer's RAM.
 - Here, batch size is the size of the 3D stack in z.
+- Note that each pipeline runs 4 FFTs. For example, batch 8 runs 8*4=32 FFTs.
 
 """
 import time

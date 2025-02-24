@@ -13,6 +13,4 @@ Examples
 
 .. fancy_include:: fourier_scale.py
 
-.. fancy_include:: fft_options.py
-
 .. fancy_include:: fft_batch_speeds.py

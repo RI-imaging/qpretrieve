@@ -1,8 +1,9 @@
-"""Fourier Transform speed benchmarks
+"""Fourier Transform speed benchmarks for OAH
 
 This example visualizes the speed for different batch sizes for
-the available FFT Filters. The y-axis shows the average speed of a single
-FFT for the corresponding batch size.
+the available FFT Filters. The y-axis shows the average speed of a pipeline
+run for the Off-Axis Hologram class :class:`.OffAxisHologram`, including
+background data processing. Therefore, four FFTs are run per pipeline.
 
 - Optimum batch size is between 64 and 256 for 256x256pix imgs (incl padding),
   but will be limited by your computer's RAM.
@@ -14,6 +15,7 @@ import matplotlib.pylab as plt
 import numpy as np
 import qpretrieve
 from qpretrieve.data_array_layout import convert_data_to_3d_array_layout
+from qpretrieve.fourier import FFTFilterNumpy, FFTFilterPyFFTW
 
 # load the experimental data
 edata = np.load("./data/hologram_cell.npz")
@@ -21,7 +23,8 @@ edata = np.load("./data/hologram_cell.npz")
 n_transforms_list = [8, 16, 32, 64, 128, 256]
 subtract_mean = True
 padding = True
-fft_interfaces = qpretrieve.fourier.get_available_interfaces()
+# we take the PyFFTW speeds from the second run
+fft_interfaces = [FFTFilterNumpy, FFTFilterPyFFTW, FFTFilterPyFFTW]
 filter_name = "disk"
 filter_size = 1 / 2
 speed_norms = {}
@@ -58,8 +61,8 @@ for fft_interface in fft_interfaces:
         results[n_transforms] = t1 - t0
 
     speed_norm = [timing / b_size for b_size, timing in results.items()]
+    # the initial PyFFTW run (incl wisdom calc is overwritten here)
     speed_norms[fft_interface.__name__] = speed_norm
-
 
 # setup plot
 fig, axes = plt.subplots(1, 1, figsize=(8, 5))
@@ -67,7 +70,7 @@ ax1 = axes
 width = 0.25  # the width of the bars
 multiplier = 0
 x_pos = np.arange(len(n_transforms_list))
-colors = ["lightseagreen", "darkmagenta"]
+colors = ["darkmagenta", "lightseagreen"]
 
 for (name, speed), color in zip(speed_norms.items(), colors):
     offset = width * multiplier
@@ -75,12 +78,13 @@ for (name, speed), color in zip(speed_norms.items(), colors):
             color=color, edgecolor='k')
     multiplier += 1
 
-ax1.set_xticks(x_pos + (width/2), labels=n_transforms_list)
-ax1.set_xlabel("Fourier transform batch size")
-ax1.set_ylabel("Time for single FFT [Time / batch size] (s)")
-ax1.legend(loc='upper right')
+ax1.set_xticks(x_pos + (width / 2), labels=n_transforms_list)
+ax1.set_xlabel("Input hologram batch size")
+ax1.set_ylabel("OAH processing time [Time / batch size] (s)")
+ax1.legend(loc='upper right', fontsize="large")
 
-plt.suptitle("Batch processing time for FFT Filters")
+plt.suptitle("Batch processing time for Off-Axis Hologram\n"
+             "(data+bg_data)")
 plt.tight_layout()
 # plt.show()
 plt.savefig("fft_batch_speeds.png", dpi=150)

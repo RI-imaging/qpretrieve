@@ -29,6 +29,9 @@ def test_qlsi_phase():
         assert qlsi.wavefront.argmax() == 242294
         assert np.allclose(qlsi.wavefront.max(), 8.179288852406586e-08,
                            atol=0, rtol=1e-12)
+        assert qlsi.phase.argmax() == 242294
+        assert np.allclose(qlsi.phase.max(), 0.9343997734657971,
+                           atol=0, rtol=1e-12)
 
 
 def test_qlsi_phase_3d():

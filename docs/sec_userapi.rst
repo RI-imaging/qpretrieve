@@ -21,4 +21,4 @@ Then your analysis could be as simple as
 With ``dhm``, an instance of :class:`.OffAxisHologram`, you now have full access
 to all intermediate computation results. You can pass additional keyword
 arguments during instantiation or pass them to
-:func:`.OffAxisHologram.run_pipeline`.
+:meth:`.OffAxisHologram.run_pipeline`.

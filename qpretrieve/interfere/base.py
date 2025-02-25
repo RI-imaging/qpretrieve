@@ -1,8 +1,18 @@
+import warnings
 from abc import ABC, abstractmethod
+from typing import Type
 
 import numpy as np
 
-from ..fourier import get_best_interface
+from ..fourier import get_best_interface, get_available_interfaces
+from ..fourier.base import FFTFilter
+from ..data_array_layout import (
+    convert_data_to_3d_array_layout, convert_3d_data_to_array_layout
+)
+
+
+class BadFFTFilterError(ValueError):
+    pass
 
 
 class BaseInterferogram(ABC):
@@ -15,11 +25,25 @@ class BaseInterferogram(ABC):
         "invert_phase": False,
     }
 
-    def __init__(self, data, subtract_mean=True, padding=2, copy=True,
-                 **pipeline_kws):
+    def __init__(self, data: np.ndarray,
+                 fft_interface: str | Type[FFTFilter] = "auto",
+                 subtract_mean=True, padding=2, copy=True,
+                 **pipeline_kws) -> None:
         """
         Parameters
         ----------
+        data
+            The experimental input real-valued image. Allowed input shapes are:
+              - 2d (y, x)
+              - 3d (z, y, x)
+              - rgb (y, x, 3) or rgba (y, x, 4)
+        fft_interface
+            A Fourier transform interface.
+            See :func:`qpretrieve.fourier.get_available_interfaces`
+            to get a list of implemented interfaces.
+            Default is "auto", which will use
+            :func:`qpretrieve.fourier.get_best_interface`. This is in line
+            with old behaviour. See Notes for more details.
         subtract_mean: bool
             If True, remove the mean of the hologram before performing
             the Fourier transform. This setting is recommended as it
@@ -37,16 +61,42 @@ class BaseInterferogram(ABC):
         pipeline_kws:
             Any additional keyword arguments for :func:`run_pipeline`
             as defined in :const:`default_pipeline_kws`.
+
+        Notes
+        -----
+        For `fft_interface`, if you do not have the relevant package installed,
+        then an error will be raised. For example, setting
+        `fft_interface=FFTFilterPyFFTW` will fail if you do not have pyfftw
+        installed.
+
         """
-        ff_iface = get_best_interface()
-        if len(data.shape) == 3:
-            # take the first slice (we have alpha or RGB information)
-            data = data[:, :, 0]
+        if fft_interface is None:
+            raise BadFFTFilterError(
+                "`fft_interface` is set to None. If you want qpretrieve to "
+                "find the best FFT interface, set it to 'auto'. "
+                "If you are trying to use `FFTFilterPyFFTW`, "
+                "you must first install the pyfftw package.")
+        if fft_interface == 'auto':
+            self.ff_iface = get_best_interface()
+        else:
+            if fft_interface in get_available_interfaces():
+                self.ff_iface = fft_interface
+            else:
+                raise BadFFTFilterError(
+                    f"User-chosen FFT Interface '{fft_interface}' is not "
+                    f"available. The available interfaces are: "
+                    f"{get_available_interfaces()}.\n"
+                    f"You can use `fft_interface='auto'` to get the best "
+                    f"available interface.")
+
+        # figure out what type of data we have, change it to 3d-stack
+        data, self.orig_array_layout = convert_data_to_3d_array_layout(data)
+
         #: qpretrieve Fourier transform interface class
-        self.fft = ff_iface(data=data,
-                            subtract_mean=subtract_mean,
-                            padding=padding,
-                            copy=copy)
+        self.fft = self.ff_iface(data=data,
+                                 subtract_mean=subtract_mean,
+                                 padding=padding,
+                                 copy=copy)
         #: originally computed Fourier transform
         self.fft_origin = self.fft.fft_origin
         #: filtered Fourier data from last run of `run_pipeline`
@@ -58,29 +108,62 @@ class BaseInterferogram(ABC):
         self._phase = None
         self._amplitude = None
 
+    def get_data_with_input_layout(self, data: np.ndarray | str) -> np.ndarray:
+        """Convert `data` to the original input array layout.
+
+
+        Parameters
+        ----------
+        data
+            Either an array (np.ndarray) or name (str) of the relevant `data`.
+
+        Returns
+        -------
+        data_out : np.ndarray
+            array in the original input array layout
+
+        Notes
+        -----
+        If `data` is the RGBA array layout, then the alpha (A) channel will be
+        an array of ones.
+
+        """
+        if isinstance(data, str):
+            if data == "fft":
+                data = "fft_filtered"
+                warnings.warn(
+                    "You have asked for 'fft' which is a class. "
+                    "Returning 'fft_filtered'. "
+                    "Alternatively you could use 'fft_origin'.")
+            data = getattr(self, data)
+        return convert_3d_data_to_array_layout(data, self.orig_array_layout)
+
     @property
-    def phase(self):
+    def phase(self) -> np.ndarray:
         """Retrieved phase information"""
         if self._phase is None:
             self.run_pipeline()
         return self._phase
 
     @property
-    def amplitude(self):
+    def amplitude(self) -> np.ndarray:
         """Retrieved amplitude information"""
         if self._amplitude is None:
             self.run_pipeline()
         return self._amplitude
 
     @property
-    def field(self):
+    def field(self) -> np.ndarray:
         """Retrieved amplitude information"""
         if self._field is None:
             self.run_pipeline()
         return self._field
 
-    def compute_filter_size(self, filter_size, filter_size_interpretation,
-                            sideband_freq=None):
+    def compute_filter_size(
+            self,
+            filter_size: float,
+            filter_size_interpretation: str,
+            sideband_freq: tuple[float, float] = None) -> float:
         """Compute the actual filter size in Fourier space"""
         if filter_size_interpretation == "frequency":
             # convert frequency to frequency index
@@ -94,18 +177,18 @@ class BaseInterferogram(ABC):
                 raise ValueError("For sideband distance interpretation, "
                                  "`filter_size` must be between 0 and 1; "
                                  f"got '{filter_size}'!")
-            fsize = np.sqrt(np.sum(np.array(sideband_freq)**2)) * filter_size
+            fsize = np.sqrt(np.sum(np.array(sideband_freq) ** 2)) * filter_size
         elif filter_size_interpretation == "frequency index":
             # filter size given in Fourier index (number of Fourier pixels)
             # The user probably does not know that we are padding in
             # Fourier space, so we use the unpadded size and translate it.
-            if filter_size <= 0 or filter_size >= self.fft.shape[0] / 2:
+            if filter_size <= 0 or filter_size >= self.fft.shape[-2] / 2:
                 raise ValueError("For frequency index interpretation, "
                                  + "`filter_size` must be between 0 and "
-                                 + f"{self.fft.shape[0] / 2}, got "
+                                 + f"{self.fft.shape[-2] / 2}, got "
                                  + f"'{filter_size}'!")
             # convert to frequencies (compatible with fx and fy)
-            fsize = filter_size / self.fft.shape[0]
+            fsize = filter_size / self.fft.shape[-2]
         else:
             raise ValueError("Invalid value for `filter_size_interpretation`: "
                              + f"'{filter_size_interpretation}'")

@@ -1,0 +1,52 @@
+[build-system]
+requires = [
+    # for version management
+    "setuptools>=45", "setuptools_scm[toml]>=6.2"
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "qpretrieve"
+description = "library for phase retrieval from holograms"
+authors = [
+    {name="Paul Müller", email="dev@craban.de"},
+    {name="Eoghan O'Connell", email="eoclives@hotmail.com"},
+]
+dynamic = ["version"]
+readme = "README.rst"
+license = {text = "MIT"}
+dependencies=[
+    "numpy>=1.9.0",
+    "scikit-image>=0.11.0",
+    "scipy>=0.18.0",
+]
+requires-python=">=3.10, <4"
+keywords=[
+    "digital holographic microscopy",
+    "optics",
+    "quantitative phase imaging",
+    "refractive index",
+    "numerical focusing",
+    "scattering",
+]
+classifiers=[
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Intended Audience :: Science/Research"
+]
+
+[project.optional-dependencies]
+FFTW = ["pyfftw>=0.12.0"]
+
+[project.urls]
+Repository = "https://github.com/RI-imaging/qpretrieve"
+Documentation = "https://qpretrieve.readthedocs.io/en/stable/"
+Changelog = "https://github.com/RI-imaging/qpretrieve/blob/main/CHANGELOG"
+
+[tool.setuptools]
+packages = ["qpretrieve"]
+include-package-data = true
+
+[tool.setuptools_scm]
+write_to = "./qpretrieve/_version.py"
+version_scheme = "post-release"

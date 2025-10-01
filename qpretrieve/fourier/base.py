@@ -212,8 +212,7 @@ class FFTFilter(ABC):
         :class:`FFTCache`. If you call this function a lot of
         times with different arguments, then it might look like
         a memory leak. However, you just have to delete the
-        FFTFilter isntance and everything will get garbage-
-        collected.
+        FFTFilter instance and everything will get garbage-collected.
         """
         weakref_key = "-".join([str(hex(id(self.fft_origin))),
                                 str(self.__class__.__name__),

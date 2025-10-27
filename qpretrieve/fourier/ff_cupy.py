@@ -26,7 +26,7 @@ class FFTFilterCupy(FFTFilter):
         data_gpu = cp.asarray(data)
         # likely an inefficiency here, could use `set_global_backend`
         with sp.fft.set_backend(cufft):
-            fft_gpu = sp.fft.fft2(data_gpu)
+            fft_gpu = sp.fft.fft2(data_gpu, axes=(-2, -1))
         fft_cpu = fft_gpu.get()
         return fft_cpu
 
@@ -34,6 +34,6 @@ class FFTFilterCupy(FFTFilter):
         """Perform inverse Fourier transform"""
         data_gpu = cp.asarray(data)
         with sp.fft.set_backend(cufft):
-            ifft_gpu = sp.fft.ifft2(data_gpu)
+            ifft_gpu = sp.fft.ifft2(data_gpu, axes=(-2, -1))
         ifft_cpu = ifft_gpu.get()
         return ifft_cpu

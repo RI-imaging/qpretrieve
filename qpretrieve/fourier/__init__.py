@@ -15,11 +15,6 @@ try:
 except ImportError:
     FFTFilterCupy = None
 
-try:
-    from .ff_cupy3D import FFTFilterCupy3D
-except ImportError:
-    FFTFilterCupy3D = None
-
 PREFERRED_INTERFACE = None
 
 
@@ -29,7 +24,6 @@ def get_available_interfaces() -> list[Type[FFTFilter]]:
         FFTFilterPyFFTW,
         FFTFilterNumpy,
         FFTFilterCupy,
-        FFTFilterCupy3D,
     ]
     interfaces_available = []
     for interface in interfaces:

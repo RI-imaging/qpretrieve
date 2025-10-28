@@ -3,6 +3,7 @@ import numpy as np
 from qpretrieve import fourier
 
 
+@skip_if_missing("pyfftw")
 def test_fft_correct_input_2d():
     image = np.arange(100).reshape(10, 10)
     ff = fourier.FFTFilterPyFFTW(image, subtract_mean=False, padding=False)

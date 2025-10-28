@@ -72,10 +72,11 @@ class BaseInterferogram(ABC):
         """
         if fft_interface is None:
             raise BadFFTFilterError(
-                "`fft_interface` is set to None. If you want qpretrieve to "
-                "find the best FFT interface, set it to 'auto'. "
-                "If you are trying to use `FFTFilterPyFFTW`, "
-                "you must first install the pyfftw package.")
+                "`fft_interface` is set to None or is unavailable."
+                "This is likely because you "
+                "are trying to use `FFTFilterPyFFTW` or `FFTFilterCupy` but "
+                "do not have it installed. If you want qpretrieve to "
+                "find the best FFT interface, set `fft_interface='auto'`. ")
         if fft_interface == 'auto':
             self.ff_iface = get_best_interface()
         else:

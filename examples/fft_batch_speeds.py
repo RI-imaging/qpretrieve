@@ -2,8 +2,9 @@
 
 .. admonition:: Benchmark your own data
 
-    You can use this script to benchmark your data and find the optimum batch size and FFTFilter.
-    Just load your data in place of the ``input_data_3d`` and ``input_data_bg_3d``.
+    You can use this script to benchmark your data and find the optimum batch
+    size and FFTFilter. Just load your data in place of the ``input_data_3d``
+    and ``input_data_bg_3d``.
 
 
 This example visualizes the speed for different batch sizes for
@@ -14,12 +15,12 @@ the y-axis shows the speed - normalised by batch size -
 of an Off-Axis Hologram class :class:`.OffAxisHologram`,
 including background data processing. From this graph, we can conclude that:
 
-   - Optimum batch size is between 32 and 256 for 256x256pix imgs (incl padding),
-     but will be limited by your computer's RAM.
+   - Optimum batch size is between 32 and 256 for 256x256pix imgs
+     (incl padding), but will be limited by your computer's RAM.
    - Some Notes:
       - The batch size is the size of the raw hologram 3D stack in z.
-      - Each pipeline runs 4 FFTs (Data FFT and iFFT + background Data FFT + iFFT).
-        For example, batch size of 8 runs 8*4=32 FFTs.
+      - Each pipeline runs 4 FFTs (Data FFT and iFFT + background Data FFT +
+        iFFT). For example, batch size of 8 runs 8*4=32 FFTs.
       - For CuPy, the data transfer between GPU and CPU is
         currently very inefficient.
 
@@ -28,16 +29,16 @@ In the second graph "FFT Speed for Off-Axis Hologram",
 the y-axis shows the speed of a single FFT.
 From this graph, we can conclude that:
 
-   - Optimum batch size for CuPy and PyFFTW is between 16 and 64 for 256x256pix imgs
-     (incl padding). This may change depending on your machine.
+   - Optimum batch size for CuPy and PyFFTW is between 16 and 64 for
+     256x256pix imgs (incl padding). This may change depending on your machine.
 
 
 .. admonition:: Notes on warmup runs and PyFFTW
 
     Each FFT Filter has a warmup run to reduce outliers.
-    This is especially important for PyFFTW.
-    Always keep a single batch size when using PyFFTW, as during the first run at each
-    batch size, PyFFTW will find the fastest way to perform the FFT.
+    This is especially important for PyFFTW. Always keep a single batch size
+    when using PyFFTW, as during the first run at each batch size,
+    PyFFTW will find the fastest way to perform the FFT.
 
 """
 import time
@@ -69,7 +70,8 @@ input_data_3d, _ = convert_data_to_3d_array_layout(data_2d)
 input_data_bg_3d, _ = convert_data_to_3d_array_layout(data_2d_bg)
 
 speed_batch_norms, speed_ffts = {}, {}
-print("Each FFTFilter will run twice, as a warmup run is required for comparison.")
+print("Each FFTFilter will run twice, as a warmup run is "
+      "required for comparison.")
 for fft_interface in fft_interfaces:
     results_batch, results_fft = {}, {}
     for n_transforms in n_transforms_list:
@@ -96,14 +98,13 @@ for fft_interface in fft_interfaces:
         results_batch[n_transforms] = t_batch - t0
         results_fft[n_transforms] = t_fft - t0
 
-    speed_batch_norm = [timing / b_size for b_size, timing in results_batch.items()]
-    speed_fft = [timing for timing in results_fft.values()]
+    speed_batch_norm = [t / bsize for bsize, t in results_batch.items()]
+    speed_fft = [t for t in results_fft.values()]
     # the initial PyFFTW run (incl wisdom calc is overwritten here)
     speed_batch_norms[fft_interface.__name__] = speed_batch_norm
     speed_ffts[fft_interface.__name__] = speed_fft
 
-#### setup figure ####
-
+# setup figure
 width = 0.25  # the width of the bars
 x_pos = np.arange(len(n_transforms_list))
 colors = ["darkmagenta", "lightseagreen", "goldenrod"]
@@ -114,7 +115,7 @@ fontsize = 16
 fig, axes = plt.subplots(2, 1, figsize=(8, 10))
 ax1, ax2 = axes
 
-#### setup plot for batch speed comparison ####
+# setup plot for batch speed comparison
 multiplier = 0  # for the x_label positions
 for (name, speed), color in zip(speed_batch_norms.items(), colors):
     offset = width * multiplier
@@ -128,7 +129,7 @@ ax1.legend(loc=legend_loc, fontsize="large")
 ax1.set_title("Batch Process Time for Off-Axis Hologram "
               "(data+bg_data)\n(after PyFFTW warmup)", fontsize=fontsize)
 
-#### setup plot for fft speed comparison ####
+# setup plot for fft speed comparison
 multiplier = 0  # for the x_label positions
 for (name, speed), color in zip(speed_ffts.items(), colors):
     offset = width * multiplier

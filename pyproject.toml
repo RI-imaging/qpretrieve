@@ -37,6 +37,7 @@ classifiers=[
 
 [project.optional-dependencies]
 FFTW = ["pyfftw>=0.12.0"]
+CUPY = ["cupy-cuda12x"]
 
 [project.urls]
 Repository = "https://github.com/RI-imaging/qpretrieve"

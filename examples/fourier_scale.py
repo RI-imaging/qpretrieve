@@ -34,19 +34,24 @@ results = []
 
 holo = qpretrieve.OffAxisHologram(data=edata["data"])
 bg = qpretrieve.OffAxisHologram(data=edata["bg_data"])
-ft_orig = np.log(1 + np.abs(holo.fft_origin), dtype=float)
+ft_orig = np.log(1 + np.abs(
+    holo.get_data_with_input_layout(holo.fft_origin)), dtype=float)
 
-holo.run_pipeline(filter_name="disk", filter_size=1/2,
+holo.run_pipeline(filter_name="disk", filter_size=1 / 2,
                   scale_to_filter=False)
 bg.process_like(holo)
-phase_highres = unwrap_phase(holo.phase - bg.phase)
-ft_highres = np.log(1 + np.abs(holo.fft.fft_used), dtype=float)
+phase_highres = unwrap_phase(holo.get_data_with_input_layout(holo.phase) -
+                             bg.get_data_with_input_layout(bg.phase))
+ft_highres = np.log(1 + np.abs(
+    holo.get_data_with_input_layout(holo.fft.fft_used)), dtype=float)
 
-holo.run_pipeline(filter_name="disk", filter_size=1/2,
+holo.run_pipeline(filter_name="disk", filter_size=1 / 2,
                   scale_to_filter=True)
 bg.process_like(holo)
-phase_scalerad = unwrap_phase(holo.phase - bg.phase)
-ft_scalerad = np.log(1 + np.abs(holo.fft.fft_used), dtype=float)
+phase_scalerad = unwrap_phase(holo.get_data_with_input_layout(holo.phase) -
+                              bg.get_data_with_input_layout(bg.phase))
+ft_scalerad = np.log(1 + np.abs(
+    holo.get_data_with_input_layout(holo.fft.fft_used)), dtype=float)
 
 # plot the intermediate steps of the analysis pipeline
 fig = plt.figure(figsize=(8, 10))

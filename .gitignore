@@ -131,3 +131,6 @@ dmypy.json
 _version.py
 _version_save.py
 .idea
+
+# uv package manager
+uv.lock

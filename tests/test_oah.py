@@ -10,6 +10,8 @@ from qpretrieve.data_array_layout import (
     _convert_2d_to_3d, _convert_3d_to_rgb, _convert_3d_to_rgba,
 )
 
+from .helper_methods import skip_if_missing
+
 data_path = pathlib.Path(__file__).parent / "data"
 
 
@@ -247,6 +249,7 @@ def test_get_field_three_axes(hologram):
     assert np.all(res1 == res2)
 
 
+@skip_if_missing("pyfftw")
 def test_get_field_compare_FFTFilters(hologram):
     data1 = hologram
     kwargs = dict(filter_name="disk", filter_size=1 / 3)

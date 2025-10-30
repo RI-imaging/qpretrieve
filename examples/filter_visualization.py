@@ -25,8 +25,11 @@ for fn in qpretrieve.filter.available_filters:
         filter_size=1/2)
     bg = qpretrieve.OffAxisHologram(data=edata["bg_data"])
     bg.process_like(holo)
-    phase = unwrap_phase(holo.phase - bg.phase)
-    mask = np.log(1 + np.abs(holo.fft_filtered))
+    # use the 2d layout
+    phase = unwrap_phase(holo.get_data_with_input_layout(holo.phase) -
+                         bg.get_data_with_input_layout(bg.phase))
+    mask = np.log(1 + np.abs(
+        holo.get_data_with_input_layout(holo.fft_filtered)))
     results[fn] = mask, phase
 
 num_filters = len(results)

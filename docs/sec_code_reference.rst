@@ -38,6 +38,15 @@ PyFFTW
    :members:
    :inherited-members:
 
+.. _sec_code_fourier_cupy:
+
+Cupy
+----
+.. automodule:: qpretrieve.fourier.ff_cupy
+   :members:
+   :inherited-members:
+
+
 .. _sec_code_ifer:
 
 Interference image analysis

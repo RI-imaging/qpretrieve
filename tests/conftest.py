@@ -3,7 +3,6 @@ import shutil
 import tempfile
 import time
 import numpy as np
-import importlib
 
 import pytest
 
@@ -11,14 +10,6 @@ import qpretrieve
 
 TMPDIR = tempfile.mkdtemp(prefix=time.strftime(
     "qpretrieve_test_%H.%M_"))
-
-@pytest.fixture
-def skip_if_missing(name: str) -> pytest.mark.skip | pytest.:
-    try:
-        importlib.import_module(name)
-    except ModuleNotFoundError:
-        return pytest.mark.skip(f"{name} missing")
-    return lambda func: func
 
 
 def pytest_configure(config):

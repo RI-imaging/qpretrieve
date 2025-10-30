@@ -2,6 +2,8 @@ import numpy as np
 
 from qpretrieve import fourier
 
+from .helper_methods import skip_if_missing
+
 
 @skip_if_missing("pyfftw")
 def test_fft_correct_input_2d():
@@ -16,6 +18,7 @@ def test_fft_correct_input_2d():
     )
 
 
+@skip_if_missing("pyfftw")
 def test_fft_correct_input_3d():
     image = np.arange(1000).reshape(10, 10, 10)
     ff = fourier.FFTFilterPyFFTW(image, subtract_mean=False, padding=False)
@@ -28,6 +31,7 @@ def test_fft_correct_input_3d():
     )
 
 
+@skip_if_missing("pyfftw")
 def test_fft_correct_input_rgb():
     image = np.arange(300).reshape(10, 10, 3)
     ff = fourier.FFTFilterPyFFTW(image, subtract_mean=False, padding=False)
@@ -42,6 +46,7 @@ def test_fft_correct_input_rgb():
     )
 
 
+@skip_if_missing("pyfftw")
 def test_fft_correct_input_rgba():
     image = np.arange(400).reshape(10, 10, 4)
     ff = fourier.FFTFilterPyFFTW(image, subtract_mean=False, padding=False)

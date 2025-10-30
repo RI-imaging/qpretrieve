@@ -76,7 +76,7 @@ class BaseInterferogram(ABC):
                 "This is likely because you "
                 "are trying to use `FFTFilterPyFFTW` or `FFTFilterCupy` but "
                 "do not have it installed. If you want qpretrieve to "
-                "find the best FFT interface, set `fft_interface='auto'`. ")
+                "find the best FFT interface, set `fft_interface='auto'`.")
         if fft_interface == 'auto':
             self.ff_iface = get_best_interface()
         else:

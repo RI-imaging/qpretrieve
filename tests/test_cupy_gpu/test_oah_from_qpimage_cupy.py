@@ -4,7 +4,10 @@ import numpy as np
 import qpretrieve
 from qpretrieve.fourier import FFTFilterNumpy, FFTFilterCupy
 
+from ..helper_methods import skip_if_missing
 
+
+@skip_if_missing("cupy")
 def test_get_field_compare_FFTFilters(hologram):
     data1 = hologram
 
@@ -26,6 +29,7 @@ def test_get_field_compare_FFTFilters(hologram):
     assert np.allclose(res1, res2)
 
 
+@skip_if_missing("cupy")
 def test_get_field_cupy2d(hologram):
     data1 = hologram
     data_rp = np.array([data1, data1, data1, data1, data1])
@@ -47,6 +51,7 @@ def test_get_field_cupy2d(hologram):
     assert not np.all(res1 == res2)
 
 
+@skip_if_missing("cupy")
 def test_get_field_cupy3d(hologram):
     data1 = hologram
     data_rp = np.array([data1, data1, data1, data1, data1])
@@ -68,6 +73,7 @@ def test_get_field_cupy3d(hologram):
     assert not np.all(res1[0] == res2)
 
 
+@skip_if_missing("cupy")
 def test_get_field_cupy3d_scale_to_filter(hologram):
     data1 = hologram
     data_rp = np.array([data1, data1, data1, data1, data1])

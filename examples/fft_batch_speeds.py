@@ -56,8 +56,9 @@ subtract_mean = True
 padding = True
 
 # the first run is always used as a warmup
-fft_interfaces = [FFTFilterNumpy, FFTFilterNumpy,
-                  FFTFilterPyFFTW, FFTFilterPyFFTW]
+fft_interfaces = [FFTFilterNumpy, FFTFilterNumpy]
+if FFTFilterCupy is not None:
+    fft_interfaces.extend([FFTFilterPyFFTW, FFTFilterPyFFTW])
 if FFTFilterCupy is not None:
     fft_interfaces.extend([FFTFilterCupy, FFTFilterCupy])
 
@@ -144,4 +145,5 @@ ax2.set_title("FFT Speed for Off-Axis Hologram\n(after PyFFTW warmup)",
               fontsize=fontsize)
 
 plt.tight_layout()
-plt.savefig("fft_batch_speeds.png", dpi=150)
+plt.show()
+# plt.savefig("fft_batch_speeds.png", dpi=150)

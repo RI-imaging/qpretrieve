@@ -53,7 +53,7 @@ jobs:
     - name: Test with pytest
       run: |
         # ignore the cupy imports, as we don't have a gpu-enabled pipeline setup
-        coverage run --source=qpretrieve -m pytest tests --ignore=tests/test_cupy_gpu
+        coverage run --source=qpretrieve -m pytest tests
     - name: Lint with flake8
       run: |
         flake8 --exclude _version.py .

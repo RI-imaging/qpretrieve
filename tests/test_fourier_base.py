@@ -131,9 +131,12 @@ def test_bad_fft_interface_input():
             interfere.BadFFTFilterError,
             match="`fft_interface` is set to None or is unavailable."
                   "This is likely because you "
-                  "are trying to use `FFTFilterPyFFTW` or `FFTFilterCupy` but "
-                  "do not have it installed. If you want qpretrieve to "
-                  "find the best FFT interface, set `fft_interface='auto'`."):
+                  "are trying to use `FFTFilterPyFFTW` or `FFTFilterCupy`. "
+                  "To use `FFTFilterPyFFTW`, install 'pyfftw'. "
+                  "To use `FFTFilterCupy`, install 'cupy-cuda12x' or "
+                  "'cupy-cuda11x', depending on your CUDA version. "
+                  "If you want qpretrieve to find the best FFT interface "
+                  "for you, set `fft_interface='auto'`."):
         interfere.OffAxisHologram(image, fft_interface=None)
 
 

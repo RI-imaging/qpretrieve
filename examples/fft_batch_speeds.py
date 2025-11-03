@@ -57,7 +57,7 @@ padding = True
 
 # the first run is always used as a warmup
 fft_interfaces = [FFTFilterNumpy, FFTFilterNumpy]
-if FFTFilterCupy is not None:
+if FFTFilterPyFFTW is not None:
     fft_interfaces.extend([FFTFilterPyFFTW, FFTFilterPyFFTW])
 if FFTFilterCupy is not None:
     fft_interfaces.extend([FFTFilterCupy, FFTFilterCupy])
@@ -86,16 +86,16 @@ for fft_interface in fft_interfaces:
         assert data_3d.shape == data_3d_bg.shape == (
             n_transforms, edata["data"].shape[0], edata["data"].shape[1])
 
-        t0 = time.time()
+        t0 = time.perf_counter()
         holo = qpretrieve.OffAxisHologram(data=data_3d,
                                           fft_interface=fft_interface,
                                           subtract_mean=subtract_mean,
                                           padding=padding)
-        t_fft = time.time()
+        t_fft = time.perf_counter()
         holo.run_pipeline(filter_name=filter_name, filter_size=filter_size)
         bg = qpretrieve.OffAxisHologram(data=data_3d_bg)
         bg.process_like(holo)
-        t_batch = time.time()
+        t_batch = time.perf_counter()
         results_batch[n_transforms] = t_batch - t0
         results_fft[n_transforms] = t_fft - t0
 
@@ -145,5 +145,5 @@ ax2.set_title("FFT Speed for Off-Axis Hologram\n(after PyFFTW warmup)",
               fontsize=fontsize)
 
 plt.tight_layout()
-plt.show()
-# plt.savefig("fft_batch_speeds.png", dpi=150)
+# plt.show()
+plt.savefig("fft_batch_speeds.png", dpi=150)

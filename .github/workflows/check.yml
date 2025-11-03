@@ -28,26 +28,16 @@ jobs:
       run: |
         brew install fftw
 
-    - name: Install other dependencies
+    - name: Install dependencies
       run: |
         # prerequisites
         python -m pip install --upgrade pip wheel
         python -m pip install -r tests/requirements.txt
-        python -m pip install coverage flake8
-
-    - name: Install package dependencies (macOS)
-      if: runner.os == 'macOS'
-      run: |
-        # install dependencies (no GPU)
-        pip install -e .[FFTW]
-        # show installed packages
-        pip freeze
-    - name: Install package dependencies (Linux and Windows)
-      if: runner.os != 'macOS'
-      run: |
+        python -m pip install coverage
         # install dependencies
         pip install -e .[FFTW,CUPY]
-        # show installed packages
+    - name: List installed packages
+      run: |
         pip freeze
 
     - name: Test with pytest

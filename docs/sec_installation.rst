@@ -31,7 +31,7 @@ They can be installed individually or all at once:
 
    ``pip install qpretrieve[FFTW]``
 
-   ``pip install qpretrieve[FFTW, CUPY]``
+   ``pip install qpretrieve[FFTW,CUPY]``
 
 
 .. admonition:: CuPy & CUDA Versions

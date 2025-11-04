@@ -33,12 +33,18 @@ From this graph, we can conclude that:
      256x256pix imgs (incl padding). This may change depending on your machine.
 
 
-.. admonition:: Notes on warmup runs and PyFFTW
+.. admonition:: Notes on why each FFT method is run twice
 
-    Each FFT Filter has a warmup run to reduce outliers.
-    This is especially important for PyFFTW. Always keep a single batch size
-    when using PyFFTW, as during the first run at each batch size,
-    PyFFTW will find the fastest way to perform the FFT.
+    In the first run, python must load extra modules, which makes
+    benchmarking unreliable. Therefore, the second run is used for timing.
+
+    This is especially important for PyFFTW, as PyFFTW generates a "wisdom"
+    on its first run, which defines the fastest way to do subsequent
+    Fourier transforms. A wisdom is generated for each batch size.
+    Click here for more information on
+    `exporting and importing wisdoms with PyFFTW
+    <https://pyfftw.readthedocs.io/en/latest/source/pyfftw/
+    pyfftw.html#pyfftw.export_wisdom>`_.
 
 """
 import time

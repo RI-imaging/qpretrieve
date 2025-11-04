@@ -42,7 +42,7 @@ jobs:
         # prerequisites
         python -m pip install --upgrade pip wheel
         python -m pip install -r tests/requirements.txt
-        python -m pip install coverage
+        python -m pip install coverage flake8
         # install dependencies
         pip install -e "${{ matrix.extras }}"
     - name: List installed packages

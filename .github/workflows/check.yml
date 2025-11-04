@@ -12,9 +12,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: ['3.11', '3.12', '3.13']
+        python-version: ['3.12', '3.13']
         os: [macos-latest, ubuntu-latest, windows-latest]
-        extras: ['', 'CUPY', 'FFTW']
+        extras: ['', 'CUPY,FFTW']
 
     steps:
     - uses: actions/checkout@v2
@@ -38,7 +38,7 @@ jobs:
         python -m pip install -r tests/requirements.txt
         python -m pip install coverage
         # install dependencies
-        pip install -e .[matrix.extras]
+        pip install -e .[${{ matrix.extras }}]
     - name: List installed packages
       run: |
         pip freeze

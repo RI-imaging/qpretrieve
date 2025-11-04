@@ -7,8 +7,12 @@ on:
 jobs:
   build:
 
-    name: test-${{ matrix.os }}-${{ matrix.python-version }}${{ matrix.extras && format('-{0}', matrix.extras) || '' }}
-
+    # format the matrix.extras so that they display nicely
+    name: >
+      test-${{ matrix.os }}-
+      ${{ matrix.python-version }}-
+      ${{ matrix.extras == '.' && 'none' ||
+          (matrix.extras != '.' && matrix.extras[2:-1] || '') }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -41,7 +45,7 @@ jobs:
         python -m pip install -r tests/requirements.txt
         python -m pip install coverage
         # install dependencies
-        pip install -e ${{ matrix.extras }}
+        pip install -e "${{ matrix.extras }}"
     - name: List installed packages
       run: |
         pip freeze

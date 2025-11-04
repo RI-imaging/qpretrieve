@@ -14,7 +14,10 @@ jobs:
       matrix:
         python-version: ['3.12', '3.13']
         os: [macos-latest, ubuntu-latest, windows-latest]
-        extras: ['.', '.[CUPY,FFTW]']
+        extras: [
+          '.',  # only package dependencies
+          '.[CUPY,FFTW]'  # optional dependencies
+        ]
 
     steps:
     - uses: actions/checkout@v2

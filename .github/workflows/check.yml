@@ -7,11 +7,14 @@ on:
 jobs:
   build:
 
+    name: test-${{ matrix.os }}-${{ matrix.python-version }}${{ matrix.extras && format('-{0}', matrix.extras) || '' }}
+
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         python-version: ['3.11', '3.12', '3.13']
         os: [macos-latest, ubuntu-latest, windows-latest]
+        extras: ['', 'CUPY', 'FFTW']
 
     steps:
     - uses: actions/checkout@v2

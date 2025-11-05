@@ -36,7 +36,11 @@ holo.run_pipeline(
 bg = qpretrieve.OffAxisHologram(data=edata["bg_data"])
 bg.process_like(holo)
 
-phase = holo.phase - bg.phase
+phase = (holo.get_data_with_input_layout(holo.phase) -
+         bg.get_data_with_input_layout(bg.phase))
+fft_origin = holo.get_data_with_input_layout(holo.fft_origin)
+fft_filtered = holo.get_data_with_input_layout(holo.fft_filtered)
+
 
 # plot the intermediate steps of the analysis pipeline
 fig = plt.figure(figsize=(8, 10))
@@ -50,11 +54,11 @@ map2 = ax2.imshow(edata["bg_data"], interpolation="bicubic", cmap="gray")
 plt.colorbar(map2, ax=ax2, fraction=.046, pad=0.04)
 
 ax3 = plt.subplot(323, title="Fourier transform of cell")
-map3 = ax3.imshow(np.log(1 + np.abs(holo.fft_origin)), cmap="viridis")
+map3 = ax3.imshow(np.log(1 + np.abs(fft_origin)), cmap="viridis")
 plt.colorbar(map3, ax=ax3, fraction=.046, pad=0.04)
 
 ax4 = plt.subplot(324, title="filtered Fourier transform of cell")
-map4 = ax4.imshow(np.log(1 + np.abs(holo.fft_filtered)), cmap="viridis")
+map4 = ax4.imshow(np.log(1 + np.abs(fft_filtered)), cmap="viridis")
 plt.colorbar(map4, ax=ax4, fraction=.046, pad=0.04)
 
 ax5 = plt.subplot(325, title="retrieved phase [rad]")

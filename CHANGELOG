@@ -1,4 +1,5 @@
 0.4.1
+ - enh: add Cupy as an FFTFilter option for oah (#10)
  - setup: migrate to pyproject.toml project build file
 0.4.0
  - feat: move from 2d to 3d array operations (#12)

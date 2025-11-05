@@ -24,6 +24,8 @@ Installation
 
     pip install qpretrieve
 
+For information on optional dependencies (FFTW, CuPy) see the
+`installation guide <https://qpretrieve.readthedocs.io/en/stable/sec_installation.html>`__
 
 Testing
 -------

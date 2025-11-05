@@ -9,6 +9,8 @@ from scipy import signal
 
 from qpretrieve import fourier, interfere
 
+from .helper_methods import skip_if_missing
+
 data_path = pathlib.Path(__file__).parent / "data"
 
 
@@ -127,10 +129,14 @@ def test_bad_fft_interface_input():
 
     with pytest.raises(
             interfere.BadFFTFilterError,
-            match="`fft_interface` is set to None. If you want qpretrieve to "
-                  "find the best FFT interface, set it to 'auto'. "
-                  "If you are trying to use `FFTFilterPyFFTW`, "
-                  "you must first install the pyfftw package."):
+            match="`fft_interface` is set to None or is unavailable."
+                  "This is likely because you "
+                  "are trying to use `FFTFilterPyFFTW` or `FFTFilterCupy`. "
+                  "To use `FFTFilterPyFFTW`, install 'pyfftw'. "
+                  "To use `FFTFilterCupy`, install 'cupy-cuda12x' or "
+                  "'cupy-cuda11x', depending on your CUDA version. "
+                  "If you want qpretrieve to find the best FFT interface "
+                  "for you, set `fft_interface='auto'`."):
         interfere.OffAxisHologram(image, fft_interface=None)
 
 
@@ -214,6 +220,7 @@ def test_fft_dimensionality_consistency():
     assert np.allclose(ifft_2d_shifted.real, image_2d, rtol=0, atol=1e-8)
 
 
+@skip_if_missing("pyfftw")
 def test_fft_comparison_FFTFilter():
     image = np.arange(1000).reshape(10, 10, 10)
     ff_np = fourier.FFTFilterNumpy(image, subtract_mean=False, padding=False)
@@ -229,6 +236,7 @@ def test_fft_comparison_FFTFilter():
     )
 
 
+@skip_if_missing("pyfftw")
 def test_fft_comparison_data_input_fmt():
     image = np.arange(1000).reshape(10, 10, 10)
     FFTFilters = [fourier.FFTFilterNumpy, fourier.FFTFilterPyFFTW]

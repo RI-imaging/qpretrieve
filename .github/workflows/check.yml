@@ -7,11 +7,21 @@ on:
 jobs:
   build:
 
+    # format the matrix.extras so that they display nicely
+    name: >
+      test-${{ matrix.os }} -
+      ${{ matrix.python-version }} -
+      ${{ matrix.extras == '.' && 'none' || (matrix.extras != '.' && matrix.extras || '') }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: ['3.10']
+        python-version: ['3.12', '3.13']
         os: [macos-latest, ubuntu-latest, windows-latest]
+        extras: [
+          '.',  # only package dependencies
+          # ignore the CUPY optional dep, no gpu-enabled github runner used
+          '.[FFTW]'  # optional dependencies
+        ]
 
     steps:
     - uses: actions/checkout@v2
@@ -27,6 +37,7 @@ jobs:
       if: runner.os == 'macOS'
       run: |
         brew install fftw
+
     - name: Install dependencies
       run: |
         # prerequisites
@@ -34,12 +45,15 @@ jobs:
         python -m pip install -r tests/requirements.txt
         python -m pip install coverage flake8
         # install dependencies
-        pip install -e .[FFTW]
-        # show installed packages
+        pip install -e "${{ matrix.extras }}"
+    - name: List installed packages
+      run: |
         pip freeze
+
     - name: Test with pytest
       run: |
-        coverage run --source=qpretrieve -m pytest tests
+        # ignore the cupy imports, as we don't have a gpu-enabled pipeline setup
+        coverage run --source=qpretrieve -m pytest tests --ignore=tests/test_cupy_gpu
     - name: Lint with flake8
       run: |
         flake8 --exclude _version.py .

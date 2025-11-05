@@ -9,6 +9,13 @@ try:
     from .ff_pyfftw import FFTFilterPyFFTW
 except ImportError:
     FFTFilterPyFFTW = None
+    warnings.warn("Interface 'FFTFilterPyFFTW' unavailable!")
+
+try:
+    from .ff_cupy import FFTFilterCupy
+except ImportError:
+    FFTFilterCupy = None
+    warnings.warn("Interface 'FFTFilterCupy' unavailable!")
 
 PREFERRED_INTERFACE = None
 
@@ -18,6 +25,7 @@ def get_available_interfaces() -> list[Type[FFTFilter]]:
     interfaces = [
         FFTFilterPyFFTW,
         FFTFilterNumpy,
+        FFTFilterCupy,
     ]
     interfaces_available = []
     for interface in interfaces:
@@ -35,6 +43,7 @@ def get_best_interface() -> Type[FFTFilter]:
     ordered_candidates = [
         FFTFilterPyFFTW,
         FFTFilterNumpy,
+        FFTFilterCupy,
     ]
     if PREFERRED_INTERFACE is not None:
         for cand in ordered_candidates:

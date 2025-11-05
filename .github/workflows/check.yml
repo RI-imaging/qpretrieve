@@ -15,11 +15,12 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: ['3.12', '3.13', '3.x']
+        python-version: ['3.12', '3.13']
         os: [macos-latest, ubuntu-latest, windows-latest]
         extras: [
           '.',  # only package dependencies
-          '.[CUPY,FFTW]'  # optional dependencies
+          # ignore the CUPY optional dep, no gpu-enabled github runner used
+          '.[FFTW]'  # optional dependencies
         ]
 
     steps:

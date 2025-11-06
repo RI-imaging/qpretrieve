@@ -1,6 +1,7 @@
 import warnings
 
-import numpy as np
+# import numpy as np
+from .. import _ndarray_backend as xp
 import scipy
 from skimage.restoration import unwrap_phase
 
@@ -38,24 +39,24 @@ class QLSInterferogram(BaseInterferogram):
         self._field = None
 
     @property
-    def amplitude(self) -> np.ndarray:
+    def amplitude(self) -> xp.ndarray:
         if self._amplitude is None:
             self.run_pipeline()
         return self._amplitude
 
     @property
-    def field(self) -> np.ndarray:
+    def field(self) -> xp.ndarray:
         if self._field is None:
-            self._field = self.amplitude * np.exp(1j * 2 * np.pi * self.phase)
+            self._field = self.amplitude * xp.exp(1j * 2 * xp.pi * self.phase)
         return self._field
 
     @property
-    def phase(self) -> np.ndarray:
+    def phase(self) -> xp.ndarray:
         if self._phase is None:
             self.run_pipeline()
         return self._phase
 
-    def run_pipeline(self, **pipeline_kws) -> np.ndarray:
+    def run_pipeline(self, **pipeline_kws) -> xp.ndarray:
         r"""Run QLSI analysis pipeline
 
         Parameters
@@ -177,24 +178,24 @@ class QLSInterferogram(BaseInterferogram):
         # `unwrap_phase`. If we passed the 3D stack, then skimage would
         # treat this as a 3D phase-unwrapping problem, which it is not [sic!].
         # see `tests.test_qlsi.test_qlsi_unwrap_phase_2d_3d`.
-        px = np.zeros_like(hx, dtype=float)
-        py = np.zeros_like(hy, dtype=float)
+        px = xp.zeros_like(hx, dtype=float)
+        py = xp.zeros_like(hy, dtype=float)
         for i, (_hx, _hy) in enumerate(zip(hx, hy)):
-            px[i] = unwrap_phase(np.angle(_hx))
-            py[i] = unwrap_phase(np.angle(_hy))
+            px[i] = unwrap_phase(xp.angle(_hx))
+            py[i] = unwrap_phase(xp.angle(_hy))
 
         # Determine the angle by which we have to rotate the gradients in
         # order for them to be aligned with x and y. This angle is defined
         # by the frequency positions.
-        angle = np.arctan2(fy, fx)
+        angle = xp.arctan2(fy, fx)
 
         # Pad the gradient information so that we can rotate with cropping
         # (keeping the image shape the same).
         # TODO: Make padding dependent on rotation angle to save time?
         sx, sy = px.shape[-2:]
-        gradpad1 = np.pad(px, ((0, 0), (sx // 2, sx // 2), (sy // 2, sy // 2)),
+        gradpad1 = xp.pad(px, ((0, 0), (sx // 2, sx // 2), (sy // 2, sy // 2)),
                           mode="constant", constant_values=0)
-        gradpad2 = np.pad(py, ((0, 0), (sx // 2, sx // 2), (sy // 2, sy // 2)),
+        gradpad2 = xp.pad(py, ((0, 0), (sx // 2, sx // 2), (sy // 2, sy // 2)),
                           mode="constant", constant_values=0)
 
         # Perform rotation of the gradients.
@@ -212,15 +213,15 @@ class QLSInterferogram(BaseInterferogram):
                         copy=False)
         # Compute the frequencies that correspond to the frequencies of the
         # Fourier-transformed image.
-        fx = np.fft.fftfreq(rfft.shape[-2]).reshape(-1, 1)
-        fy = np.fft.fftfreq(rfft.shape[-1]).reshape(1, -1)
-        fxy = -2 * np.pi * 1j * (fx + 1j * fy)
-        fxy = np.repeat(fxy[np.newaxis, :, :], repeats=rfft.shape[0], axis=0)
+        fx = xp.fft.fftfreq(rfft.shape[-2]).reshape(-1, 1)
+        fy = xp.fft.fftfreq(rfft.shape[-1]).reshape(1, -1)
+        fxy = -2 * xp.pi * 1j * (fx + 1j * fy)
+        fxy = xp.repeat(fxy[xp.newaxis, :, :], repeats=rfft.shape[0], axis=0)
         fxy[:, 0, 0] = 1
 
         # The wavefront is the real part of the inverse Fourier transform
         # of the filtered (divided by frequencies) data.
-        wfr = rfft._ifft(np.fft.ifftshift(rfft.fft_origin,
+        wfr = rfft._ifft(xp.fft.ifftshift(rfft.fft_origin,
                                           axes=(-2, -1)) / fxy).real
 
         # Rotate the wavefront back and crop it so that the FOV matches
@@ -232,9 +233,9 @@ class QLSInterferogram(BaseInterferogram):
         scaling_factor = self.fft_origin.shape[-2] / wfr.shape[-2]
         raw_wavefront *= qlsi_pitch_term * scaling_factor
 
-        self._phase = raw_wavefront / wavelength * 2 * np.pi
+        self._phase = raw_wavefront / wavelength * 2 * xp.pi
         # TODO: Is adding these abs values really the amplitude?
-        amp = np.abs(hx) + np.abs(hy)
+        amp = xp.abs(hx) + xp.abs(hy)
 
         self._amplitude = amp
 
@@ -246,7 +247,7 @@ class QLSInterferogram(BaseInterferogram):
 
 
 def find_peaks_qlsi(
-        ft_data: np.ndarray,
+        ft_data: xp.ndarray,
         periodicity: int = 4,
         copy: bool = True) -> tuple[tuple[float, float], tuple[float, float]]:
     """Find the two peaks in Fourier space for the x and y gradient
@@ -278,7 +279,7 @@ def find_peaks_qlsi(
     the QLSI grid. Currently, peak detection is only done in the
     lower half of `ft_data`. If the peaks are exactly aligned with
     the pixel grid, then the current approach might not work. Also,
-    setting `angle=np.pi` would be equivalent to setting sideband
+    setting `angle=xp.pi` would be equivalent to setting sideband
     to -1 in holo.py (would be a nice feature).
     """
     if copy:
@@ -290,7 +291,7 @@ def find_peaks_qlsi(
 
     # We only look at the lower right image. This corresponds to using
     # only one sideband in (as in holo.py).
-    minlo = max(int(np.ceil(ox / 42)), 5)
+    minlo = max(int(xp.ceil(ox / 42)), 5)
     ft_data[cx - minlo:] = 0
 
     # remove values around axes
@@ -298,14 +299,14 @@ def find_peaks_qlsi(
     ft_data[:, cy - 3:cy + 3] = 0
 
     # circular bandpass according to periodicity
-    fx = np.fft.fftshift(np.fft.fftfreq(ft_data.shape[-2])).reshape(-1, 1)
-    fy = np.fft.fftshift(np.fft.fftfreq(ft_data.shape[-1])).reshape(1, -1)
-    frmask1 = np.sqrt(fx ** 2 + fy ** 2) > 1 / (periodicity * .8)
-    frmask2 = np.sqrt(fx ** 2 + fy ** 2) < 1 / (periodicity * 1.2)
-    ft_data[np.logical_or(frmask1, frmask2)] = 0
+    fx = xp.fft.fftshift(xp.fft.fftfreq(ft_data.shape[-2])).reshape(-1, 1)
+    fy = xp.fft.fftshift(xp.fft.fftfreq(ft_data.shape[-1])).reshape(1, -1)
+    frmask1 = xp.sqrt(fx ** 2 + fy ** 2) > 1 / (periodicity * .8)
+    frmask2 = xp.sqrt(fx ** 2 + fy ** 2) < 1 / (periodicity * 1.2)
+    ft_data[xp.logical_or(frmask1, frmask2)] = 0
 
     # find the peak in the left part
-    am1 = np.argmax(np.abs(ft_data * (fy < 0)))
+    am1 = xp.argmax(xp.abs(ft_data * (fy < 0)))
     i1y = am1 % oy
     i1x = int((am1 - i1y) / oy)
 
@@ -313,11 +314,11 @@ def find_peaks_qlsi(
 
 
 def rotate_noreshape(
-        arr: np.ndarray, angle: float, axes: tuple[int, ...],
-        mode: str = "mirror", reshape: bool = False) -> np.ndarray:
+        arr: xp.ndarray, angle: float, axes: tuple[int, ...],
+        mode: str = "mirror", reshape: bool = False) -> xp.ndarray:
     return scipy.ndimage.rotate(
         arr,  # input
-        angle=np.rad2deg(angle),  # angle
+        angle=xp.rad2deg(angle),  # angle
         axes=axes,
         reshape=reshape,  # reshape
         order=0,  # order

@@ -1,4 +1,5 @@
-import numpy as np
+# import numpy as np
+from .. import _ndarray_backend as xp
 
 from .base import BaseInterferogram
 
@@ -16,24 +17,24 @@ class OffAxisHologram(BaseInterferogram):
     }
 
     @property
-    def phase(self) -> np.ndarray:
+    def phase(self) -> xp.ndarray:
         """Retrieved phase information"""
         if self._field is None:
             self.run_pipeline()
         if self._phase is None:
-            self._phase = np.angle(self._field)
+            self._phase = xp.angle(self._field)
         return self._phase
 
     @property
-    def amplitude(self) -> np.ndarray:
+    def amplitude(self) -> xp.ndarray:
         """Retrieved amplitude information"""
         if self._field is None:
             self.run_pipeline()
         if self._amplitude is None:
-            self._amplitude = np.abs(self._field)
+            self._amplitude = xp.abs(self._field)
         return self._amplitude
 
-    def run_pipeline(self, **pipeline_kws) -> np.ndarray:
+    def run_pipeline(self, **pipeline_kws) -> xp.ndarray:
         r"""Run OAH analysis pipeline
 
         Parameters
@@ -86,10 +87,13 @@ class OffAxisHologram(BaseInterferogram):
             sideband_freq=pipeline_kws["sideband_freq"])
 
         # perform filtering
+        filter_size = float(fsize)
+        freq_pos = tuple(float(x) for x in pipeline_kws["sideband_freq"])
+
         field = self.fft.filter(
             filter_name=pipeline_kws["filter_name"],
-            filter_size=fsize,
-            freq_pos=tuple(pipeline_kws["sideband_freq"]),
+            filter_size=filter_size,
+            freq_pos=freq_pos,
             scale_to_filter=pipeline_kws["scale_to_filter"])
 
         if pipeline_kws["invert_phase"]:
@@ -104,7 +108,7 @@ class OffAxisHologram(BaseInterferogram):
 
 
 def find_peak_cosine(
-        ft_data: np.ndarray, copy: bool = True) -> tuple[float, float]:
+        ft_data: xp.ndarray, copy: bool = True) -> tuple[float, float]:
     """Find the side band position of a 2d regular off-axis hologram
 
     The Fourier transform of a cosine function (known as the
@@ -134,7 +138,7 @@ def find_peak_cosine(
     cx = ox // 2
     cy = oy // 2
 
-    minlo = max(int(np.ceil(ox / 42)), 5)
+    minlo = max(int(xp.ceil(ox / 42)), 5)
     # remove lower part of Fourier transform to find the peak in the upper
     ft_data[cx - minlo:] = 0
 
@@ -143,11 +147,11 @@ def find_peak_cosine(
     ft_data[:, cy - 3:cy + 3] = 0
 
     # find maximum
-    am = np.argmax(np.abs(ft_data))
+    am = xp.argmax(xp.abs(ft_data))
     iy = am % oy
     ix = int((am - iy) / oy)
 
-    fx = np.fft.fftshift(np.fft.fftfreq(ft_data.shape[0]))[ix]
-    fy = np.fft.fftshift(np.fft.fftfreq(ft_data.shape[1]))[iy]
+    fx = xp.fft.fftshift(xp.fft.fftfreq(ft_data.shape[0]))[ix]
+    fy = xp.fft.fftshift(xp.fft.fftfreq(ft_data.shape[1]))[iy]
 
     return fx, fy

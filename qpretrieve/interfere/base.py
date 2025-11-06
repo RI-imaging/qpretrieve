@@ -2,7 +2,8 @@ import warnings
 from abc import ABC, abstractmethod
 from typing import Type
 
-import numpy as np
+# import numpy as np
+from .. import _ndarray_backend as xp
 
 from ..fourier import get_best_interface, get_available_interfaces
 from ..fourier.base import FFTFilter
@@ -25,7 +26,7 @@ class BaseInterferogram(ABC):
         "invert_phase": False,
     }
 
-    def __init__(self, data: np.ndarray,
+    def __init__(self, data: xp.ndarray,
                  fft_interface: str | Type[FFTFilter] = "auto",
                  subtract_mean=True, padding=2, copy=True,
                  **pipeline_kws) -> None:
@@ -55,7 +56,7 @@ class BaseInterferogram(ABC):
             no padding is performed. If set to a positive integer, the
             size is computed to the next power of two (square image)::
 
-                2 ** np.ceil(np.log(padding * max(data.shape) / np.log(2)))
+                2 ** xp.ceil(xp.log(padding * max(data.shape) / xp.log(2)))
         copy: bool
             Whether to create a copy of the input data.
         pipeline_kws:
@@ -112,18 +113,18 @@ class BaseInterferogram(ABC):
         self._phase = None
         self._amplitude = None
 
-    def get_data_with_input_layout(self, data: np.ndarray | str) -> np.ndarray:
+    def get_data_with_input_layout(self, data: xp.ndarray | str) -> xp.ndarray:
         """Convert `data` to the original input array layout.
 
 
         Parameters
         ----------
         data
-            Either an array (np.ndarray) or name (str) of the relevant `data`.
+            Either an array (xp.ndarray) or name (str) of the relevant `data`.
 
         Returns
         -------
-        data_out : np.ndarray
+        data_out : xp.ndarray
             array in the original input array layout
 
         Notes
@@ -143,21 +144,21 @@ class BaseInterferogram(ABC):
         return convert_3d_data_to_array_layout(data, self.orig_array_layout)
 
     @property
-    def phase(self) -> np.ndarray:
+    def phase(self) -> xp.ndarray:
         """Retrieved phase information"""
         if self._phase is None:
             self.run_pipeline()
         return self._phase
 
     @property
-    def amplitude(self) -> np.ndarray:
+    def amplitude(self) -> xp.ndarray:
         """Retrieved amplitude information"""
         if self._amplitude is None:
             self.run_pipeline()
         return self._amplitude
 
     @property
-    def field(self) -> np.ndarray:
+    def field(self) -> xp.ndarray:
         """Retrieved amplitude information"""
         if self._field is None:
             self.run_pipeline()
@@ -181,7 +182,7 @@ class BaseInterferogram(ABC):
                 raise ValueError("For sideband distance interpretation, "
                                  "`filter_size` must be between 0 and 1; "
                                  f"got '{filter_size}'!")
-            fsize = np.sqrt(np.sum(np.array(sideband_freq) ** 2)) * filter_size
+            fsize = xp.sqrt(xp.sum(xp.array(sideband_freq) ** 2)) * filter_size
         elif filter_size_interpretation == "frequency index":
             # filter size given in Fourier index (number of Fourier pixels)
             # The user probably does not know that we are padding in

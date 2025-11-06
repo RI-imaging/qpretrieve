@@ -1,5 +1,6 @@
 import scipy as sp
-import cupy as cp
+from .. import _ndarray_backend as xp
+# from .._ndarray_backend import _assert_is_cupy
 import cupyx.scipy.fft as cufft
 
 from .base import FFTFilter
@@ -7,6 +8,9 @@ from .base import FFTFilter
 
 class FFTFilterCupy(FFTFilter):
     """Wraps the cupy Fourier transform and uses it via the scipy backend
+
+    .. versionadded:: 0.5.0
+
     """
     is_available = True
 
@@ -23,7 +27,7 @@ class FFTFilterCupy(FFTFilter):
         fft_fdata: 2d complex-valued ndarray
             Fourier transform `data`
         """
-        data_gpu = cp.asarray(data)
+        data_gpu = xp.asarray(data)
         # likely an inefficiency here, could use `set_global_backend`
         with sp.fft.set_backend(cufft):
             fft_gpu = sp.fft.fft2(data_gpu, axes=(-2, -1))
@@ -32,7 +36,7 @@ class FFTFilterCupy(FFTFilter):
 
     def _ifft(self, data):
         """Perform inverse Fourier transform"""
-        data_gpu = cp.asarray(data)
+        data_gpu = xp.asarray(data)
         with sp.fft.set_backend(cufft):
             ifft_gpu = sp.fft.ifft2(data_gpu, axes=(-2, -1))
         ifft_cpu = ifft_gpu.get()

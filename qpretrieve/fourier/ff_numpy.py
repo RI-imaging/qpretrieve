@@ -1,5 +1,5 @@
-import numpy as np
-
+from .. import _ndarray_backend as xp
+# from .._ndarray_backend import _assert_is_numpy
 
 from .base import FFTFilter
 
@@ -10,12 +10,12 @@ class FFTFilterNumpy(FFTFilter):
     # always available, because numpy is a dependency
     is_available = True
 
-    def _init_fft(self, data: np.ndarray) -> np.ndarray:
+    def _init_fft(self, data: xp.ndarray) -> xp.ndarray:
         """Perform initial Fourier transform of the input data
 
         Parameters
         ----------
-        data: 2d real-valued np.ndarray
+        data: 2d real-valued xp.ndarray
             Input field to be refocused
 
         Returns
@@ -23,8 +23,8 @@ class FFTFilterNumpy(FFTFilter):
         fft_fdata: 2d complex-valued ndarray
             Fourier transform `data`
         """
-        return np.fft.fft2(data, axes=(-2, -1))
+        return xp.fft.fft2(data, axes=(-2, -1))
 
-    def _ifft(self, data: np.ndarray) -> np.ndarray:
+    def _ifft(self, data: xp.ndarray) -> xp.ndarray:
         """Perform inverse Fourier transform"""
-        return np.fft.ifft2(data, axes=(-2, -1))
+        return xp.fft.ifft2(data, axes=(-2, -1))

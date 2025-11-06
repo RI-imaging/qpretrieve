@@ -77,8 +77,8 @@ input_data_3d, _ = convert_data_to_3d_array_layout(data_2d)
 input_data_bg_3d, _ = convert_data_to_3d_array_layout(data_2d_bg)
 
 speed_batch_norms, speed_ffts = {}, {}
-print("Each FFTFilter will run twice, as a warmup run is "
-      "required for comparison.")
+print("Each `FFTFilter` will run twice, as the first run often needs to do "
+      "extra tasks, such as module loading or PyFFTW wisdom generation.")
 for fft_interface in fft_interfaces:
     results_batch, results_fft = {}, {}
     for n_transforms in n_transforms_list:
@@ -92,6 +92,14 @@ for fft_interface in fft_interfaces:
         assert data_3d.shape == data_3d_bg.shape == (
             n_transforms, edata["data"].shape[0], edata["data"].shape[1])
 
+        if fft_interface.__name__ == "FFTFilterCupy":
+            if not qpretrieve._ndarray_backend._is_cupy():
+                qpretrieve.set_ndarray_backend("cupy")
+            data_3d = qpretrieve.get_ndarray_backend().asarray(data_3d)
+            data_3d_bg = qpretrieve.get_ndarray_backend().asarray(data_3d_bg)
+        else:
+            qpretrieve.set_ndarray_backend("numpy")
+
         t0 = time.perf_counter()
         holo = qpretrieve.OffAxisHologram(data=data_3d,
                                           fft_interface=fft_interface,
@@ -99,7 +107,8 @@ for fft_interface in fft_interfaces:
                                           padding=padding)
         t_fft = time.perf_counter()
         holo.run_pipeline(filter_name=filter_name, filter_size=filter_size)
-        bg = qpretrieve.OffAxisHologram(data=data_3d_bg)
+        bg = qpretrieve.OffAxisHologram(data=data_3d_bg,
+                                        fft_interface=fft_interface)
         bg.process_like(holo)
         t_batch = time.perf_counter()
         results_batch[n_transforms] = t_batch - t0

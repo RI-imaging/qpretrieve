@@ -1,6 +1,5 @@
 import importlib
 
-
 _default_backend = "numpy"
 _xp = importlib.import_module(_default_backend)
 
@@ -30,9 +29,11 @@ def set_ndarray_backend(backend_name: str = "numpy"):
                           f"Either install it or use the default backend: "
                           f"{_default_backend}") from err
 
+
 def __getattr__(name):
     """Expose this module as a proxy for numpy or cupy"""
     return getattr(_xp, name)
+
 
 def _is_numpy():
     return _xp.__name__.startswith("numpy")

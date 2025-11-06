@@ -160,5 +160,5 @@ ax2.set_title("FFT Speed for Off-Axis Hologram\n(after PyFFTW warmup)",
               fontsize=fontsize)
 
 plt.tight_layout()
-# plt.show()
-plt.savefig("fft_batch_speeds.png", dpi=150)
+plt.show()
+# plt.savefig("fft_batch_speeds.png", dpi=150)

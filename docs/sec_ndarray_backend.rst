@@ -32,12 +32,12 @@ currently in use just run :func:`qpretrieve.get_ndarray_backend()`.
 
 	import qpretrieve
 
-	print(qpretrieve.get_ndarray_backend().__name__)
-	# > 'numpy'
+	print(qpretrieve.get_ndarray_backend())
+	# <module 'numpy' from '~\\numpy\\__init__.py'>
 
 	qpretrieve.set_ndarray_backend('cupy')  # swap to the 'cupy' backend
-	print(qpretrieve.get_ndarray_backend().__name__)
-	# > 'cupy'
+	print(qpretrieve.get_ndarray_backend())
+	# <module 'cupy' from '~\\cupy\\__init__.py'>
 
 
 Example use of 'cupy' backend for Off-Axis Hologram

@@ -38,3 +38,37 @@ currently in use just run :func:`.qpretrieve.get_ndarray_backend()`.
 	qpretrieve.set_ndarray_backend('cupy')  # swap to the 'cupy' backend
 	print(qpretrieve.get_ndarray_backend().__name__)
 	# > 'cupy'
+
+
+Example use of 'cupy' backend for Off-Axis Hologram
+---------------------------------------------------
+
+.. code-block:: python
+
+	import numpy as np
+	import qpretrieve
+	from qpretrieve.data_array_layout import convert_data_to_3d_array_layout
+
+	# load your experimental data (data from the qpretrieve repository)
+	edata = np.load("qpretrieve/examples/data/hologram_cell.npz")
+	data_2d, data_2d_bg = edata["data"].copy(), edata["bg_data"].copy()
+	input_data_3d, _ = convert_data_to_3d_array_layout(data_2d)
+	input_data_bg_3d, _ = convert_data_to_3d_array_layout(data_2d_bg)
+
+	# stack in 3D
+	data_3d = np.repeat(input_data_3d, repeats=4, axis=0)
+	data_3d_bg = np.repeat(input_data_bg_3d, repeats=4, axis=0)
+
+	# set 'cupy' backend and fft_interface
+	qpretrieve.set_ndarray_backend("cupy")
+	fft_interface = qpretrieve.fourier.FFTFilterCupy
+
+	# process the 3D stack of holograms
+	holo = qpretrieve.OffAxisHologram(
+		data_3d, fft_interface=fft_interface, padding=True)
+	kwargs = dict(filter_name="disk", filter_size=1 / 3)
+	holo_field = holo.run_pipeline(**kwargs)
+
+	# process the 3D stack of background holograms
+	bg = qpretrieve.OffAxisHologram(data_3d_bg, fft_interface=fft_interface)
+	bg.process_like(holo)

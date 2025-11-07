@@ -96,10 +96,7 @@ for fft_interface in fft_interfaces:
             n_transforms, edata["data"].shape[0], edata["data"].shape[1])
 
         if fft_interface.__name__ == "FFTFilterCupy":
-            if not qpretrieve._ndarray_backend._is_cupy():
-                qpretrieve.set_ndarray_backend("cupy")
-            data_3d = qpretrieve.get_ndarray_backend().asarray(data_3d)
-            data_3d_bg = qpretrieve.get_ndarray_backend().asarray(data_3d_bg)
+            qpretrieve.set_ndarray_backend("cupy")
         else:
             qpretrieve.set_ndarray_backend("numpy")
 
@@ -169,5 +166,5 @@ ax2.set_title("FFT Speed for Off-Axis Hologram\n(after PyFFTW warmup)",
               fontsize=fontsize)
 
 plt.tight_layout()
-# plt.show()
-plt.savefig("fft_batch_speeds.png", dpi=150)
+plt.show()
+# plt.savefig("fft_batch_speeds.png", dpi=150)

@@ -46,6 +46,15 @@ From this graph, we can conclude that:
     <https://pyfftw.readthedocs.io/en/latest/source/pyfftw/
     pyfftw.html#pyfftw.export_wisdom>`_.
 
+    *large value artifact for batch size 8 for FFTFilterCupy removed
+    from graph for between comparison
+
+.. admonition:: Notes on used CPU and GPU
+
+    - Machine: LENOVO ThinkPad T15g Gen 1, Windows 11 Enterprise
+    - CPU: Core i9-10885H, 32 GB RAM
+    - GPU: NVIDIA GeForce RTX 2070 Super with Max-Q Design, 24 GB Memory
+
 """
 import time
 import matplotlib.pylab as plt
@@ -77,8 +86,8 @@ input_data_3d, _ = convert_data_to_3d_array_layout(data_2d)
 input_data_bg_3d, _ = convert_data_to_3d_array_layout(data_2d_bg)
 
 speed_batch_norms, speed_ffts = {}, {}
-print("Each FFTFilter will run twice, as a warmup run is "
-      "required for comparison.")
+print("Each `FFTFilter` will run twice, as the first run often needs to do "
+      "extra tasks, such as module loading or PyFFTW wisdom generation.")
 for fft_interface in fft_interfaces:
     results_batch, results_fft = {}, {}
     for n_transforms in n_transforms_list:
@@ -92,6 +101,11 @@ for fft_interface in fft_interfaces:
         assert data_3d.shape == data_3d_bg.shape == (
             n_transforms, edata["data"].shape[0], edata["data"].shape[1])
 
+        if fft_interface.__name__ == "FFTFilterCupy":
+            qpretrieve.set_ndarray_backend("cupy")
+        else:
+            qpretrieve.set_ndarray_backend("numpy")
+
         t0 = time.perf_counter()
         holo = qpretrieve.OffAxisHologram(data=data_3d,
                                           fft_interface=fft_interface,
@@ -99,11 +113,17 @@ for fft_interface in fft_interfaces:
                                           padding=padding)
         t_fft = time.perf_counter()
         holo.run_pipeline(filter_name=filter_name, filter_size=filter_size)
-        bg = qpretrieve.OffAxisHologram(data=data_3d_bg)
+        bg = qpretrieve.OffAxisHologram(data=data_3d_bg,
+                                        fft_interface=fft_interface)
         bg.process_like(holo)
         t_batch = time.perf_counter()
-        results_batch[n_transforms] = t_batch - t0
-        results_fft[n_transforms] = t_fft - t0
+        # artifact occurs for batch 8 with cupy
+        if n_transforms == 8 and fft_interface.__name__ == "FFTFilterCupy":
+            results_batch[n_transforms] = 0
+            results_fft[n_transforms] = 0
+        else:
+            results_batch[n_transforms] = t_batch - t0
+            results_fft[n_transforms] = t_fft - t0
 
     speed_batch_norm = [t / bsize for bsize, t in results_batch.items()]
     speed_fft = [t for t in results_fft.values()]
@@ -114,6 +134,7 @@ for fft_interface in fft_interfaces:
 # setup figure
 width = 0.25  # the width of the bars
 x_pos = np.arange(len(n_transforms_list))
+n_labels_list = [str(n) + "*" if n == 8 else str(n) for n in n_transforms_list]
 colors = ["darkmagenta", "lightseagreen", "goldenrod"]
 edgecolor = "k"
 legend_loc = "upper center"
@@ -129,7 +150,7 @@ for (name, speed), color in zip(speed_batch_norms.items(), colors):
     ax1.bar(x_pos + offset, speed, width, label=name,
             color=color, edgecolor=edgecolor)
     multiplier += 1
-ax1.set_xticks(x_pos + width, labels=n_transforms_list)
+ax1.set_xticks(x_pos + width, labels=n_labels_list)
 ax1.set_xlabel("Input hologram batch size")
 ax1.set_ylabel("OAH processing time [Time / batch size] (s)")
 ax1.legend(loc=legend_loc, fontsize="large")
@@ -143,7 +164,7 @@ for (name, speed), color in zip(speed_ffts.items(), colors):
     ax2.bar(x_pos + offset, speed, width, label=name,
             color=color, edgecolor=edgecolor)
     multiplier += 1
-ax2.set_xticks(x_pos + width, labels=n_transforms_list)
+ax2.set_xticks(x_pos + width, labels=n_labels_list)
 ax2.set_xlabel("Input hologram batch size")
 ax2.set_ylabel("FFT processing time (s)")
 ax2.legend(loc=legend_loc, fontsize="large")
@@ -151,5 +172,5 @@ ax2.set_title("FFT Speed for Off-Axis Hologram\n(after PyFFTW warmup)",
               fontsize=fontsize)
 
 plt.tight_layout()
-# plt.show()
-plt.savefig("fft_batch_speeds.png", dpi=150)
+plt.show()
+# plt.savefig("fft_batch_speeds.png", dpi=150)

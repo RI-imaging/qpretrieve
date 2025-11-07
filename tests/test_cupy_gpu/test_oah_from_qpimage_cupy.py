@@ -8,7 +8,7 @@ from ..helper_methods import skip_if_missing
 
 
 @skip_if_missing("cupy")
-def test_get_field_compare_cupy2d(hologram):
+def test_get_field_compare_cupy2d(hologram, set_ndarray_backend_to_cupy):
     data1 = hologram
 
     holo1 = qpretrieve.OffAxisHologram(data1,
@@ -30,7 +30,7 @@ def test_get_field_compare_cupy2d(hologram):
 
 
 @skip_if_missing("cupy")
-def test_get_field_compare_cupy3d(hologram):
+def test_get_field_compare_cupy3d(hologram, set_ndarray_backend_to_cupy):
     data1 = hologram
     data_rp = np.array([data1, data1, data1, data1, data1])
 
@@ -52,7 +52,8 @@ def test_get_field_compare_cupy3d(hologram):
 
 
 @skip_if_missing("cupy")
-def test_get_field_cupy3d_scale_to_filter(hologram):
+def test_get_field_cupy3d_scale_to_filter(hologram,
+                                          set_ndarray_backend_to_cupy):
     data1 = hologram
     data_rp = np.array([data1, data1, data1, data1, data1])
 

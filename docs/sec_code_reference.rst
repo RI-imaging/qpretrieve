@@ -78,3 +78,12 @@ Data Array Layout
 .. automodule:: qpretrieve.data_array_layout
    :members:
    :inherited-members:
+
+NDArray Backend
+===============
+
+.. _sec_code_ndarray_backend:
+
+.. automodule:: qpretrieve._ndarray_backend
+   :members:
+   :inherited-members:

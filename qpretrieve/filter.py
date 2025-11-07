@@ -1,7 +1,7 @@
 from functools import lru_cache
-
-import numpy as np
 from scipy import signal
+
+from ._ndarray_backend import xp
 
 available_filters = [
     "disk",
@@ -17,7 +17,7 @@ available_filters = [
 def get_filter_array(filter_name: str,
                      filter_size: float,
                      freq_pos: tuple[float, float],
-                     fft_shape: tuple[int, int]) -> np.ndarray:
+                     fft_shape: tuple[int, int]) -> xp.ndarray:
     """Create a Fourier filter for holography
 
     Parameters
@@ -53,6 +53,7 @@ def get_filter_array(filter_name: str,
         is a boolean array. For more elaborate filters, this is a
         float array.
     """
+    freq_pos = xp.asarray(freq_pos)
     if fft_shape[0] != fft_shape[1]:
         raise ValueError("The Fourier transformed data must have a squared "
                          + f"shape, but the input shape is '{fft_shape}'! "
@@ -63,14 +64,14 @@ def get_filter_array(filter_name: str,
                          + f"size of '{filter_size}' and a shape of "
                          + f"'{fft_shape}'!")
     if not (0
-            <= min(np.abs(freq_pos))
-            <= max(np.abs(freq_pos))
+            <= min(xp.abs(freq_pos))
+            <= max(xp.abs(freq_pos))
             < max(fft_shape) / 2):
         raise ValueError("The frequency position must be within the Fourier "
                          + f"domain. Got '{freq_pos}' and shape "
                          + f"'{fft_shape}'!")
 
-    fx = np.fft.fftshift(np.fft.fftfreq(fft_shape[0])).reshape(-1, 1)
+    fx = xp.fft.fftshift(xp.fft.fftfreq(fft_shape[0])).reshape(-1, 1)
     fy = fx.reshape(1, -1)
 
     fxc = freq_pos[0] - fx
@@ -83,27 +84,27 @@ def get_filter_array(filter_name: str,
         tau = 2 * sigma ** 2
         disk = (fxc ** 2 + fyc ** 2) <= filter_size ** 2
         radsq = fx ** 2 + fy ** 2
-        gauss = np.exp(-radsq / tau)
+        gauss = xp.exp(-radsq / tau)
         filter_arr = signal.convolve(gauss, disk, mode="same")
         filter_arr /= filter_arr.max()
     elif filter_name == "gauss":
         sigma = filter_size * .6
         tau = 2 * sigma ** 2
-        filter_arr = np.exp(-(fxc ** 2 + fyc ** 2) / tau)
+        filter_arr = xp.exp(-(fxc ** 2 + fyc ** 2) / tau)
         filter_arr /= filter_arr.max()
     elif filter_name == "square":
-        filter_arr = (np.abs(fxc) <= filter_size) \
-            * (np.abs(fyc) <= filter_size)
+        filter_arr = (xp.abs(fxc) <= filter_size) \
+            * (xp.abs(fyc) <= filter_size)
     elif filter_name == "smooth square":
         blur = filter_size / 5
         tau = 2 * blur ** 2
-        square = (np.abs(fxc) <= filter_size) \
-            * (np.abs(fyc) <= filter_size)
-        gauss = np.exp(-(fx ** 2) / tau) * np.exp(-(fy ** 2) / tau)
+        square = (xp.abs(fxc) <= filter_size) \
+            * (xp.abs(fyc) <= filter_size)
+        gauss = xp.exp(-(fx ** 2) / tau) * xp.exp(-(fy ** 2) / tau)
         filter_arr = signal.convolve(square, gauss, mode="same")
         filter_arr /= filter_arr.max()
     elif filter_name == "tukey":
-        # TODO: avoid the np.roll, instead use the indices directly
+        # TODO: avoid the xp.roll, instead use the indices directly
         alpha = 0.1
         rsize = int(min(fx.size, fy.size) * filter_size) * 2
         tukey_window_x = signal.windows.tukey(
@@ -111,14 +112,14 @@ def get_filter_array(filter_name: str,
         tukey_window_y = signal.windows.tukey(
             rsize, alpha=alpha).reshape(1, -1)
         tukey = tukey_window_x * tukey_window_y
-        base = np.zeros(fft_shape)
-        s1 = (np.array(fft_shape) - rsize) // 2
-        s2 = (np.array(fft_shape) + rsize) // 2
+        base = xp.zeros(fft_shape)
+        s1 = (xp.array(fft_shape) - rsize) // 2
+        s2 = (xp.array(fft_shape) + rsize) // 2
         base[s1[0]:s2[0], s1[1]:s2[1]] = tukey
         # roll the filter to the peak position
         px = int(freq_pos[0] * fft_shape[0])
         py = int(freq_pos[1] * fft_shape[1])
-        filter_arr = np.roll(np.roll(base, px, axis=0), py, axis=1)
+        filter_arr = xp.roll(xp.roll(base, px, axis=0), py, axis=1)
     else:
         raise ValueError(f"Unknown filter: {filter_name}")
 

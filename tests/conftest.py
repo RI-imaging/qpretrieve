@@ -26,6 +26,23 @@ def pytest_configure(config):
     qpretrieve.fourier.PREFERRED_INTERFACE = "FFTFilterNumpy"
 
 
+@pytest.fixture(autouse=True)
+def set_ndarray_backend_to_numpy():
+    """Ensures that the backend is set to numpy as the end of each test."""
+    yield
+    # always reset to numpy, even if test fails
+    qpretrieve.set_ndarray_backend('numpy')
+
+
+@pytest.fixture()
+def set_ndarray_backend_to_cupy():
+    """Ensures that the backend is set to cupy when desired."""
+    qpretrieve.set_ndarray_backend('cupy')
+    yield
+    # always reset to numpy, even if test fails
+    qpretrieve.set_ndarray_backend('numpy')
+
+
 @pytest.fixture(params=[64])  # default param for size
 def hologram(request):
     size = request.param

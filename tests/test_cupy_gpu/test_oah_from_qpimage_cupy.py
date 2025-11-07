@@ -4,8 +4,6 @@ import numpy as np
 import qpretrieve
 from qpretrieve.fourier import FFTFilterNumpy, FFTFilterCupy
 
-import pytest
-
 from ..helper_methods import skip_if_missing
 
 

@@ -3,7 +3,6 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 import weakref
 
-# import numpy as np
 from .. import _ndarray_backend as xp
 
 from .. import filter

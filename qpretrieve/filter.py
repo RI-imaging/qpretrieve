@@ -1,6 +1,5 @@
 from functools import lru_cache
 
-# import numpy as np
 from . import _ndarray_backend as xp
 from scipy import signal
 

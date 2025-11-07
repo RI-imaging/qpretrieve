@@ -19,11 +19,14 @@ def set_ndarray_backend(backend_name: str = "numpy"):
     """
     global _xp
     try:
-        _xp = importlib.import_module(backend_name)
-        if backend_name == "cupy":
-            # cache should be cleared, as it contains numpy arrays
+        if _xp.__name__ != backend_name:
+            # we are actually swapping, so cache should be cleared
             import qpretrieve
             qpretrieve.filter.get_filter_array.cache_clear()
+
+        # run the backend swap regardless
+        _xp = importlib.import_module(backend_name)
+
     except ModuleNotFoundError as err:
         raise ImportError(f"The backend '{backend_name}' is not installed. "
                           f"Either install it or use the default backend: "
@@ -53,3 +56,7 @@ def _assert_is_cupy():
     assert _is_cupy(), (
         "ndarray_backend is not 'cupy', to use "
         "'FFTFilterCupy', run `qpretrieve.set_ndarray_backend('cupy')`.")
+
+
+class NDArrayBackendWarning(UserWarning):
+    pass

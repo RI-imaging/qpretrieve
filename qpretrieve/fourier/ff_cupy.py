@@ -2,9 +2,8 @@ import warnings
 import scipy as sp
 import cupyx.scipy.fft as cufft
 
-from .. import _ndarray_backend as xp
 from .base import FFTFilter
-from .._ndarray_backend import NDArrayBackendWarning
+from .._ndarray_backend import xp, NDArrayBackendWarning
 
 
 class FFTFilterCupy(FFTFilter):
@@ -28,7 +27,7 @@ class FFTFilterCupy(FFTFilter):
         fft_fdata: 2d complex-valued ndarray
             Fourier transform `data`
         """
-        if not xp._is_cupy():
+        if not xp.is_cupy():
             warnings.warn(NDArrayBackendWarning(
                 "You are using `FFTFilterCupy` without the 'cupy' ndarray "
                 "backend. This will limit the FFT speed. To set the ndarray "

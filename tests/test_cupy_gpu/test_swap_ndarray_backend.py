@@ -2,7 +2,7 @@ import numpy as np
 
 import qpretrieve
 from qpretrieve.fourier import FFTFilterCupy
-from qpretrieve._ndarray_backend import NDArrayBackendWarning
+from qpretrieve._ndarray_backend import xp, NDArrayBackendWarning
 
 import pytest
 
@@ -11,10 +11,9 @@ from ..helper_methods import skip_if_missing
 
 @skip_if_missing("cupy")
 def test_cupy3d_backend_swap(hologram, set_ndarray_backend_to_numpy):
-    from qpretrieve._ndarray_backend import _assert_is_cupy, _assert_is_numpy
 
     # use FFTFilterCupy with numpy backend
-    _assert_is_numpy()
+    assert xp.is_numpy()
 
     data1 = hologram
     data_rp = np.array([data1, data1, data1, data1, data1])
@@ -29,7 +28,7 @@ def test_cupy3d_backend_swap(hologram, set_ndarray_backend_to_numpy):
 
     # use FFTFilterCupy with cupy backend
     qpretrieve.set_ndarray_backend('cupy')
-    _assert_is_cupy()
+    assert xp.is_cupy()
 
     holo1 = qpretrieve.OffAxisHologram(data_rp,
                                        fft_interface=FFTFilterCupy,

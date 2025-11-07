@@ -5,7 +5,7 @@ array layouts.
 .. versionadded:: 0.4.0
 """
 
-from . import _ndarray_backend as xp
+from ._ndarray_backend import xp
 
 
 def get_allowed_array_layouts() -> list:

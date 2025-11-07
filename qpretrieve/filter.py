@@ -1,7 +1,7 @@
 from functools import lru_cache
 from scipy import signal
 
-from . import _ndarray_backend as xp
+from ._ndarray_backend import xp
 
 available_filters = [
     "disk",

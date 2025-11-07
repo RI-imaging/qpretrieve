@@ -3,7 +3,7 @@ import warnings
 import scipy
 from skimage.restoration import unwrap_phase
 
-from .. import _ndarray_backend as xp
+from .._ndarray_backend import xp
 from .base import BaseInterferogram
 from ..fourier import get_best_interface
 

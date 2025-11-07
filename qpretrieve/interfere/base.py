@@ -2,7 +2,7 @@ import warnings
 from abc import ABC, abstractmethod
 from typing import Type
 
-from .. import _ndarray_backend as xp
+from .._ndarray_backend import xp
 from ..fourier import get_best_interface, get_available_interfaces
 from ..fourier.base import FFTFilter
 from ..data_array_layout import (

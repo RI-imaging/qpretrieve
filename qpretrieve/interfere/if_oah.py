@@ -1,4 +1,4 @@
-from .. import _ndarray_backend as xp
+from .._ndarray_backend import xp
 from .base import BaseInterferogram
 
 

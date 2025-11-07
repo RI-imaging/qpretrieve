@@ -2,7 +2,7 @@ import numpy as np
 import scipy as sp
 
 from qpretrieve import fourier
-from qpretrieve import _ndarray_backend as xp
+from qpretrieve._ndarray_backend import xp
 
 from ..helper_methods import skip_if_missing
 

@@ -47,7 +47,13 @@ From this graph, we can conclude that:
     pyfftw.html#pyfftw.export_wisdom>`_.
 
     *large value artifact for batch size 8 for FFTFilterCupy removed
-    from graph for bettwe comparison
+    from graph for between comparison
+
+.. admonition:: Notes on used CPU and GPU
+
+    - Machine: LENOVO ThinkPad T15g Gen 1, Windows 11 Enterprise
+    - CPU: Core i9-10885H, 32 GB RAM
+    - GPU: NVIDIA GeForce RTX 2070 Super with Max-Q Design, 24 GB Memory
 
 """
 import time

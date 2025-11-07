@@ -26,7 +26,7 @@ Controlling the ndarray backend
 
 ``qpretrieve`` allows users to swap between these backends with the
 :func:`qpretrieve.set_ndarray_backend()` function. To check which backend is
-currently in use just run :func:`.qpretrieve.get_ndarray_backend()`.
+currently in use just run :func:`qpretrieve.get_ndarray_backend()`.
 
 .. code-block:: python
 

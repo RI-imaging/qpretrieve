@@ -1,6 +1,8 @@
 """
 Module that provides convenience functions for converting data between
 array layouts.
+
+.. versionadded:: 0.4.0
 """
 
 from . import _ndarray_backend as xp

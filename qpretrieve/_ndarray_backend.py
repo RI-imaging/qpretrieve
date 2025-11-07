@@ -37,16 +37,16 @@ def set_ndarray_backend(backend_name: str = "numpy"):
                           f"{_default_backend}") from err
 
 
-def __getattr__(name):
+def __getattr__(name: str):
     """Expose this module as a proxy for numpy or cupy"""
     return getattr(_xp, name)
 
 
-def _is_numpy():
+def _is_numpy() -> bool:
     return _xp.__name__.startswith("numpy")
 
 
-def _is_cupy():
+def _is_cupy() -> bool:
     return _xp.__name__.startswith("cupy")
 
 

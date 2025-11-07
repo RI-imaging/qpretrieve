@@ -1,5 +1,7 @@
 """
-Module that controls the ndarray backend.
+Module that controls and exposes the active ndarray backend (NumPy or CuPy).
+
+.. versionadded:: 0.6.0
 """
 
 import importlib
@@ -8,59 +10,62 @@ _default_backend = "numpy"
 _xp = importlib.import_module(_default_backend)
 
 
-def get_ndarray_backend():
-    return _xp
+class NDArrayBackend:
+    """Proxy object exposing the current ndarray backend."""
 
+    def __init__(self):
+        self._xp = _xp
 
-def set_ndarray_backend(backend_name: str = "numpy"):
-    """Return requested ndarray backend
+    def get(self):
+        """Return the currently active backend module."""
+        return self._xp
 
-    Parameters
-    ----------
-    backend_name
-        Options are 'numpy' and 'cupy'
+    def set(self, backend_name: str = "numpy"):
+        """Switch the backend between 'numpy' and 'cupy'."""
+        global _xp
+        try:
+            if self._xp.__name__ != backend_name:
+                import qpretrieve
+                # we are actually swapping, so cache should be cleared
+                qpretrieve.filter.get_filter_array.cache_clear()
+            # run the backend swap regardless
+            self._xp = importlib.import_module(backend_name)
+            _xp = self._xp  # keep global in sync
+        except ModuleNotFoundError as err:
+            raise ImportError(f"The backend '{backend_name}' is not "
+                              f"installed. Either install it or use the "
+                              f"default backend: 'numpy'.") from err
 
-    """
-    global _xp
-    try:
-        if _xp.__name__ != backend_name:
-            # we are actually swapping, so cache should be cleared
-            import qpretrieve
-            qpretrieve.filter.get_filter_array.cache_clear()
+    # --- Convenience passthroughs ---
+    def __getattr__(self, name):
+        """Delegate unknown attributes to the backend module."""
+        return getattr(self._xp, name)
 
-        # run the backend swap regardless
-        _xp = importlib.import_module(backend_name)
+    def is_numpy(self):
+        return self._xp.__name__.startswith("numpy")
 
-    except ModuleNotFoundError as err:
-        raise ImportError(f"The backend '{backend_name}' is not installed. "
-                          f"Either install it or use the default backend: "
-                          f"{_default_backend}") from err
+    def is_cupy(self):
+        return self._xp.__name__.startswith("cupy")
 
+    def assert_numpy(self):
+        assert self.is_numpy(), (
+            "ndarray_backend is not 'numpy'. "
+            "To use FFTFilterNumpy, run `set('numpy')`."
+        )
 
-def __getattr__(name: str):
-    """Expose this module as a proxy for numpy or cupy"""
-    return getattr(_xp, name)
-
-
-def _is_numpy() -> bool:
-    return _xp.__name__.startswith("numpy")
-
-
-def _is_cupy() -> bool:
-    return _xp.__name__.startswith("cupy")
-
-
-def _assert_is_numpy():
-    assert _is_numpy(), (
-        "ndarray_backend is not 'numpy', to use "
-        "'FFTFilterNumpy', run `qpretrieve.set_ndarray_backend('numpy')`.")
-
-
-def _assert_is_cupy():
-    assert _is_cupy(), (
-        "ndarray_backend is not 'cupy', to use "
-        "'FFTFilterCupy', run `qpretrieve.set_ndarray_backend('cupy')`.")
+    def assert_cupy(self):
+        assert self.is_cupy(), (
+            "ndarray_backend is not 'cupy'. "
+            "To use FFTFilterCupy, run `set('cupy')`."
+        )
 
 
 class NDArrayBackendWarning(UserWarning):
     pass
+
+
+# Export a single global proxy instance
+xp = NDArrayBackend()
+# This is what is imported by the user
+get_ndarray_backend = xp.get
+set_ndarray_backend = xp.set

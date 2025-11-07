@@ -9,7 +9,6 @@ import pytest
 from ..helper_methods import skip_if_missing
 
 
-
 @skip_if_missing("cupy")
 def test_cupy3d_backend_swap(hologram, set_ndarray_backend_to_numpy):
     from qpretrieve._ndarray_backend import _assert_is_cupy, _assert_is_numpy

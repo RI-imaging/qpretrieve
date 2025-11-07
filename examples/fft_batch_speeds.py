@@ -128,7 +128,7 @@ for fft_interface in fft_interfaces:
 # setup figure
 width = 0.25  # the width of the bars
 x_pos = np.arange(len(n_transforms_list))
-n_labels_list = [str(n) + "*" if n==8 else str(n) for n in n_transforms_list]
+n_labels_list = [str(n) + "*" if n == 8 else str(n) for n in n_transforms_list]
 colors = ["darkmagenta", "lightseagreen", "goldenrod"]
 edgecolor = "k"
 legend_loc = "upper center"

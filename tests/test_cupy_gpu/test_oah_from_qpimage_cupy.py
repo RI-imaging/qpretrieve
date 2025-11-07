@@ -52,7 +52,8 @@ def test_get_field_compare_cupy3d(hologram, set_ndarray_backend_to_cupy):
 
 
 @skip_if_missing("cupy")
-def test_get_field_cupy3d_scale_to_filter(hologram, set_ndarray_backend_to_cupy):
+def test_get_field_cupy3d_scale_to_filter(hologram,
+                                          set_ndarray_backend_to_cupy):
     data1 = hologram
     data_rp = np.array([data1, data1, data1, data1, data1])
 

@@ -4,7 +4,6 @@ from abc import ABC, abstractmethod
 import weakref
 
 from .. import _ndarray_backend as xp
-
 from .. import filter
 from ..utils import padding_3d, mean_3d
 from ..data_array_layout import convert_data_to_3d_array_layout

@@ -1,9 +1,7 @@
 import multiprocessing as mp
-from .. import _ndarray_backend as xp
-# from .._ndarray_backend import _assert_is_numpy
-
 import pyfftw
 
+from .. import _ndarray_backend as xp
 from .base import FFTFilter
 
 

@@ -3,7 +3,6 @@ Module that provides convenience functions for converting data between
 array layouts.
 """
 
-# import numpy as np
 from . import _ndarray_backend as xp
 
 

@@ -1,6 +1,4 @@
 from .. import _ndarray_backend as xp
-# from .._ndarray_backend import _assert_is_numpy
-
 from .base import FFTFilter
 
 

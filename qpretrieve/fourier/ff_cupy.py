@@ -1,8 +1,8 @@
 import warnings
 import scipy as sp
-from .. import _ndarray_backend as xp
 import cupyx.scipy.fft as cufft
 
+from .. import _ndarray_backend as xp
 from .base import FFTFilter
 from .._ndarray_backend import NDArrayBackendWarning
 

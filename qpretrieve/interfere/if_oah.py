@@ -1,6 +1,4 @@
-# import numpy as np
 from .. import _ndarray_backend as xp
-
 from .base import BaseInterferogram
 
 

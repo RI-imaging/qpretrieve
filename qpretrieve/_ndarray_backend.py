@@ -1,3 +1,7 @@
+"""
+Module that controls the ndarray backend.
+"""
+
 import importlib
 
 _default_backend = "numpy"

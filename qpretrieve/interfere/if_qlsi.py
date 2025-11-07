@@ -1,10 +1,9 @@
 import warnings
 
-# import numpy as np
-from .. import _ndarray_backend as xp
 import scipy
 from skimage.restoration import unwrap_phase
 
+from .. import _ndarray_backend as xp
 from .base import BaseInterferogram
 from ..fourier import get_best_interface
 

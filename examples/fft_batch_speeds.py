@@ -46,6 +46,9 @@ From this graph, we can conclude that:
     <https://pyfftw.readthedocs.io/en/latest/source/pyfftw/
     pyfftw.html#pyfftw.export_wisdom>`_.
 
+    *large value artifact for batch size 8 for FFTFilterCupy removed
+    from graph for bettwe comparison
+
 """
 import time
 import matplotlib.pylab as plt
@@ -111,8 +114,13 @@ for fft_interface in fft_interfaces:
                                         fft_interface=fft_interface)
         bg.process_like(holo)
         t_batch = time.perf_counter()
-        results_batch[n_transforms] = t_batch - t0
-        results_fft[n_transforms] = t_fft - t0
+        # artifact occurs for batch 8 with cupy
+        if n_transforms == 8 and fft_interface.__name__ == "FFTFilterCupy":
+            results_batch[n_transforms] = 0
+            results_fft[n_transforms] = 0
+        else:
+            results_batch[n_transforms] = t_batch - t0
+            results_fft[n_transforms] = t_fft - t0
 
     speed_batch_norm = [t / bsize for bsize, t in results_batch.items()]
     speed_fft = [t for t in results_fft.values()]
@@ -123,6 +131,7 @@ for fft_interface in fft_interfaces:
 # setup figure
 width = 0.25  # the width of the bars
 x_pos = np.arange(len(n_transforms_list))
+n_labels_list = [str(n) + "*" if n==8 else str(n) for n in n_transforms_list]
 colors = ["darkmagenta", "lightseagreen", "goldenrod"]
 edgecolor = "k"
 legend_loc = "upper center"
@@ -138,7 +147,7 @@ for (name, speed), color in zip(speed_batch_norms.items(), colors):
     ax1.bar(x_pos + offset, speed, width, label=name,
             color=color, edgecolor=edgecolor)
     multiplier += 1
-ax1.set_xticks(x_pos + width, labels=n_transforms_list)
+ax1.set_xticks(x_pos + width, labels=n_labels_list)
 ax1.set_xlabel("Input hologram batch size")
 ax1.set_ylabel("OAH processing time [Time / batch size] (s)")
 ax1.legend(loc=legend_loc, fontsize="large")
@@ -152,7 +161,7 @@ for (name, speed), color in zip(speed_ffts.items(), colors):
     ax2.bar(x_pos + offset, speed, width, label=name,
             color=color, edgecolor=edgecolor)
     multiplier += 1
-ax2.set_xticks(x_pos + width, labels=n_transforms_list)
+ax2.set_xticks(x_pos + width, labels=n_labels_list)
 ax2.set_xlabel("Input hologram batch size")
 ax2.set_ylabel("FFT processing time (s)")
 ax2.legend(loc=legend_loc, fontsize="large")
@@ -160,5 +169,5 @@ ax2.set_title("FFT Speed for Off-Axis Hologram\n(after PyFFTW warmup)",
               fontsize=fontsize)
 
 plt.tight_layout()
-plt.show()
-# plt.savefig("fft_batch_speeds.png", dpi=150)
+# plt.show()
+plt.savefig("fft_batch_speeds.png", dpi=150)

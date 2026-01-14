@@ -19,10 +19,10 @@ including background data processing. From this graph, we can conclude that:
      (incl padding), but will be limited by your computer's RAM.
    - Some Notes:
       - The batch size is the size of the raw hologram 3D stack in z.
-      - Each pipeline runs 4 FFTs (Data FFT and iFFT + background Data FFT +
+      - Each pipeline runs 4 FFTs (Data FFT and iFFT + background Data FFT and
         iFFT). For example, batch size of 8 runs 8*4=32 FFTs.
-      - For CuPy, the data transfer between GPU and CPU is
-        currently very inefficient.
+      - **For CuPy, the graphs do not include the time taken to transfer
+        the GPU arrays back to the CPU.**
 
 
 In the second graph "FFT Speed for Off-Axis Hologram",
@@ -46,7 +46,7 @@ From this graph, we can conclude that:
     <https://pyfftw.readthedocs.io/en/latest/source/pyfftw/
     pyfftw.html#pyfftw.export_wisdom>`_.
 
-    *large value artifact for batch size 8 for FFTFilterCupy removed
+    ***large value artifact** for batch size 8 for FFTFilterCupy removed
     from graph for between comparison
 
 .. admonition:: Notes on used CPU and GPU

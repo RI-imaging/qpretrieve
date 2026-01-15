@@ -163,7 +163,8 @@ ax1, ax2 = axes
 
 # setup plot for batch speed comparison
 multiplier = -0.5  # for the x_label positions
-for (name, speed), color, hatch in zip(speed_batch_norms.items(), colors, hatches):
+for (name, speed), color, hatch in zip(speed_batch_norms.items(),
+                                       colors, hatches):
     offset = width * multiplier
     ax1.bar(x_pos + offset, speed, width, label=name,
             color=color, edgecolor=edgecolor, hatch=hatch)

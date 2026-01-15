@@ -1,4 +1,4 @@
-import numpy as np
+from ._ndarray_backend import xp
 
 
 def _mean_2d(data):
@@ -7,27 +7,27 @@ def _mean_2d(data):
     return data
 
 
-def mean_3d(data: np.ndarray) -> np.ndarray:
+def mean_3d(data: xp.ndarray) -> xp.ndarray:
     """
     Subtract mean inplace from 3D array `data` for every
     2D array along z axis.
     """
     # The mean array here is (1000,), so we need to add newaxes for subtraction
     # (1000, 5, 5) -= (1000, 1, 1)
-    data -= data.mean(axis=(-2, -1))[:, np.newaxis, np.newaxis]
+    data -= data.mean(axis=(-2, -1))[:, xp.newaxis, xp.newaxis]
     return data
 
 
 def _padding_2d(data, order, dtype):
     """Exists for testing against padding_3d"""
-    # this is faster than np.pad
-    datapad = np.zeros((order, order), dtype=dtype)
-    # we could of course use np.atleast_3d here
+    # this is faster than xp.pad
+    datapad = xp.zeros((order, order), dtype=dtype)
+    # we could of course use xp.atleast_3d here
     datapad[:data.shape[0], :data.shape[1]] = data
     return datapad
 
 
-def padding_3d(data: np.ndarray, size: int, dtype: np.dtype) -> np.ndarray:
+def padding_3d(data: xp.ndarray, size: int, dtype: xp.dtype) -> xp.ndarray:
     """Pad a 3D array in the second and third dimensions (y, x) to `size`
 
     Parameters
@@ -41,7 +41,7 @@ def padding_3d(data: np.ndarray, size: int, dtype: np.dtype) -> np.ndarray:
 
     """
     z, y, x = data.shape
-    # this is faster than np.pad
-    datapad = np.zeros((z, size, size), dtype=dtype)
+    # this is faster than xp.pad
+    datapad = xp.zeros((z, size, size), dtype=dtype)
     datapad[:, :y, :x] = data
     return datapad

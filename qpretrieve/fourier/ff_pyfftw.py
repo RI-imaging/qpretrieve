@@ -1,8 +1,7 @@
 import multiprocessing as mp
-import numpy as np
-
 import pyfftw
 
+from .._ndarray_backend import xp
 from .base import FFTFilter
 
 
@@ -11,12 +10,12 @@ class FFTFilterPyFFTW(FFTFilter):
     """
     is_available = True
 
-    def _init_fft(self, data: np.ndarray) -> np.ndarray:
+    def _init_fft(self, data: xp.ndarray) -> xp.ndarray:
         """Perform initial Fourier transform of the input data
 
         Parameters
         ----------
-        data: 2d real-valued np.ndarray
+        data: 2d real-valued xp.ndarray
             Input field to be refocused
 
         Returns
@@ -33,7 +32,7 @@ class FFTFilterPyFFTW(FFTFilter):
         fft_obj()
         return out_arr
 
-    def _ifft(self, data: np.ndarray) -> np.ndarray:
+    def _ifft(self, data: xp.ndarray) -> xp.ndarray:
         """Perform inverse Fourier transform"""
         in_arr = pyfftw.empty_aligned(data.shape, dtype='complex128')
         out_arr = pyfftw.empty_aligned(data.shape, dtype='complex128')

@@ -1,9 +1,11 @@
 """
 Module that provides convenience functions for converting data between
 array layouts.
+
+.. versionadded:: 0.4.0
 """
 
-import numpy as np
+from ._ndarray_backend import xp
 
 
 def get_allowed_array_layouts() -> list:
@@ -16,7 +18,7 @@ def get_allowed_array_layouts() -> list:
 
 
 def convert_data_to_3d_array_layout(
-        data: np.ndarray) -> tuple[np.ndarray, str]:
+        data: xp.ndarray) -> tuple[xp.ndarray, str]:
     """Convert the data to the 3d array_layout
 
     Returns
@@ -55,12 +57,12 @@ def convert_data_to_3d_array_layout(
 
 
 def convert_3d_data_to_array_layout(
-        data: np.ndarray, array_layout: str) -> np.ndarray:
+        data: xp.ndarray, array_layout: str) -> xp.ndarray:
     """Convert the 3d data to the desired `array_layout`.
 
     Returns
     -------
-    data_out : np.ndarray
+    data_out : xp.ndarray
         input `data` with the given `array layout`
 
     Notes
@@ -87,36 +89,36 @@ def convert_3d_data_to_array_layout(
     return data
 
 
-def _convert_rgb_to_3d(data_input: np.ndarray) -> tuple[np.ndarray, str]:
+def _convert_rgb_to_3d(data_input: xp.ndarray) -> tuple[xp.ndarray, str]:
     data = data_input[:, :, 0]
-    data = data[np.newaxis, :, :]
+    data = data[xp.newaxis, :, :]
     array_layout = "rgb"
     return data, array_layout
 
 
-def _convert_rgba_to_3d(data_input: np.ndarray) -> tuple[np.ndarray, str]:
+def _convert_rgba_to_3d(data_input: xp.ndarray) -> tuple[xp.ndarray, str]:
     data, _ = _convert_rgb_to_3d(data_input)
     array_layout = "rgba"
     return data, array_layout
 
 
-def _convert_2d_to_3d(data_input: np.ndarray) -> tuple[np.ndarray, str]:
-    data = data_input[np.newaxis, :, :]
+def _convert_2d_to_3d(data_input: xp.ndarray) -> tuple[xp.ndarray, str]:
+    data = data_input[xp.newaxis, :, :]
     array_layout = "2d"
     return data, array_layout
 
 
-def _convert_3d_to_rgb(data_input: np.ndarray) -> np.ndarray:
+def _convert_3d_to_rgb(data_input: xp.ndarray) -> xp.ndarray:
     data = data_input[0]
-    data = np.dstack((data, data, data))
+    data = xp.dstack((data, data, data))
     return data
 
 
-def _convert_3d_to_rgba(data_input: np.ndarray) -> np.ndarray:
+def _convert_3d_to_rgba(data_input: xp.ndarray) -> xp.ndarray:
     data = data_input[0]
-    data = np.dstack((data, data, data, np.ones_like(data)))
+    data = xp.dstack((data, data, data, xp.ones_like(data)))
     return data
 
 
-def _convert_3d_to_2d(data_input: np.ndarray) -> np.ndarray:
+def _convert_3d_to_2d(data_input: xp.ndarray) -> xp.ndarray:
     return data_input[0]

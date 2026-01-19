@@ -8,4 +8,5 @@ Getting started
   sec_installation
   sec_basic_use
   sec_array_layout
+  sec_ndarray_backend
   sec_userapi

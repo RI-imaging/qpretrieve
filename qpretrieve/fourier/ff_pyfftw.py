@@ -9,6 +9,7 @@ class FFTFilterPyFFTW(FFTFilter):
     """Fourier transform using `PyFFTW <https://pyfftw.readthedocs.io/>`_
     """
     is_available = True
+    expected_backend = "numpy"
 
     def _init_fft(self, data: xp.ndarray) -> xp.ndarray:
         """Perform initial Fourier transform of the input data

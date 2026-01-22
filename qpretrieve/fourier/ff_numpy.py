@@ -7,6 +7,7 @@ class FFTFilterNumpy(FFTFilter):
     """
     # always available, because numpy is a dependency
     is_available = True
+    expected_backend = "numpy"
 
     def _init_fft(self, data: xp.ndarray) -> xp.ndarray:
         """Perform initial Fourier transform of the input data

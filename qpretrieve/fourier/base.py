@@ -178,7 +178,7 @@ class FFTFilter(ABC):
         if xp.backend_name() != self.expected_backend:
             msg_corr = (
                 "To set the correct ndarray backend, use "
-                f"`qpretrieve.set_ndarray_backend('{self.expected_backend}')`.")
+                f"`qpretrieve.set_ndarray_backend('{self.expected_backend}')`")
 
             if self.incompatible_backend:
                 msg_err = (

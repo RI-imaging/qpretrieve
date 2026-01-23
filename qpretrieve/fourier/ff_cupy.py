@@ -13,6 +13,8 @@ class FFTFilterCupy(FFTFilter):
 
     """
     is_available = True
+    expected_backend = "cupy"
+    incompatible_backend = None
 
     def _init_fft(self, data):
         """Perform initial Fourier transform of the input data

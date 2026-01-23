@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 import weakref
+import warnings
 
-from .._ndarray_backend import xp
+from .._ndarray_backend import xp, NDArrayBackendWarning
 from .. import filter
 from ..utils import padding_3d, mean_3d
 from ..data_array_layout import convert_data_to_3d_array_layout
@@ -121,6 +122,7 @@ class FFTFilter(ABC):
             #: frequency-shifted Fourier transform
             self.fft_origin = fft_data
         else:
+            self.expected_backend_check()
             #: frequency-shifted Fourier transform
             self.fft_origin = xp.fft.fftshift(
                 self._init_fft(data_ed), axes=(-2, -1))
@@ -166,6 +168,30 @@ class FFTFilter(ABC):
         fft_fdata: 2d complex-valued ndarray
             Fourier transform `data`
         """
+
+    def expected_backend_check(self):
+        """
+        Warn if the FFTFilter superclass doesn't match expected backend.
+        Raise an Error if the FFTFilterPyFFTW is used with `numpy` backend.
+        """
+
+        if xp.backend_name() != self.expected_backend:
+            msg_corr = (
+                "To set the correct ndarray backend, use "
+                f"`qpretrieve.set_ndarray_backend('{self.expected_backend}')`")
+
+            if self.incompatible_backend:
+                msg_err = (
+                    f"You cannot use the '{self.incompatible_backend}' "
+                    f"ndarray backend with `{self.__class__.__name__}`. ")
+                raise NDArrayBackendWarning(msg_err + msg_corr)
+
+            else:
+                msg_warn = (
+                    f"You are using `{self.__class__.__name__}` with the "
+                    f"'{xp.backend_name()}' ndarray backend. This might limit "
+                    f"the FFT speed. ")
+                warnings.warn(msg_warn + msg_corr, NDArrayBackendWarning)
 
     def filter(self, filter_name: str, filter_size: float,
                freq_pos: (float, float),

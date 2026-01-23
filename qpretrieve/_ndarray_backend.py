@@ -41,6 +41,9 @@ class NDArrayBackend:
         """Delegate unknown attributes to the backend module."""
         return getattr(self._xp, name)
 
+    def backend_name(self):
+        return self._xp.__name__
+
     def is_numpy(self):
         return self._xp.__name__.startswith("numpy")
 
@@ -61,7 +64,8 @@ class NDArrayBackend:
 
 
 class NDArrayBackendWarning(UserWarning):
-    pass
+    def __init__(self, message):
+        self.message = message
 
 
 # Export a single global proxy instance

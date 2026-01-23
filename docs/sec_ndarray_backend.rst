@@ -40,7 +40,8 @@ currently in use just run :func:`qpretrieve.get_ndarray_backend()`.
 		- 	``'cupy'`` backend works as expected with the :class:`.FFTFilterCupy`
 			and :class:`.FFTFilterNumpy` classes. This is because NumPy is
 			`quite clever <https://numpy.org/doc/stable/user/basics.interoperability.html#example-cupy-arrays>`_.
-
+			The :class:`.FFTFilterPyFFTW` class will raise an Error if used
+			with the ``'cupy'`` backend.
 
 
 .. code-block:: python

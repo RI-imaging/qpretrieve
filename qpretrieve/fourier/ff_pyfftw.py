@@ -10,6 +10,8 @@ class FFTFilterPyFFTW(FFTFilter):
     """
     is_available = True
     expected_backend = "numpy"
+    # pyfftw can't used `cupy` ndarrays
+    incompatible_backend = "cupy"
 
     def _init_fft(self, data: xp.ndarray) -> xp.ndarray:
         """Perform initial Fourier transform of the input data

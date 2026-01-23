@@ -132,8 +132,8 @@ def test_fftfilter_backend_mismatch(hologram):
             NDArrayBackendWarning,
             match=rf"You are using `{fft_interface.__name__}` "
                   rf"with the '{wrong_backend}' ndarray backend. This might "
-                  rf"limit the FFT speed. To set the correct ndarray backend, "
-                  rf"use "
+                  rf"limit the FFT speed. "
+                  rf"To set the correct ndarray backend, use "
                   rf"`qpretrieve.set_ndarray_backend\('{expected_backend}'\)`"
     ):
         _ = qpretrieve.OffAxisHologram(hologram,
@@ -145,10 +145,11 @@ def test_fftfilter_backend_mismatch(hologram):
     fft_interface = FFTFilterPyFFTW
     qpretrieve.set_ndarray_backend(wrong_backend)
     with pytest.raises(
-            TypeError,
-            match=r"Implicit conversion to a NumPy array is not "
-                  r"allowed. Please use `.get\(\)` to construct a "
-                  r"NumPy array explicitly"
+            NDArrayBackendWarning,
+            match=rf"You cannot use the '{wrong_backend}' "
+                  rf"ndarray backend with `{fft_interface.__name__}`. "
+                  rf"To set the correct ndarray backend, use "
+                  rf"`qpretrieve.set_ndarray_backend\('{expected_backend}'\)`"
     ):
         _ = qpretrieve.OffAxisHologram(hologram,
                                        fft_interface=fft_interface,

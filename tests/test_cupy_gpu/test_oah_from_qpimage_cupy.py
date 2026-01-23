@@ -116,7 +116,8 @@ def test_fftfilter_backend_mismatch(hologram):
             match=rf"You are using `{fft_interface.__name__}` "
                   rf"with the '{wrong_backend}' ndarray backend. This might "
                   rf"limit the FFT speed. To set the correct ndarray backend, "
-                  rf"use `qpretrieve.set_ndarray_backend\('{expected_backend}'\)`"
+                  rf"use "
+                  rf"`qpretrieve.set_ndarray_backend\('{expected_backend}'\)`"
     ):
         _ = qpretrieve.OffAxisHologram(hologram,
                                        fft_interface=fft_interface,
@@ -132,7 +133,8 @@ def test_fftfilter_backend_mismatch(hologram):
             match=rf"You are using `{fft_interface.__name__}` "
                   rf"with the '{wrong_backend}' ndarray backend. This might "
                   rf"limit the FFT speed. To set the correct ndarray backend, "
-                  rf"use `qpretrieve.set_ndarray_backend\('{expected_backend}'\)`"
+                  rf"use "
+                  rf"`qpretrieve.set_ndarray_backend\('{expected_backend}'\)`"
     ):
         _ = qpretrieve.OffAxisHologram(hologram,
                                        fft_interface=fft_interface,

@@ -122,7 +122,7 @@ class FFTFilter(ABC):
             #: frequency-shifted Fourier transform
             self.fft_origin = fft_data
         else:
-            self.expected_backend_check()
+            self.backend_check()
             #: frequency-shifted Fourier transform
             self.fft_origin = xp.fft.fftshift(
                 self._init_fft(data_ed), axes=(-2, -1))
@@ -169,20 +169,23 @@ class FFTFilter(ABC):
             Fourier transform `data`
         """
 
-    def expected_backend_check(self):
+    def backend_check(self):
         """
         Warn if the FFTFilter superclass doesn't match expected backend.
         Raise an Error if the FFTFilterPyFFTW is used with `numpy` backend.
+
+        .. versionadded:: 0.6.1
+
         """
 
-        if xp.backend_name() != self.expected_backend:
+        if xp.backend_name() != self.backend_expected:
             msg_corr = (
                 "To set the correct ndarray backend, use "
-                f"`qpretrieve.set_ndarray_backend('{self.expected_backend}')`")
+                f"`qpretrieve.set_ndarray_backend('{self.backend_expected}')`")
 
-            if self.incompatible_backend:
+            if self.backend_incompatible:
                 msg_err = (
-                    f"You cannot use the '{self.incompatible_backend}' "
+                    f"You cannot use the '{self.backend_incompatible}' "
                     f"ndarray backend with `{self.__class__.__name__}`. ")
                 raise NDArrayBackendWarning(msg_err + msg_corr)
 

@@ -108,7 +108,7 @@ def test_fftfilter_backend_mismatch(hologram):
     """Shows how a FFTFilter and ndarray backend mismatch creates a warning"""
     # this works but provides a user warning
     wrong_backend = "numpy"
-    expected_backend = "cupy"
+    backend_expected = "cupy"
     fft_interface = FFTFilterCupy
     qpretrieve.set_ndarray_backend(wrong_backend)
     with pytest.warns(
@@ -117,14 +117,14 @@ def test_fftfilter_backend_mismatch(hologram):
                   rf"with the '{wrong_backend}' ndarray backend. This might "
                   rf"limit the FFT speed. To set the correct ndarray backend, "
                   rf"use "
-                  rf"`qpretrieve.set_ndarray_backend\('{expected_backend}'\)`"
+                  rf"`qpretrieve.set_ndarray_backend\('{backend_expected}'\)`"
     ):
         _ = qpretrieve.OffAxisHologram(hologram,
                                        fft_interface=fft_interface,
                                        padding=False)
 
     # this works but provides a user warning
-    expected_backend = "numpy"
+    backend_expected = "numpy"
     wrong_backend = "cupy"
     fft_interface = FFTFilterNumpy
     qpretrieve.set_ndarray_backend(wrong_backend)
@@ -134,7 +134,7 @@ def test_fftfilter_backend_mismatch(hologram):
                   rf"with the '{wrong_backend}' ndarray backend. This might "
                   rf"limit the FFT speed. "
                   rf"To set the correct ndarray backend, use "
-                  rf"`qpretrieve.set_ndarray_backend\('{expected_backend}'\)`"
+                  rf"`qpretrieve.set_ndarray_backend\('{backend_expected}'\)`"
     ):
         _ = qpretrieve.OffAxisHologram(hologram,
                                        fft_interface=fft_interface,
@@ -149,7 +149,7 @@ def test_fftfilter_backend_mismatch(hologram):
             match=rf"You cannot use the '{wrong_backend}' "
                   rf"ndarray backend with `{fft_interface.__name__}`. "
                   rf"To set the correct ndarray backend, use "
-                  rf"`qpretrieve.set_ndarray_backend\('{expected_backend}'\)`"
+                  rf"`qpretrieve.set_ndarray_backend\('{backend_expected}'\)`"
     ):
         _ = qpretrieve.OffAxisHologram(hologram,
                                        fft_interface=fft_interface,

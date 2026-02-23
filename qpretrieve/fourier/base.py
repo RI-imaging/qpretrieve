@@ -169,6 +169,11 @@ class FFTFilter(ABC):
             Fourier transform `data`
         """
 
+    @property
+    @abstractmethod
+    def backend_expected(self):
+        """All FFTFilter subclasses must have this"""
+
     def backend_check(self):
         """
         Warn if the FFTFilter superclass doesn't match expected backend.

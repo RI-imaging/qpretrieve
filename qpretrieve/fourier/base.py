@@ -40,7 +40,8 @@ class FFTFilter(ABC):
                  data: xp.ndarray,
                  subtract_mean: bool = True,
                  padding: int = 2,
-                 copy: bool = True) -> None:
+                 copy: bool = True,
+                 dtype_conversion = None) -> None:
         r"""
         Parameters
         ----------
@@ -65,6 +66,13 @@ class FFTFilter(ABC):
             If set to True, make sure that `data` is not edited.
             If you set this to False, then caching FFT results will not
             work anymore.
+        dtype_conversion
+            The dtype that should be used to convert the input data before
+            preprocessing occurs. This defaults to ``complex`` if the input
+            data is complex, otherwise to ``float`` (64-bit) for all
+            other situations. For some use-cases, for example when
+            using a GPU, you might want to be more specific
+            e.g., ``cp.float32``.
 
         Notes
         -----
@@ -73,15 +81,17 @@ class FFTFilter(ABC):
         """
         super(FFTFilter, self).__init__()
         # check dtype
-        if xp.iscomplexobj(data):
-            dtype = complex
-        else:
-            # convert integer-arrays to floating point arrays
-            dtype = float
+        if dtype_conversion is None:
+            # check dtype
+            if xp.iscomplexobj(data):
+                dtype_conversion = complex
+            else:
+                # convert integer-arrays to floating point arrays
+                dtype_conversion = float
         if not copy:
             # numpy v2.x behaviour requires asarray with copy=False
             copy = None
-        data_ed = xp.array(data, dtype=dtype, copy=copy)
+        data_ed = xp.array(data, dtype=dtype_conversion, copy=copy)
         # figure out what type of data we have, change it to 3d-stack
         data_ed, self.orig_array_layout = convert_data_to_3d_array_layout(
             data_ed)
@@ -103,7 +113,7 @@ class FFTFilter(ABC):
             order = xp.ceil(logfact / xp.log(2))
             size = int(2 ** order)
 
-            datapad = padding_3d(data_ed, size, dtype)
+            datapad = padding_3d(data_ed, size, dtype_conversion)
             #: padded input data
             self.origin_padded = datapad
             data_ed = datapad

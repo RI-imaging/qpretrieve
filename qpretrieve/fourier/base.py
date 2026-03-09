@@ -81,17 +81,18 @@ class FFTFilter(ABC):
         """
         super(FFTFilter, self).__init__()
         # check dtype
-        if dtype_conversion is None:
+        self.dtype_conversion = dtype_conversion
+        if self.dtype_conversion is None:
             # check dtype
             if xp.iscomplexobj(data):
-                dtype_conversion = complex
+                self.dtype_conversion = complex
             else:
                 # convert integer-arrays to floating point arrays
-                dtype_conversion = float
+                self.dtype_conversion = float
         if not copy:
             # numpy v2.x behaviour requires asarray with copy=False
             copy = None
-        data_ed = xp.array(data, dtype=dtype_conversion, copy=copy)
+        data_ed = xp.array(data, dtype=self.dtype_conversion, copy=copy)
         # figure out what type of data we have, change it to 3d-stack
         data_ed, self.orig_array_layout = convert_data_to_3d_array_layout(
             data_ed)
@@ -113,7 +114,7 @@ class FFTFilter(ABC):
             order = xp.ceil(logfact / xp.log(2))
             size = int(2 ** order)
 
-            datapad = padding_3d(data_ed, size, dtype_conversion)
+            datapad = padding_3d(data_ed, size, self.dtype_conversion)
             #: padded input data
             self.origin_padded = datapad
             data_ed = datapad
@@ -232,6 +233,7 @@ class FFTFilter(ABC):
                                 str(self.shape),
                                 str(self.fft_origin.shape),
                                 str(scale_to_filter),
+                                str(self.dtype_conversion),
                                 ])
 
         inv_data = FFTCache.get_item(weakref_key)
@@ -247,6 +249,7 @@ class FFTFilter(ABC):
                 freq_pos=freq_pos,
                 # only take shape of a single fft
                 fft_shape=self.fft_origin.shape[-2:])
+            filt_array = filt_array.astype(self.dtype_conversion)
             fft_filtered = self.fft_origin * filt_array
             px = int(freq_pos[0] * self.shape[-2])
             py = int(freq_pos[1] * self.shape[-1])

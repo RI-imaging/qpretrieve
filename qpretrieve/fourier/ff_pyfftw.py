@@ -23,8 +23,9 @@ class FFTFilterPyFFTW(FFTFilter):
         fft_fdata: 2d complex-valued ndarray
             Fourier transform `data`
         """
-        in_arr = pyfftw.empty_aligned(data.shape, dtype='complex128')
-        out_arr = pyfftw.empty_aligned(data.shape, dtype='complex128')
+        dtype_out = self._result_type(data.dtype)
+        in_arr = pyfftw.empty_aligned(data.shape, dtype=dtype_out)
+        out_arr = pyfftw.empty_aligned(data.shape, dtype=dtype_out)
         fft_obj = pyfftw.FFTW(in_arr, out_arr,
                               axes=(-2, -1),
                               threads=mp.cpu_count())
@@ -34,11 +35,20 @@ class FFTFilterPyFFTW(FFTFilter):
 
     def _ifft(self, data: xp.ndarray) -> xp.ndarray:
         """Perform inverse Fourier transform"""
-        in_arr = pyfftw.empty_aligned(data.shape, dtype='complex128')
-        out_arr = pyfftw.empty_aligned(data.shape, dtype='complex128')
+        dtype_out = self._result_type(data.dtype)
+        in_arr = pyfftw.empty_aligned(data.shape, dtype=dtype_out)
+        out_arr = pyfftw.empty_aligned(data.shape, dtype=dtype_out)
         fft_obj = pyfftw.FFTW(in_arr, out_arr, axes=(-2, -1),
                               direction="FFTW_BACKWARD",
                               )
         in_arr[:] = data
         fft_obj()
         return out_arr
+
+    def _result_type(self, dtype_in) -> xp.dtype:
+        """Wrapper on `np.result_type` to provide correct fft dtype"""
+        dtype_out = xp.complex128
+        if dtype_in != xp.float64:
+            dtype_out = xp.result_type(
+                xp.fft.fft(xp.arange(1, dtype=dtype_in)))
+        return dtype_out

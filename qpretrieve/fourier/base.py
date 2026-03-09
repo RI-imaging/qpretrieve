@@ -41,7 +41,7 @@ class FFTFilter(ABC):
                  subtract_mean: bool = True,
                  padding: int = 2,
                  copy: bool = True,
-                 dtype_conversion = None) -> None:
+                 dtype_conversion=None) -> None:
         r"""
         Parameters
         ----------

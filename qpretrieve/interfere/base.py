@@ -27,6 +27,7 @@ class BaseInterferogram(ABC):
     def __init__(self, data: xp.ndarray,
                  fft_interface: str | Type[FFTFilter] = "auto",
                  subtract_mean=True, padding=2, copy=True,
+                 dtype_conversion=None,
                  **pipeline_kws) -> None:
         """
         Parameters
@@ -57,6 +58,13 @@ class BaseInterferogram(ABC):
                 2 ** xp.ceil(xp.log(padding * max(data.shape) / xp.log(2)))
         copy: bool
             Whether to create a copy of the input data.
+        dtype_conversion
+            The dtype that should be used to convert the input data before
+            preprocessing occurs. This defaults to ``complex`` if the input
+            data is complex, otherwise to ``float`` (64-bit) for all
+            other situations. For some use-cases, for example when
+            using a GPU, you might want to be more specific
+            e.g., ``cp.float32``.
         pipeline_kws:
             Any additional keyword arguments for :func:`run_pipeline`
             as defined in :const:`default_pipeline_kws`.
@@ -99,7 +107,8 @@ class BaseInterferogram(ABC):
         self.fft = self.ff_iface(data=data,
                                  subtract_mean=subtract_mean,
                                  padding=padding,
-                                 copy=copy)
+                                 copy=copy,
+                                 dtype_conversion=dtype_conversion)
         #: originally computed Fourier transform
         self.fft_origin = self.fft.fft_origin
         #: filtered Fourier data from last run of `run_pipeline`

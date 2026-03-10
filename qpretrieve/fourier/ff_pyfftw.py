@@ -44,11 +44,3 @@ class FFTFilterPyFFTW(FFTFilter):
         in_arr[:] = data
         fft_obj()
         return out_arr
-
-    def _result_type(self, dtype_in) -> xp.dtype:
-        """Wrapper on `np.result_type` to provide correct fft dtype"""
-        dtype_out = xp.complex128
-        if dtype_in != xp.float64:
-            dtype_out = xp.result_type(
-                xp.fft.fft(xp.arange(1, dtype=dtype_in)))
-        return dtype_out

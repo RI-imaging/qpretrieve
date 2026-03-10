@@ -125,7 +125,8 @@ class FFTFilter(ABC):
         weakref_key = "-".join([str(hex(id(data))),
                                 str(self.__class__.__name__),
                                 str(subtract_mean),
-                                str(padding)])
+                                str(padding),
+                                str(self.dtype_conversion)])
         # Attempt to get the FFT data from a previous run
         fft_data = FFTCache.get_item(weakref_key)
         if fft_data is not None:
@@ -291,3 +292,11 @@ class FFTFilter(ABC):
         self.fft_filtered[:] = fft_filtered
         self.fft_used = fft_used
         return field
+
+    def _result_type(self, dtype_in) -> xp.dtype:
+        """Wrapper on `np.result_type` to provide correct fft dtype"""
+        dtype_out = xp.complex128
+        if dtype_in != xp.float64:
+            dtype_out = xp.result_type(
+                xp.fft.fft(xp.arange(1, dtype=dtype_in)))
+        return dtype_out

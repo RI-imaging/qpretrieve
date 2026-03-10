@@ -207,9 +207,12 @@ class QLSInterferogram(BaseInterferogram):
         # (integrate the total differential). This magical approach
         # puts the x gradient in the real and the y gradient in the imaginary
         # part.
-        rfft = self.ff_iface(data=rotated1 + 1j * rotated2,
+        complex_type = self.fft._result_type(self.fft.dtype_conversion)
+        # create directly with the specified dtype to possibly save memory
+        data_input = xp.array(rotated1 + 1j * rotated2, dtype=complex_type)
+        rfft = self.ff_iface(data=data_input,
                              subtract_mean=False, padding=False, copy=False,
-                             dtype_conversion=self.fft.dtype_conversion)
+                             dtype_conversion=complex_type)
         # Compute the frequencies that correspond to the frequencies of the
         # Fourier-transformed image.
         fx = xp.fft.fftfreq(rfft.shape[-2]).reshape(-1, 1).astype(

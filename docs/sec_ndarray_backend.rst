@@ -15,7 +15,8 @@ ndarrays in qpretrieve during runtime. By default it is set to ``'numpy'``.
 
 If you are using the :class:`.FFTFilterCupy` fft interface, it is
 recommended to set the backend to ``'cupy'``. See the script below and
-the benchmarking example ``fft_batch_speeds.py`` in the examples folder
+the benchmarking example
+``fft_batch_speeds.py`` in the :ref:`sec_examples` folder
 for details on how to do this.
 For more info, see the `CuPy library <https://cupy.dev/>`_.
 
@@ -27,6 +28,21 @@ Controlling the ndarray backend
 ``qpretrieve`` allows users to swap between these backends with the
 :func:`qpretrieve.set_ndarray_backend()` function. To check which backend is
 currently in use just run :func:`qpretrieve.get_ndarray_backend()`.
+
+.. admonition:: Matching the NDArray Backend with the FFTFilter
+
+	Always try to match the NDArray Backend with the FFTFilter, as shown in
+	the example below, otherwise you will run into warnings or errors.
+
+	To summarise:
+		- 	``'numpy'`` (default) backend works as expected with the
+			:class:`.FFTFilterNumpy` and :class:`.FFTFilterPyFFTW` classes.
+		- 	``'cupy'`` backend works as expected with the :class:`.FFTFilterCupy`
+			and :class:`.FFTFilterNumpy` classes. This is because NumPy is
+			`quite clever <https://numpy.org/doc/stable/user/basics.interoperability.html#example-cupy-arrays>`_.
+			The :class:`.FFTFilterPyFFTW` class will raise an Error if used
+			with the ``'cupy'`` backend.
+
 
 .. code-block:: python
 

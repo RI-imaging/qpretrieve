@@ -139,8 +139,7 @@ class QLSInterferogram(BaseInterferogram):
             qlsi_pitch_term = 1
 
         # get pitch ratio
-        wavelength = xp.asarray([pipeline_kws["wavelength"]],
-                                dtype=self.fft.dtype_conversion)
+        wavelength = self.fft.dtype_conversion(pipeline_kws["wavelength"])
         if wavelength is None:
             warnings.warn("No `wavelength` specified! Your phase data "
                           "is only qualitative, not quantitatively correct!")

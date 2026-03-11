@@ -9,6 +9,8 @@ from qpretrieve.data_array_layout import (
     convert_data_to_3d_array_layout
 )
 
+from .helper_methods import skip_if_missing
+
 data_path = pathlib.Path(__file__).parent / "data"
 
 
@@ -212,3 +214,38 @@ def test_fxy_complex_mul(hologram):
 
     assert np.array_equal(fx_2d, fx_3d)
     assert np.array_equal(fxy_2d, fxy_3d[0])
+
+
+@skip_if_missing("pyfftw")
+def test_qlsi_input_data_dtype_conversion():
+    """Use different dtype conversions for the input data"""
+    with h5py.File(data_path / "qlsi_paa_bead.h5") as h5:
+        for iface in [qpretrieve.fourier.FFTFilterNumpy,
+                      qpretrieve.fourier.FFTFilterPyFFTW]:
+            qlsi1 = qpretrieve.QLSInterferogram(
+                data=h5["0"][:],
+                fft_interface=iface,
+                dtype_conversion=None,
+                reference=h5["reference"][:], filter_name="tukey",
+                filter_size=180, filter_size_interpretation="frequency index",
+                wavelength=h5["0"].attrs["wavelength"],
+                qlsi_pitch_term=h5["0"].attrs["qlsi_pitch_term"],
+            )
+            res1 = qlsi1.run_pipeline()
+
+            # use float32 e.g. for GPU data transfer
+            qlsi2 = qpretrieve.QLSInterferogram(
+                data=h5["0"][:],
+                fft_interface=iface,
+                dtype_conversion=np.float32,
+                reference=h5["reference"][:], filter_name="tukey",
+                filter_size=180, filter_size_interpretation="frequency index",
+                wavelength=h5["0"].attrs["wavelength"],
+                qlsi_pitch_term=h5["0"].attrs["qlsi_pitch_term"],
+            )
+            res2 = qlsi2.run_pipeline()
+
+            assert res1.dtype == np.float64
+            assert res2.dtype == np.float32
+            assert qlsi1.fft_origin.dtype == np.complex128
+            assert qlsi2.fft_origin.dtype == np.complex64

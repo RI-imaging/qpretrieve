@@ -7,6 +7,7 @@ import numpy as np
 from skimage.restoration import unwrap_phase
 from scipy import signal
 
+import qpretrieve
 from qpretrieve import fourier, interfere
 
 from .helper_methods import skip_if_missing
@@ -138,6 +139,57 @@ def test_bad_fft_interface_input():
                   "If you want qpretrieve to find the best FFT interface "
                   "for you, set `fft_interface='auto'`."):
         interfere.OffAxisHologram(image, fft_interface=None)
+
+
+@skip_if_missing("pyfftw")
+def test_input_data_dtype_conversion():
+    """Use different dtype conversions for the input data"""
+    # create a 2D gaussian test image
+    x = np.linspace(-100, 100, 100)
+    xx, yy = np.meshgrid(x, -x, indexing="ij")
+    gauss = np.exp(-(xx ** 2 + yy ** 2) / 625)
+
+    for iface in [fourier.FFTFilterNumpy, fourier.FFTFilterPyFFTW]:
+        # default value (defaults to float 64 bit)
+        ft1 = iface(gauss, dtype_conversion=None)
+
+        # use float32 e.g. for GPU data transfer
+        ft2 = iface(gauss.copy(), dtype_conversion=np.float32)
+
+        assert ft1.origin.dtype == np.float64
+        assert ft1.fft_origin.dtype == np.complex128
+        assert ft2.origin.dtype == np.float32
+        assert ft2.fft_origin.dtype == np.complex64
+        # absolute tolerance is about 0.0001
+        assert np.allclose(ft1.fft_origin, ft2.fft_origin, atol=1e-4)
+        assert not np.allclose(ft1.fft_origin, ft2.fft_origin, atol=1e-5)
+
+
+@skip_if_missing("cupy")
+def test_input_data_dtype_conversion_cupy():
+    """Use different dtype conversions for the input data for cupy"""
+    # create a 2D gaussian test image
+    x = np.linspace(-100, 100, 100)
+    xx, yy = np.meshgrid(x, -x, indexing="ij")
+    gauss = np.exp(-(xx ** 2 + yy ** 2) / 625)
+
+    qpretrieve.set_ndarray_backend("cupy")
+
+    # default value (defaults to float 64 bit)
+    ft1 = fourier.FFTFilterCupy(gauss, dtype_conversion=None)
+
+    # use float32 e.g. for GPU data transfer
+    # one can use np.float32, even if using cupy (numpy is SMRT)
+    ft2 = fourier.FFTFilterCupy(gauss.copy(), dtype_conversion=np.float32)
+
+    # these checks work, even though our dtypes are actually cupy
+    assert ft1.origin.dtype == np.float64
+    assert ft1.fft_origin.dtype == np.complex128
+    assert ft2.origin.dtype == np.float32
+    assert ft2.fft_origin.dtype == np.complex64
+    # absolute tolerance is about 0.0001
+    assert np.allclose(ft1.fft_origin, ft2.fft_origin, atol=1e-4)
+    assert not np.allclose(ft1.fft_origin, ft2.fft_origin, atol=1e-5)
 
 
 def test_scale_to_filter_qlsi():

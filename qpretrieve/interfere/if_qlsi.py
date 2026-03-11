@@ -5,7 +5,6 @@ from skimage.restoration import unwrap_phase
 
 from .._ndarray_backend import xp
 from .base import BaseInterferogram
-from ..fourier import get_best_interface
 
 
 class QLSInterferogram(BaseInterferogram):
@@ -26,9 +25,11 @@ class QLSInterferogram(BaseInterferogram):
         super(QLSInterferogram, self).__init__(data, *args, **kwargs)
 
         if reference is not None:
-            self.fft_ref = self.ff_iface(data=reference,
-                                         subtract_mean=self.fft.subtract_mean,
-                                         padding=self.fft.padding)
+            self.fft_ref = self.ff_iface(
+                data=reference,
+                subtract_mean=self.fft.subtract_mean,
+                padding=self.fft.padding,
+                dtype_conversion=self.fft.dtype_conversion)
         else:
             self.fft_ref = None
 
@@ -138,7 +139,7 @@ class QLSInterferogram(BaseInterferogram):
             qlsi_pitch_term = 1
 
         # get pitch ratio
-        wavelength = pipeline_kws["wavelength"]
+        wavelength = self.fft.dtype_conversion(pipeline_kws["wavelength"])
         if wavelength is None:
             warnings.warn("No `wavelength` specified! Your phase data "
                           "is only qualitative, not quantitatively correct!")
@@ -177,8 +178,8 @@ class QLSInterferogram(BaseInterferogram):
         # `unwrap_phase`. If we passed the 3D stack, then skimage would
         # treat this as a 3D phase-unwrapping problem, which it is not [sic!].
         # see `tests.test_qlsi.test_qlsi_unwrap_phase_2d_3d`.
-        px = xp.zeros_like(hx, dtype=float)
-        py = xp.zeros_like(hy, dtype=float)
+        px = xp.zeros_like(hx, dtype=self.fft.dtype_conversion)
+        py = xp.zeros_like(hy, dtype=self.fft.dtype_conversion)
         for i, (_hx, _hy) in enumerate(zip(hx, hy)):
             px[i] = unwrap_phase(xp.angle(_hx))
             py[i] = unwrap_phase(xp.angle(_hy))
@@ -205,15 +206,18 @@ class QLSInterferogram(BaseInterferogram):
         # (integrate the total differential). This magical approach
         # puts the x gradient in the real and the y gradient in the imaginary
         # part.
-        ff_iface = get_best_interface()
-        rfft = ff_iface(data=rotated1 + 1j * rotated2,
-                        subtract_mean=False,
-                        padding=False,
-                        copy=False)
+        complex_type = self.fft._result_type(self.fft.dtype_conversion)
+        # create directly with the specified dtype to possibly save memory
+        data_input = xp.array(rotated1 + 1j * rotated2, dtype=complex_type)
+        rfft = self.ff_iface(data=data_input,
+                             subtract_mean=False, padding=False, copy=False,
+                             dtype_conversion=complex_type)
         # Compute the frequencies that correspond to the frequencies of the
         # Fourier-transformed image.
-        fx = xp.fft.fftfreq(rfft.shape[-2]).reshape(-1, 1)
-        fy = xp.fft.fftfreq(rfft.shape[-1]).reshape(1, -1)
+        fx = xp.fft.fftfreq(rfft.shape[-2]).reshape(-1, 1).astype(
+            self.fft.dtype_conversion)
+        fy = xp.fft.fftfreq(rfft.shape[-1]).reshape(1, -1).astype(
+            self.fft.dtype_conversion)
         fxy = -2 * xp.pi * 1j * (fx + 1j * fy)
         fxy = xp.repeat(fxy[xp.newaxis, :, :], repeats=rfft.shape[0], axis=0)
         fxy[:, 0, 0] = 1

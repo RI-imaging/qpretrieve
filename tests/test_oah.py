@@ -4,7 +4,7 @@ import pathlib
 
 import qpretrieve
 from qpretrieve.interfere import if_oah
-from qpretrieve.fourier import FFTFilterNumpy, FFTFilterPyFFTW
+from qpretrieve.fourier import FFTFilterNumpy, FFTFilterPyFFTW, FFTFilterCupy
 from qpretrieve.data_array_layout import (
     convert_data_to_3d_array_layout,
     _convert_2d_to_3d, _convert_3d_to_rgb, _convert_3d_to_rgba,
@@ -304,6 +304,65 @@ def test_field_format_consistency(hologram):
     assert np.all(res_2d == res_3d)
     assert np.all(res_2d == res_rgb)
     assert np.all(res_2d == res_rgba)
+
+
+@skip_if_missing("pyfftw")
+def test_oah_input_data_dtype_conversion(hologram):
+    """Use different dtype conversions for the input data"""
+    # create a 2D gaussian test image
+    data1 = hologram
+    kwargs = dict(filter_name="disk", filter_size=1 / 3)
+    padding = False
+
+    for iface in [FFTFilterNumpy, FFTFilterPyFFTW]:
+        # default value (defaults to float 64 bit)
+        holo1 = qpretrieve.OffAxisHologram(data1,
+                                           fft_interface=iface,
+                                           padding=padding,
+                                           dtype_conversion=None)
+        res1 = holo1.run_pipeline(**kwargs)
+
+        # use float32 e.g. for GPU data transfer
+        holo2 = qpretrieve.OffAxisHologram(data1.copy(),
+                                           fft_interface=iface,
+                                           padding=padding,
+                                           dtype_conversion=np.float32)
+        res2 = holo2.run_pipeline(**kwargs)
+
+        assert res1.dtype == np.complex128
+        assert res2.dtype == np.complex64
+        assert holo1.fft_origin.dtype == np.complex128
+        assert holo2.fft_origin.dtype == np.complex64
+
+
+@skip_if_missing("cupy")
+def test_oah_input_data_dtype_conversion_cupy(hologram):
+    """Use different dtype conversions for the input data"""
+    # create a 2D gaussian test image
+    data1 = hologram
+    kwargs = dict(filter_name="disk", filter_size=1 / 3)
+    padding = False
+
+    qpretrieve.set_ndarray_backend("cupy")
+
+    # default value (defaults to float 64 bit)
+    holo1 = qpretrieve.OffAxisHologram(data1,
+                                       fft_interface=FFTFilterCupy,
+                                       padding=padding,
+                                       dtype_conversion=None)
+    res1 = holo1.run_pipeline(**kwargs)
+
+    # use float32 e.g. for GPU data transfer
+    holo2 = qpretrieve.OffAxisHologram(data1.copy(),
+                                       fft_interface=FFTFilterCupy,
+                                       padding=padding,
+                                       dtype_conversion=np.float32)
+    res2 = holo2.run_pipeline(**kwargs)
+
+    assert res1.dtype == np.complex128
+    assert res2.dtype == np.complex64
+    assert holo1.fft_origin.dtype == np.complex128
+    assert holo2.fft_origin.dtype == np.complex64
 
 
 def test_oah_2d_vs_3d_processing():

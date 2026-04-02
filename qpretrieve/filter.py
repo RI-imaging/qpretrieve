@@ -1,5 +1,4 @@
 from functools import lru_cache
-from scipy import signal
 
 from ._ndarray_backend import xp
 
@@ -11,6 +10,17 @@ available_filters = [
     "smooth square",
     "tukey",
 ]
+
+
+def _get_signal():
+    """Return scipy.signal or cupyx.scipy.signal matching the active backend."""
+    if xp.is_cupy():
+        import cupyx.scipy.signal as signal  # type: ignore
+        sig_method = "direct"  # "full" doesn't work for >1d
+    else:
+        from scipy import signal  # type: ignore
+        sig_method = "auto"  # "direct is very slow for CPU
+    return signal, sig_method
 
 
 @lru_cache(maxsize=32)
@@ -77,6 +87,8 @@ def get_filter_array(filter_name: str,
     fxc = freq_pos[0] - fx
     fyc = freq_pos[1] - fy
 
+    signal, sig_method = _get_signal()
+
     if filter_name == "disk":
         filter_arr = (fxc ** 2 + fyc ** 2) <= filter_size ** 2
     elif filter_name == "smooth disk":
@@ -85,7 +97,8 @@ def get_filter_array(filter_name: str,
         disk = (fxc ** 2 + fyc ** 2) <= filter_size ** 2
         radsq = fx ** 2 + fy ** 2
         gauss = xp.exp(-radsq / tau)
-        filter_arr = signal.convolve(gauss, disk, mode="same")
+        filter_arr = signal.convolve(gauss, disk, mode="same",
+                                     method=sig_method)
         filter_arr /= filter_arr.max()
     elif filter_name == "gauss":
         sigma = filter_size * .6
@@ -101,7 +114,8 @@ def get_filter_array(filter_name: str,
         square = (xp.abs(fxc) <= filter_size) \
             * (xp.abs(fyc) <= filter_size)
         gauss = xp.exp(-(fx ** 2) / tau) * xp.exp(-(fy ** 2) / tau)
-        filter_arr = signal.convolve(square, gauss, mode="same")
+        filter_arr = signal.convolve(square, gauss, mode="same",
+                                     method=sig_method)
         filter_arr /= filter_arr.max()
     elif filter_name == "tukey":
         # TODO: avoid the xp.roll, instead use the indices directly

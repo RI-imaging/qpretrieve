@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import warnings
 from abc import ABC, abstractmethod
 from typing import Type
@@ -7,6 +9,11 @@ from ..fourier import get_best_interface, get_available_interfaces
 from ..fourier.base import FFTFilter
 from ..data_array_layout import (
     convert_data_to_3d_array_layout, convert_3d_data_to_array_layout
+)
+from ..roi import (
+    boxes_from_mask,
+    normalize_boxes,
+    merge_boxes,
 )
 
 
@@ -25,8 +32,8 @@ class BaseInterferogram(ABC):
     }
 
     def __init__(self, data: xp.ndarray,
-                 fft_interface: str | Type[FFTFilter] = "auto",
-                 subtract_mean=True, padding=2, copy=True,
+                 fft_interface: str | Type[FFTFilter] | None = "auto",
+                 subtract_mean=True, padding: int | bool = 2, copy=True,
                  dtype_conversion=None,
                  **pipeline_kws) -> None:
         """
@@ -49,7 +56,7 @@ class BaseInterferogram(ABC):
             the Fourier transform. This setting is recommended as it
             can reduce artifacts from frequencies around the central
             band.
-        padding: bool
+        padding
             Boundary padding with zeros; This value determines how
             large the padding region should be. If set to zero, then
             no padding is performed. If set to a positive integer, the
@@ -77,6 +84,11 @@ class BaseInterferogram(ABC):
         installed.
 
         """
+        # keep basic statistics from the raw input before preprocessing
+        try:
+            self._input_mean = float(xp.asarray(data).mean())
+        except Exception:  # pragma: no cover - defensive
+            self._input_mean = 0.0
         if fft_interface is None:
             raise BadFFTFilterError(
                 "`fft_interface` is set to None or is unavailable."
@@ -218,6 +230,115 @@ class BaseInterferogram(ABC):
     def get_pipeline_kw(self, key):
         """Current pipeline keyword argument with fallback to defaults"""
         return self.pipeline_kws.get(key, self.default_pipeline_kws[key])
+
+    def run_pipeline_rois(
+            self,
+            roi_boxes: list | tuple | None = None,
+            roi_mask: xp.ndarray | None = None,
+            background_fill: float | complex | str = "mean_input",
+            box_padding: int = 0,
+            stitch: bool = True,
+            **pipeline_kws):
+        """
+        Run the pipeline only on regions of interest and stitch
+        results back into a full-size field, or return ROI field(s)
+        directly when stitching is disabled.
+
+        Parameters
+        ----------
+        roi_boxes:
+            Iterable of bounding boxes ``(y0, y1, x0, x1)`` or slice tuples.
+            Coordinates follow NumPy's half-open convention ``[start, end)``.
+        roi_mask:
+            Boolean mask matching the input image shape. A single bounding
+            box is inferred around the non-zero region.
+        background_fill:
+            Fill value outside all ROIs. Use ``"mean_input"`` (default) to
+            fill with the mean of the original input data, ``"zero"`` for
+            zeros, or pass a numeric value.
+        box_padding:
+            Optional padding (in pixels) added around each ROI box.
+        stitch:
+            If True (default), stitch ROI results back into a full-size
+            field. If False, ROI results are returned without stitching.
+            When ``stitch=False``, exactly one ROI box is required.
+
+        Returns
+        -------
+        field : xp.ndarray
+            Complex field. If ``stitch=True``, shape matches the input.
+            If ``stitch=False``, shape matches the ROI box.
+        """
+        shape = self.fft.origin.shape[-2:]
+        boxes = []
+        if roi_mask is not None:
+            boxes.extend(boxes_from_mask(roi_mask, padding=box_padding,
+                                         shape=shape))
+        if roi_boxes:
+            boxes.extend(normalize_boxes(roi_boxes, padding=box_padding,
+                                         shape=shape))
+        boxes = merge_boxes(boxes)
+        if not boxes:
+            return self.run_pipeline(**pipeline_kws)
+
+        sb_freq = pipeline_kws.get(
+            "sideband_freq", self.pipeline_kws.get("sideband_freq"))
+        if sb_freq is not None:
+            pipeline_kws = dict(pipeline_kws, sideband_freq=sb_freq)
+
+        if not stitch:
+            if len(boxes) != 1:
+                raise ValueError("stitch=False requires exactly one ROI box.")
+            y0, y1, x0, x1 = boxes[0]
+            roi_slice = (slice(None), slice(y0, y1), slice(x0, x1))
+            roi_data = self.fft.origin[roi_slice]
+            roi_obj = self.__class__(
+                data=roi_data,
+                fft_interface=self.ff_iface,
+                subtract_mean=self.fft.subtract_mean,
+                padding=self.fft.padding,
+                copy=True,
+                dtype_conversion=self.fft.dtype_conversion,
+            )
+            roi_field = roi_obj.run_pipeline(**pipeline_kws)
+            self._field = roi_field
+            self._phase = xp.angle(roi_field)
+            self._amplitude = xp.abs(roi_field)
+            self.pipeline_kws.update(pipeline_kws)
+            return self._field
+
+        if isinstance(background_fill, str):
+            if background_fill == "mean_input":
+                bg_val = complex(self._input_mean)
+            elif background_fill == "zero":
+                bg_val = 0.0
+            else:
+                raise ValueError(f"Unknown background_fill '{background_fill}'")
+        else:
+            bg_val = complex(background_fill)
+
+        field_full = xp.full(self.fft.origin.shape, bg_val,
+                             dtype=self.fft_origin.dtype)
+
+        for y0, y1, x0, x1 in boxes:
+            roi_slice = (slice(None), slice(y0, y1), slice(x0, x1))
+            roi_data = self.fft.origin[roi_slice]
+            roi_obj = self.__class__(
+                data=roi_data,
+                fft_interface=self.ff_iface,
+                subtract_mean=self.fft.subtract_mean,
+                padding=self.fft.padding,
+                copy=True,
+                dtype_conversion=self.fft.dtype_conversion,
+            )
+            roi_field = roi_obj.run_pipeline(**pipeline_kws)
+            field_full[roi_slice] = roi_field
+
+        self._field = field_full
+        self._phase = xp.angle(field_full)
+        self._amplitude = xp.abs(field_full)
+        self.pipeline_kws.update(pipeline_kws)
+        return self._field
 
     @abstractmethod
     def run_pipeline(self, **pipeline_kws):

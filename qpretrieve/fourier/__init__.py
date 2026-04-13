@@ -23,9 +23,9 @@ PREFERRED_INTERFACE = None
 def get_available_interfaces() -> list[Type[FFTFilter]]:
     """Return a list of available FFT algorithms"""
     interfaces = [
+        FFTFilterCupy,
         FFTFilterPyFFTW,
         FFTFilterNumpy,
-        FFTFilterCupy,
     ]
     interfaces_available = []
     for interface in interfaces:

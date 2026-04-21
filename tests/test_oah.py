@@ -64,6 +64,68 @@ def test_get_field_error_invalid_interpretation(hologram):
         holo.run_pipeline(filter_size_interpretation="blequency")
 
 
+def test_get_field_interpretation_physical_radius_matches_frequency_index(
+        hologram):
+    """Verify 'physical radius' with matching 'frequency index' input"""
+    data = hologram
+    holo = qpretrieve.OffAxisHologram(data)
+
+    pixel_size = 6.5e-6
+    numerical_aperture = 0.03
+    wavelength = 532e-9
+
+    n = float(max(holo.fft.origin.shape[-2:]))
+    radius_px = n * pixel_size * numerical_aperture / wavelength
+
+    res_phys = holo.run_pipeline(
+        filter_name="disk",
+        filter_size=1.0,
+        filter_size_interpretation="physical radius",
+        pixel_size=pixel_size,
+        numerical_aperture=numerical_aperture,
+        wavelength=wavelength,
+    )
+    res_freq_idx = holo.run_pipeline(
+        filter_name="disk",
+        filter_size=radius_px,
+        filter_size_interpretation="frequency index",
+    )
+    assert np.all(res_phys == res_freq_idx)
+
+
+def test_get_field_interpretation_physical_radius_requires_parameters(
+        hologram):
+    data = hologram
+    holo = qpretrieve.OffAxisHologram(data)
+    with pytest.raises(ValueError, match="must be set and must be positive"):
+        holo.run_pipeline(
+            filter_size_interpretation="physical radius",
+            filter_size=1.0,
+        )
+
+    pixel_size = -6.5e-6  # negative will create error
+    numerical_aperture = 0.03
+    wavelength = 532e-9
+    with pytest.raises(ValueError, match="must be set and must be positive"):
+        holo.run_pipeline(
+            filter_size_interpretation="physical radius",
+            pixel_size=pixel_size,
+            numerical_aperture=numerical_aperture,
+            wavelength=wavelength,
+            filter_size=1.0,
+        )
+
+    pixel_size = 6.5e-6
+    with pytest.raises(ValueError, match="`filter_size` must be positive"):
+        holo.run_pipeline(
+            filter_size_interpretation="physical radius",
+            pixel_size=pixel_size,
+            numerical_aperture=numerical_aperture,
+            wavelength=wavelength,
+            filter_size=-1.0,
+        )
+
+
 def test_get_field_filter_names(hologram):
     data_2d = hologram
     data_3d, _ = convert_data_to_3d_array_layout(data_2d)

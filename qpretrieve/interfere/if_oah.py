@@ -49,6 +49,10 @@ class OffAxisHologram(BaseInterferogram):
             (this is the default). If set to "frequency index", the filter
             size is interpreted as a Fourier frequency index ("pixel size")
             and must be between 0 and `max(hologram.shape)/2`.
+            If set to "physical radius", the base radius is
+            :math:`r \approx n dx NA / \lambda` in Fourier pixels. In this
+            mode `filter_size` is a scaling factor (`1.0` means direct
+            physical radius).
         scale_to_filter: bool or float
             Crop the image in Fourier space after applying the filter,
             effectively removing surplus (zero-padding) data and
@@ -66,6 +70,12 @@ class OffAxisHologram(BaseInterferogram):
             a heuristic search for the sideband is done.
             If you pass a 3D array, the first hologram is used to
             determine the sideband frequencies.
+        pixel_size: float
+            Sensor pixel size `dx` in meters for physical-radius mode.
+        numerical_aperture: float
+            Collection NA for physical-radius mode.
+        wavelength: float
+            Illumination wavelength in meters for physical-radius mode.
         invert_phase: bool
             Invert the phase data.
         """
@@ -82,7 +92,10 @@ class OffAxisHologram(BaseInterferogram):
             filter_size=pipeline_kws["filter_size"],
             filter_size_interpretation=(
                 pipeline_kws["filter_size_interpretation"]),
-            sideband_freq=pipeline_kws["sideband_freq"])
+            sideband_freq=pipeline_kws["sideband_freq"],
+            pixel_size=pipeline_kws.get("pixel_size"),
+            numerical_aperture=pipeline_kws.get("numerical_aperture"),
+            wavelength=pipeline_kws.get("wavelength"))
 
         # perform filtering
         filter_size = float(fsize)

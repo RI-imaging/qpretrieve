@@ -1,3 +1,4 @@
+from __future__ import annotations
 import warnings
 from abc import ABC, abstractmethod
 from typing import Type
@@ -175,7 +176,10 @@ class BaseInterferogram(ABC):
             self,
             filter_size: float,
             filter_size_interpretation: str,
-            sideband_freq: tuple[float, float] = None) -> float:
+            sideband_freq: tuple[float, float] = None,
+            pixel_size: float | None = None,
+            numerical_aperture: float | None = None,
+            wavelength: float | None = None) -> float:
         """Compute the actual filter size in Fourier space"""
         if filter_size_interpretation == "frequency":
             # convert frequency to frequency index
@@ -201,6 +205,28 @@ class BaseInterferogram(ABC):
                                  + f"'{filter_size}'!")
             # convert to frequencies (compatible with fx and fy)
             fsize = filter_size / self.fft.shape[-2]
+        elif filter_size_interpretation == "physical radius":
+            if not all(v is not None and v > 0 for v in (
+                    pixel_size, numerical_aperture, wavelength)):
+                raise ValueError(
+                    "For `filter_size_interpretation='physical radius'`, "
+                    "`pixel_size`, `numerical_aperture`, and `wavelength` "
+                    "must be set and must be positive.")
+            if filter_size <= 0:
+                raise ValueError(
+                    "For `filter_size_interpretation='physical radius'`, "
+                    "`filter_size` must be positive.")
+            # base radius in Fourier pixels: # r ~= n * dx * NA / lambda
+            # use detector-space size n from unpadded input stack.
+            n = float(max(self.fft.origin.shape[-2:]))
+            radius_px = n * pixel_size * numerical_aperture / wavelength
+            # `filter_size` acts as scaling factor
+            radius_px *= filter_size
+            if radius_px >= self.fft.shape[-2] / 2:
+                raise ValueError(
+                    "Physical-radius-derived filter size exceeds Fourier "
+                    f"limit {self.fft.shape[-2] / 2}; got '{radius_px}'.")
+            fsize = radius_px / self.fft.shape[-2]
         else:
             raise ValueError("Invalid value for `filter_size_interpretation`: "
                              + f"'{filter_size_interpretation}'")
@@ -221,7 +247,7 @@ class BaseInterferogram(ABC):
 
     @abstractmethod
     def run_pipeline(self, **pipeline_kws):
-        """Perform pipeline analysis, populating `self.field`
+        r"""Perform pipeline analysis, populating `self.field`
 
         Parameters
         ----------
@@ -237,6 +263,12 @@ class BaseInterferogram(ABC):
             (this is the default). If set to "frequency index", the filter
             size is interpreted as a Fourier frequency index ("pixel size")
             and must be between 0 and `max(hologram.shape)/2`.
+            If set to "physical radius", the radius is derived from
+            :math:`r \approx n dx NA / \lambda` (in Fourier pixels), where
+            `n` is the input image size in pixels, `dx` is `pixel_size`,
+            `NA` is `numerical_aperture`, and :math:`\lambda` is
+            `wavelength`. In this mode, `filter_size` is a scaling factor
+            (use `filter_size=1.0` for the direct formula).
         scale_to_filter: bool or float
             Crop the image in Fourier space after applying the filter,
             effectively removing surplus (zero-padding) data and
@@ -252,6 +284,15 @@ class BaseInterferogram(ABC):
         sideband_freq: tuple of floats
             Frequency coordinates of the sideband to use. By default,
             a heuristic search for the sideband is done.
+        pixel_size: float
+            Sensor pixel size `dx` in meters, used when
+            `filter_size_interpretation="physical radius"`.
+        numerical_aperture: float
+            Collection NA, used when
+            `filter_size_interpretation="physical radius"`.
+        wavelength: float
+            Illumination wavelength in meters, used when
+            `filter_size_interpretation="physical radius"`.
         invert_phase: bool
             Invert the phase data.
         """

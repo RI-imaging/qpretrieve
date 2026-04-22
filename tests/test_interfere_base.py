@@ -76,7 +76,10 @@ def test_interfere_base_get_data_with_input_layout_fft_warning():
     assert holo.field.shape == (1, 200, 210)
 
     fft_orig1 = holo.get_data_with_input_layout(data="fft_filtered")
-    fft_orig2 = holo.get_data_with_input_layout(data="fft")
+    with pytest.warns(
+            UserWarning, match="You have asked for 'fft' which is a class. "
+                               "Returning 'fft_filtered'. "):
+        fft_orig2 = holo.get_data_with_input_layout(data="fft")
     assert fft_orig1.shape == fft_orig2.shape
 
 

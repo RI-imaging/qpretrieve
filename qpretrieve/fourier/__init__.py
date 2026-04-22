@@ -40,13 +40,9 @@ def get_best_interface() -> Type[FFTFilter]:
     If `pyfftw` is installed, :class:`.FFTFilterPyFFTW`
     is returned. The fallback is :class:`.FFTFilterNumpy`.
     """
-    ordered_candidates = [
-        FFTFilterPyFFTW,
-        FFTFilterNumpy,
-        FFTFilterCupy,
-    ]
+    interfaces_available = get_available_interfaces()
     if PREFERRED_INTERFACE is not None:
-        for cand in ordered_candidates:
+        for cand in interfaces_available:
             if (cand is not None
                     and cand.is_available
                     and cand.__name__ == PREFERRED_INTERFACE):
@@ -55,6 +51,6 @@ def get_best_interface() -> Type[FFTFilter]:
             warnings.warn(
                 f"Preferred interface '{PREFERRED_INTERFACE}' unavailable!")
 
-    for cand in ordered_candidates:
+    for cand in interfaces_available:
         if cand is not None and cand.is_available:
             return cand

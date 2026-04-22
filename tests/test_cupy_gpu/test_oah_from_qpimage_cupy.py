@@ -104,6 +104,7 @@ def test_get_field_backend_mixup_fail(hologram, set_ndarray_backend_to_cupy):
 
 
 @skip_if_missing("cupy")
+@skip_if_missing("pyfftw")
 def test_fftfilter_backend_mismatch(hologram):
     """Shows how a FFTFilter and ndarray backend mismatch creates a warning"""
     # this works but provides a user warning

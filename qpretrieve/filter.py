@@ -47,8 +47,8 @@ def get_filter_array(filter_name: str,
           values up to about ``0.5`` correspond to radii within the Fourier
           domain. Values larger than ``0.5`` (e.g. ``1``) effectively yield an
           all-pass filter (no filtering).
-        - The "tukey" filter is different and that scales with
-          the array size. For "tukey", ``filter_size=1`` can exceed the array bounds.
+        - The "tukey" filter is different and that scales with the array size.
+        For "tukey", ``filter_size=1`` can exceed the array bounds.
     freq_pos: tuple of floats
         The position of the filter in frequency coordinates as
         returned by :func:`numpy.fft.fftfreq`.

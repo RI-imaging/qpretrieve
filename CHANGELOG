@@ -1,4 +1,5 @@
 0.6.2
+ - docs: clarify `filter_size` in `filter.get_filter_array` (#6)
  - enh: add 'physical radius' as disk filter option (#3, #26)
  - ref: use get_available_interfaces in get_best_interface (#14, #25)
 0.6.1

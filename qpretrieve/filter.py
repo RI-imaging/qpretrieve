@@ -35,9 +35,20 @@ def get_filter_array(filter_name: str,
         - "tukey": a square tukey window of width `2*filter_size` and
           `alpha=0.1`
     filter_size: float
-        Size of the filter in Fourier space. The filter size
-        interpreted as a Fourier frequency index ("pixel size")
-        and must be between 0 and `max(fft_shape)/2`
+        Size of the filter in Fourier space.
+
+        In this function, ``filter_size`` is interpreted in the same
+        *normalized frequency units* as returned by :func:`numpy.fft.fftfreq`
+        (and typically used together with :func:`numpy.fft.fftshift`), i.e.
+        values are in the range ``[-0.5, 0.5)`` along each axis.
+
+        Implications for each ``filter_name``:
+        - For the radial/square filters (e.g. "disk", "gauss", "square", ...),
+          values up to about ``0.5`` correspond to radii within the Fourier
+          domain. Values larger than ``0.5`` (e.g. ``1``) effectively yield an
+          all-pass filter (no filtering).
+        - The "tukey" filter is different and that scales with the array size.
+        For "tukey", ``filter_size=1`` can exceed the array bounds.
     freq_pos: tuple of floats
         The position of the filter in frequency coordinates as
         returned by :func:`numpy.fft.fftfreq`.

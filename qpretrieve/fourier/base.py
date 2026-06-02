@@ -215,7 +215,8 @@ class FFTFilter(ABC):
 
     def filter(self, filter_name: str, filter_size: float,
                freq_pos: (float, float),
-               scale_to_filter: bool | float = False) -> xp.ndarray:
+               scale_to_filter: bool | float = False,
+               return_field: bool = True) -> xp.ndarray | None:
         """
         Parameters
         ----------
@@ -250,6 +251,9 @@ class FFTFilter(ABC):
             a boolean array but a floating-point array), the higher you
             set `scale_to_filter`, the more information will be included
             in the scaled image.
+        return_field: bool
+            If False, skip the inverse Fourier transform and return
+            `None`.
 
         Notes
         -----
@@ -272,6 +276,27 @@ class FFTFilter(ABC):
                                 ])
 
         inv_data = FFTCache.get_item(weakref_key)
+        def _ifft_field():
+            osize = self.fft_origin.shape[-2]
+            crad = fft_used.shape[-2] // 2 if scale_to_filter else None
+            field_local = self._ifft(
+                xp.fft.ifftshift(fft_used, axes=(-2, -1)))
+
+            if self.padding:
+                # revert padding
+                sx, sy = self.origin.shape[-2:]
+                if scale_to_filter:
+                    sx = int(xp.ceil(sx * 2 * crad / osize))
+                    sy = int(xp.ceil(sy * 2 * crad / osize))
+
+                field_local = field_local[:, :sx, :sy]
+
+                if scale_to_filter:
+                    # Scale the absolute value of the field. This does
+                    # not have any influence on the phase, but on the
+                    # amplitude.
+                    field_local *= (2 * crad / osize) ** 2
+            return field_local
 
         if inv_data is not None:
             # Retrieve FFT from cache
@@ -302,30 +327,23 @@ class FFTFilter(ABC):
                 # We now have the interesting peak already shifted to
                 # the first entry of our array in `shifted`.
                 fft_used = fft_used[:, cslice, cslice]
+            field = None
 
-            field = self._ifft(xp.fft.ifftshift(fft_used, axes=(-2, -1)))
-
-            if self.padding:
-                # revert padding
-                sx, sy = self.origin.shape[-2:]
-                if scale_to_filter:
-                    sx = int(xp.ceil(sx * 2 * crad / osize))
-                    sy = int(xp.ceil(sy * 2 * crad / osize))
-
-                field = field[:, :sx, :sy]
-
-                if scale_to_filter:
-                    # Scale the absolute value of the field. This does not
-                    # have any influence on the phase, but on the amplitude.
-                    field *= (2 * crad / osize) ** 2
-            # Add FFT to cache
-            # (The cache will only be cleared if this instance is deleted)
+        if return_field:
+            if field is None:
+                field = _ifft_field()
+                FFTCache.add_item(weakref_key, self.fft_origin,
+                                  (filt_array, fft_used, field))
+        else:
+            field = None
+            # Preserve the FFT intermediates so the field can be
+            # materialized later without recomputing the filter.
             FFTCache.add_item(weakref_key, self.fft_origin,
                               (filt_array, fft_used, field))
 
         self.fft_filtered[:] = fft_filtered
         self.fft_used = fft_used
-        return field
+        return field if return_field else None
 
     def _result_type(self, dtype_in) -> xp.dtype:
         """Wrapper on `np.result_type` to provide correct fft dtype"""

@@ -12,6 +12,7 @@ class OffAxisHologram(BaseInterferogram):
         "scale_to_filter": False,
         "sideband_freq": None,
         "invert_phase": False,
+        "return_field": True,
     }
 
     @property
@@ -32,7 +33,18 @@ class OffAxisHologram(BaseInterferogram):
             self._amplitude = xp.abs(self._field)
         return self._amplitude
 
-    def run_pipeline(self, **pipeline_kws) -> xp.ndarray:
+    def compute_field(self) -> xp.ndarray:
+        """Materialize the field using the current pipeline settings.
+
+        If the field was skipped previously with ``return_field=False``,
+        this will reuse the cached Fourier intermediates instead of
+        recomputing the full filter path.
+        """
+        if self._field is None:
+            self.run_pipeline(return_field=True)
+        return self._field
+
+    def run_pipeline(self, **pipeline_kws) -> xp.ndarray | None:
         r"""Run OAH analysis pipeline
 
         Parameters
@@ -78,6 +90,9 @@ class OffAxisHologram(BaseInterferogram):
             Illumination wavelength in meters for physical-radius mode.
         invert_phase: bool
             Invert the phase data.
+        return_field: bool
+            If False, compute the field and update the object state, but
+            return `None`.
         """
         for key in self.default_pipeline_kws:
             if key not in pipeline_kws:
@@ -101,21 +116,32 @@ class OffAxisHologram(BaseInterferogram):
         filter_size = float(fsize)
         freq_pos = tuple(float(x) for x in pipeline_kws["sideband_freq"])
 
-        field = self.fft.filter(
-            filter_name=pipeline_kws["filter_name"],
-            filter_size=filter_size,
-            freq_pos=freq_pos,
-            scale_to_filter=pipeline_kws["scale_to_filter"])
+        if pipeline_kws["return_field"]:
+            field = self.fft.filter(
+                filter_name=pipeline_kws["filter_name"],
+                filter_size=filter_size,
+                freq_pos=freq_pos,
+                scale_to_filter=pipeline_kws["scale_to_filter"],
+                return_field=True)
 
-        if pipeline_kws["invert_phase"]:
-            field.imag *= -1
+            if pipeline_kws["invert_phase"]:
+                field.imag *= -1
 
-        self._field = field
+            self._field = field
+        else:
+            self.fft.filter(
+                filter_name=pipeline_kws["filter_name"],
+                filter_size=filter_size,
+                freq_pos=freq_pos,
+                scale_to_filter=pipeline_kws["scale_to_filter"],
+                return_field=False)
+            self._field = None
+
         self._phase = None
         self._amplitude = None
         self.pipeline_kws.update(pipeline_kws)
 
-        return self.field
+        return self._field
 
 
 def find_peak_cosine(

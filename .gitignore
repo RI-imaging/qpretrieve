@@ -134,3 +134,6 @@ _version_save.py
 
 # uv package manager
 uv.lock
+
+# ai related
+README_ai.md

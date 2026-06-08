@@ -56,7 +56,8 @@ class OffAxisHologram(BaseInterferogram):
             self._amplitude = xp.abs(self._field)
         return self._amplitude
 
-    def compute_field(self, propagated_fft: xp.ndarray | None = None) -> xp.ndarray:
+    def compute_field(self,
+                      propagated_fft: xp.ndarray | None = None) -> xp.ndarray:
         """Compute the field using the current pipeline settings.
 
         If the field was skipped previously with ``output_domain='fourier'``,
@@ -79,7 +80,7 @@ class OffAxisHologram(BaseInterferogram):
         return self._field
 
     def run_pipeline(self, output_domain: str = "spatial",
-                     **pipeline_kws)-> xp.ndarray | FourierFieldArtifact:
+                     **pipeline_kws) -> xp.ndarray | FourierFieldArtifact:
         r"""Run OAH analysis pipeline
 
         Parameters

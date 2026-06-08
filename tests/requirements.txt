@@ -1,3 +1,4 @@
 h5py
 pytest
+pytest-benchmark
 #nrefocus>0.6.0

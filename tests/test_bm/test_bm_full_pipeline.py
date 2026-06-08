@@ -1,12 +1,12 @@
 import pytest
-
-pytest.importorskip("pytest_benchmark")
-pytest.importorskip("nrefocus")
-
-import nrefocus
 import qpretrieve
 
-_PROPAGATION_KWARGS = dict(d=1.5, nm=1.533, res=8.25, method="fresnel", padding=False)
+pytest.importorskip("nrefocus")
+
+import nrefocus  # noqa: E402
+
+_PROPAGATION_KWARGS = dict(d=1.5, nm=1.533, res=8.25,
+                           method="fresnel", padding=False)
 
 
 def _run_spatial(hologram):

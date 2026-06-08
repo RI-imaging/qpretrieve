@@ -56,7 +56,8 @@ class FourierFieldArtifact:
     scale_to_filter: bool | float
     crop_radius: int | None = None
     output_domain: str = "spatial"
-    _field: xp.ndarray | None = dataclass_field(default=None, init=False, repr=False)
+    _field: xp.ndarray | None = dataclass_field(
+        default=None, init=False, repr=False)
 
     def finalize(self, propagated_fft: xp.ndarray | None = None) -> xp.ndarray:
         """Return the correctly cropped/scaled spatial field.

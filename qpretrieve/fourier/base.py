@@ -325,7 +325,7 @@ class FFTFilter(ABC):
                     fft_shape=self.fft_origin.shape[-2:],
                     padding=self.padding,
                     scale_to_filter=scale_to_filter,
-                    crop_radius=fft_used.shape[-2] // 2 if scale_to_filter else None,
+                    crop_radius=fft_used.shape[-2] // 2 if scale_to_filter else None,  # noqa: E501
                 )
                 FFTCache.add_item(weakref_key, self.fft_origin,
                                   (filt_array, fft_used, field))

@@ -17,7 +17,7 @@ def _run_spatial(hologram):
 
 
 def _run_fourier(hologram):
-    """Don't do the qpretrieve iFFT, nrefocus knows what to do with FFT"""
+    """Let nrefocus do the qpretrieve iFFT, nrefocus knows what to do."""
     holo = qpretrieve.OffAxisHologram(hologram, padding=False)
     artifact = holo.run_pipeline(output_domain="fourier")
     return nrefocus.refocus(field=artifact, **_PROPAGATION_KWARGS)
@@ -29,15 +29,6 @@ def _run_fourier_no_finalize(hologram):
     artifact = holo.run_pipeline(output_domain="fourier")
     return nrefocus.refocus(field=artifact, output_domain="fourier",
                             **_PROPAGATION_KWARGS)
-
-
-def _run_fourier_then_finalize(hologram):
-    """Output the data in Fourier domain, then do iFFT with qpretrieve"""
-    holo = qpretrieve.OffAxisHologram(hologram, padding=False)
-    artifact = holo.run_pipeline(output_domain="fourier")
-    field_refoc = nrefocus.refocus(field=artifact, output_domain="fourier",
-                                   **_PROPAGATION_KWARGS)
-    return holo.compute_field(propagated_fft=field_refoc)
 
 
 def test_bm_full_pipeline_spatial(benchmark, hologram):
@@ -55,10 +46,4 @@ def test_bm_full_pipeline_fourier(benchmark, hologram):
 def test_bm_full_pipeline_fourier_no_finalize(benchmark, hologram):
     """Output the data in Fourier domain"""
     result = benchmark(_run_fourier_no_finalize, hologram)
-    assert result is not None
-
-
-def test_bm_full_pipeline_fourier_then_finalize(benchmark, hologram):
-    """Output the data in Fourier domain, then do iFFT with qpretrieve"""
-    result = benchmark(_run_fourier_then_finalize, hologram)
     assert result is not None

@@ -80,13 +80,18 @@ panel_titles = [
     ("raw phase", "raw phase"),
     ("spatial propagation", "spatial propagation"),
     ("fourier propagation", "fourier propagation"),
-    ("difference: spatial − fourier  ✓ match", "difference: spatial − fourier  ✗ differ"),
+    ("difference: spatial − fourier  ✓ match",
+     "difference: spatial − fourier  ✗ differ"),
 ]
 rows = [
-    ((_phase(field_raw_nopad), _phase(field_raw_pad)), "phase (rad)", "viridis"),
-    ((_phase(field_spatial_nopad), _phase(field_spatial_pad)), "phase (rad)", "viridis"),
-    ((_phase(field_fourier_nopad), _phase(field_fourier_pad)), "phase (rad)", "viridis"),
-    ((diff_nopad, diff_pad), "Δphase (rad)", "RdBu_r"),
+    ((_phase(field_raw_nopad), _phase(field_raw_pad)),
+     "phase (rad)", "viridis"),
+    ((_phase(field_spatial_nopad), _phase(field_spatial_pad)),
+     "phase (rad)", "viridis"),
+    ((_phase(field_fourier_nopad), _phase(field_fourier_pad)),
+     "phase (rad)", "viridis"),
+    ((diff_nopad, diff_pad),
+     "Δphase (rad)", "RdBu_r"),
 ]
 col_headers = ["padding=False (square crop)", "padding=True  (full hologram)"]
 

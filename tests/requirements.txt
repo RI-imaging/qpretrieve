@@ -2,4 +2,4 @@ h5py
 pytest
 pytest-benchmark
 #nrefocus>0.6.0
-nrefocus@git+ssh://git@github.com/PinkShnack/nrefocus.git@26_input_output_domains  # temp link for tests
+nrefocus@git+https://git@github.com/PinkShnack/nrefocus.git@26_input_output_domains  # temp link for tests

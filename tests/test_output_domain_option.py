@@ -2,7 +2,7 @@ import numpy as np
 
 import qpretrieve
 from qpretrieve import fourier
-from qpretrieve.fourier import FourierFieldArtifact
+from qpretrieve.fourier import FourierFieldData
 
 
 def test_fftfilter_filter_can_return_fourier_domain():
@@ -19,7 +19,7 @@ def test_fftfilter_filter_can_return_fourier_domain():
         output_domain="fourier",
     )
 
-    assert isinstance(field, FourierFieldArtifact)
+    assert isinstance(field, FourierFieldData)
     assert field.output_domain == "spatial"
     assert ft.fft_used is not None
 
@@ -29,10 +29,10 @@ def test_oah_run_pipeline_can_return_fourier_domain(hologram):
 
     field = holo.run_pipeline(output_domain="fourier")
 
-    assert isinstance(field, FourierFieldArtifact)
+    assert isinstance(field, FourierFieldData)
     assert field.output_domain == "spatial"
     assert holo._field is None
-    assert holo._field_artifact is field
+    assert holo._fourier_field_data is field
     assert holo._phase is None
     assert holo._amplitude is None
 

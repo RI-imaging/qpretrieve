@@ -12,7 +12,7 @@ Two padding cases show the difference in output:
     - The pipelines output slightly difference results.
       The legacy spatial path tells nrefocus to
       re-pad the already-finalized field, while the fourier
-      (artifact) path propagates the padded Fourier data
+      path propagates the padded Fourier data
       directly without a second padding step. These are
       physically different operations, so the outputs will not match.
 

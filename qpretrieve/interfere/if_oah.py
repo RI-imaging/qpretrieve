@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from .._ndarray_backend import xp
-from ..fourier import FourierFieldArtifact
+from ..fourier import FourierFieldData
 from .base import BaseInterferogram
 
 
@@ -20,13 +20,13 @@ class OffAxisHologram(BaseInterferogram):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._field_artifact = None
+        self._fourier_field_data = None
 
     @property
     def field(self) -> xp.ndarray:
         """Retrieved complex field information."""
         if self._field is None:
-            if self._field_artifact is not None:
+            if self._fourier_field_data is not None:
                 self.compute_field()
             else:
                 self.run_pipeline(output_domain="spatial")
@@ -36,7 +36,7 @@ class OffAxisHologram(BaseInterferogram):
     def phase(self) -> xp.ndarray:
         """Retrieved phase information"""
         if self._field is None:
-            if self._field_artifact is not None:
+            if self._fourier_field_data is not None:
                 self.compute_field()
             else:
                 self.run_pipeline(output_domain="spatial")
@@ -48,7 +48,7 @@ class OffAxisHologram(BaseInterferogram):
     def amplitude(self) -> xp.ndarray:
         """Retrieved amplitude information"""
         if self._field is None:
-            if self._field_artifact is not None:
+            if self._fourier_field_data is not None:
                 self.compute_field()
             else:
                 self.run_pipeline(output_domain="spatial")
@@ -72,15 +72,15 @@ class OffAxisHologram(BaseInterferogram):
 
         """
         if self._field is None:
-            if self._field_artifact is None:
+            if self._fourier_field_data is None:
                 self.run_pipeline(output_domain="spatial")
             else:
-                self._field = self._field_artifact.finalize(
+                self._field = self._fourier_field_data.finalize(
                     propagated_fft=propagated_fft)
         return self._field
 
     def run_pipeline(self, output_domain: str = "spatial",
-                     **pipeline_kws) -> xp.ndarray | FourierFieldArtifact:
+                     **pipeline_kws) -> xp.ndarray | FourierFieldData:
         r"""Run OAH analysis pipeline
 
         Parameters
@@ -128,7 +128,9 @@ class OffAxisHologram(BaseInterferogram):
             Invert the phase data.
         output_domain: str
             Either ``"spatial"`` or ``"fourier"``. Spatial returns the
-            field, Fourier returns a :class:`FourierFieldArtifact`.
+            field, Fourier returns a :class:`FourierFieldData`.
+
+            .. versionadded:: 0.6.2
         """
         pipeline_kws["output_domain"] = output_domain
         for key in self.default_pipeline_kws:
@@ -166,7 +168,7 @@ class OffAxisHologram(BaseInterferogram):
                 field.imag *= -1
 
             self._field = field
-            self._field_artifact = None
+            self._fourier_field_data = None
         else:
             # direct fourier pipeline
             artifact = self.fft.filter(
@@ -176,7 +178,7 @@ class OffAxisHologram(BaseInterferogram):
                 scale_to_filter=pipeline_kws["scale_to_filter"],
                 output_domain="fourier")
             self._field = None
-            self._field_artifact = artifact
+            self._fourier_field_data = artifact
 
         self._phase = None
         self._amplitude = None
@@ -185,7 +187,7 @@ class OffAxisHologram(BaseInterferogram):
         if pipeline_kws["output_domain"] == "spatial":
             return self._field
         else:
-            return self._field_artifact
+            return self._fourier_field_data
 
 
 def find_peak_cosine(

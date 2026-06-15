@@ -8,7 +8,7 @@ from .._ndarray_backend import xp, NDArrayBackendWarning
 from .. import filter
 from ..utils import padding_3d, mean_3d
 from ..data_array_layout import convert_data_to_3d_array_layout
-from .field_artifact import FourierFieldArtifact, finalize_fourier_field
+from .fourier_field_data import FourierFieldData, finalize_fourier_field
 
 
 class FFTCache:
@@ -218,7 +218,7 @@ class FFTFilter(ABC):
                freq_pos: (float, float),
                scale_to_filter: bool | float = False,
                output_domain: str = "spatial"
-               ) -> xp.ndarray | FourierFieldArtifact:
+               ) -> xp.ndarray | FourierFieldData:
         """
         Parameters
         ----------
@@ -256,7 +256,9 @@ class FFTFilter(ABC):
         output_domain: str
             Either ``"spatial"`` or ``"fourier"``. Spatial returns the
             inverse-transformed field, Fourier returns a
-            :class:`~qpretrieve.fourier.field_artifact.FourierFieldArtifact`.
+            :class:`~qpretrieve.fourier.fourier_field_data.FourierFieldData`.
+
+            .. versionadded:: 0.6.2
 
         Notes
         -----
@@ -336,7 +338,7 @@ class FFTFilter(ABC):
         FFTCache.add_item(weakref_key, self.fft_origin,
                           (filt_array, fft_used, None))
         crop_radius = fft_used.shape[-2] // 2 if scale_to_filter else None
-        return FourierFieldArtifact(
+        return FourierFieldData(
             fft_used=fft_used,
             ifft_fn=self._ifft,
             input_shape=self.origin.shape[-2:],

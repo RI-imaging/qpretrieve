@@ -1,5 +1,5 @@
 """
-  .. versionadded:: 0.6.2
+  .. versionadded:: 0.7.0
 """
 from __future__ import annotations
 
@@ -93,7 +93,7 @@ class FourierFieldData:
     forward FFT, avoiding a redundant iFFT + FFT pair at the pipeline
     boundary).
 
-    .. versionadded:: 0.6.2
+    .. versionadded:: 0.7.0
 
     Attributes
     ----------

@@ -4,7 +4,7 @@
 Fourier Domain Pipeline
 =======================
 
-Since version 0.6.2, :meth:`.OffAxisHologram.run_pipeline` accepts an
+Since version 0.7.0, :meth:`.OffAxisHologram.run_pipeline` accepts an
 ``output_domain`` keyword argument. By default (``output_domain="spatial"``) the
 pipeline returns the reconstructed complex field as usual. When
 ``output_domain="fourier"`` is set, the inverse FFT is skipped and a

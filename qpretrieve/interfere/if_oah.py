@@ -130,7 +130,7 @@ class OffAxisHologram(BaseInterferogram):
             Either ``"spatial"`` or ``"fourier"``. Spatial returns the
             field, Fourier returns a :class:`FourierFieldData`.
 
-            .. versionadded:: 0.6.2
+            .. versionadded:: 0.7.0
         """
         pipeline_kws["output_domain"] = output_domain
         for key in self.default_pipeline_kws:

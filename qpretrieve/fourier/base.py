@@ -258,7 +258,7 @@ class FFTFilter(ABC):
             inverse-transformed field, Fourier returns a
             :class:`~qpretrieve.fourier.fourier_field_data.FourierFieldData`.
 
-            .. versionadded:: 0.6.2
+            .. versionadded:: 0.7.0
 
         Notes
         -----

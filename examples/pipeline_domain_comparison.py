@@ -1,7 +1,7 @@
-"""Legacy vs. Direct (Fourier) Pipeline with/without padding
+"""Spatial vs. Direct (Fourier) Pipeline with/without padding
 
-Combined qpretrieve + nrefocus pipeline for the legacy
-spatial vs direct Fourier pipeline.
+Combined qpretrieve + nrefocus pipeline for the spatial
+vs direct Fourier pipeline.
 
 Two padding cases show the difference in output:
 
@@ -10,7 +10,7 @@ Two padding cases show the difference in output:
       padding more phase discontinuities occur.
 - padding=True
     - The pipelines output slightly difference results.
-      The legacy spatial path tells nrefocus to
+      The spatial path tells nrefocus to
       re-pad the already-finalized field, while the fourier
       path propagates the padded Fourier data
       directly without a second padding step. These are
@@ -36,33 +36,35 @@ hologram_sq = hologram[:_s, :_s]
 propagation_kwargs = dict(d=1.5, nm=1.533, res=8.25, method="fresnel")
 
 
-def _spatial_pipeline(hologram, padding):
-    holo = qpretrieve.OffAxisHologram(hologram, padding=padding)
+def _spatial_pipeline(hologram, padding_qpr, padding_nrf):
+    holo = qpretrieve.OffAxisHologram(hologram, padding=padding_qpr)
     field = holo.run_pipeline(output_domain="spatial")
-    return nrefocus.refocus(field=field, padding=False, **propagation_kwargs)
+    return nrefocus.refocus(field=field, padding=padding_nrf, **propagation_kwargs)
 
 
-def _fourier_pipeline(hologram, padding):
-    holo = qpretrieve.OffAxisHologram(hologram, padding=padding)
+def _fourier_pipeline(hologram, padding_qpr, padding_nrf):
+    holo = qpretrieve.OffAxisHologram(hologram, padding=padding_qpr)
     artifact = holo.run_pipeline(output_domain="fourier")
-    return nrefocus.refocus(field=artifact, **propagation_kwargs)
+    return nrefocus.refocus(field=artifact, padding=padding_nrf, **propagation_kwargs)
 
 
-# legacy spatial pipeline - no padding (square crop required) - pipelines match
+# spatial pipeline - no padding (square crop required) - pipelines match
+pad_zero = 0
 field_raw_nopad = qpretrieve.OffAxisHologram(
-    hologram_sq, padding=False).run_pipeline(output_domain="spatial")
-field_spatial_nopad = _spatial_pipeline(hologram_sq, padding=False)
-field_fourier_nopad = _fourier_pipeline(hologram_sq, padding=False)
+    hologram_sq, padding=pad_zero).run_pipeline(output_domain="spatial")
+field_spatial_nopad = _spatial_pipeline(hologram_sq, pad_zero, pad_zero)
+field_fourier_nopad = _fourier_pipeline(hologram_sq, pad_zero, pad_zero)
 
 assert np.allclose(field_spatial_nopad, field_fourier_nopad, atol=1e-10), (
     "padding=False don't match when they should.")
 print("padding=False match:", True)
 
+pad_one = 1
 # new direct pipeline - with padding - pipelines do not match (expected)
 field_raw_pad = qpretrieve.OffAxisHologram(
-    hologram, padding=True).run_pipeline(output_domain="spatial")
-field_spatial_pad = _spatial_pipeline(hologram, padding=True)
-field_fourier_pad = _fourier_pipeline(hologram, padding=True)
+    hologram, padding=pad_one).run_pipeline(output_domain="spatial")
+field_spatial_pad = _spatial_pipeline(hologram, pad_one, pad_one)
+field_fourier_pad = _fourier_pipeline(hologram, pad_one, pad_one)
 
 assert not np.allclose(field_spatial_pad, field_fourier_pad, atol=1e-10)
 max_diff = np.abs(field_spatial_pad - field_fourier_pad).max()
@@ -96,7 +98,8 @@ rows = [
 col_headers = ["padding=False (square crop)", "padding=True  (full hologram)"]
 
 fig, axes = plt.subplots(4, 2, figsize=(8, 11), constrained_layout=True)
-fig.suptitle("Legacy and Direct pipeline with and without padding", fontsize=9)
+fig.suptitle("Spatial and Direct (Fourier) pipeline with and without padding\n"
+             "No added tilt correction", fontsize=9)
 
 for row_idx, ((img0, img1), cbar_label, cmap) in enumerate(rows):
     for col_idx, img in enumerate((img0, img1)):

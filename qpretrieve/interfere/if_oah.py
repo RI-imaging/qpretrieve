@@ -156,7 +156,7 @@ class OffAxisHologram(BaseInterferogram):
         freq_pos = tuple(float(x) for x in pipeline_kws["sideband_freq"])
 
         if pipeline_kws["output_domain"] == "spatial":
-            # legacy pipeline
+            # spatial pipeline
             field = self.fft.filter(
                 filter_name=pipeline_kws["filter_name"],
                 filter_size=filter_size,

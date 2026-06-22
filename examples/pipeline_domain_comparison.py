@@ -39,13 +39,15 @@ propagation_kwargs = dict(d=1.5, nm=1.533, res=8.25, method="fresnel")
 def _spatial_pipeline(hologram, padding_qpr, padding_nrf):
     holo = qpretrieve.OffAxisHologram(hologram, padding=padding_qpr)
     field = holo.run_pipeline(output_domain="spatial")
-    return nrefocus.refocus(field=field, padding=padding_nrf, **propagation_kwargs)
+    return nrefocus.refocus(field=field, padding=padding_nrf,
+                            **propagation_kwargs)
 
 
 def _fourier_pipeline(hologram, padding_qpr, padding_nrf):
     holo = qpretrieve.OffAxisHologram(hologram, padding=padding_qpr)
     artifact = holo.run_pipeline(output_domain="fourier")
-    return nrefocus.refocus(field=artifact, padding=padding_nrf, **propagation_kwargs)
+    return nrefocus.refocus(field=artifact, padding=padding_nrf,
+                            **propagation_kwargs)
 
 
 # spatial pipeline - no padding (square crop required) - pipelines match
@@ -56,8 +58,9 @@ field_spatial_nopad = _spatial_pipeline(hologram_sq, pad_zero, pad_zero)
 field_fourier_nopad = _fourier_pipeline(hologram_sq, pad_zero, pad_zero)
 
 assert np.allclose(field_spatial_nopad, field_fourier_nopad, atol=1e-10), (
-    "padding=False don't match when they should.")
-print("padding=False match:", True)
+    f"padding={pad_zero} don't match when they should.")
+max_diff = np.abs(field_spatial_nopad - field_fourier_nopad).max()
+print(f"padding={pad_zero}: spatial − fourier = {max_diff:.4g}")
 
 pad_one = 1
 # new direct pipeline - with padding - pipelines do not match (expected)
@@ -68,7 +71,14 @@ field_fourier_pad = _fourier_pipeline(hologram, pad_one, pad_one)
 
 assert not np.allclose(field_spatial_pad, field_fourier_pad, atol=1e-10)
 max_diff = np.abs(field_spatial_pad - field_fourier_pad).max()
-print(f"padding=True: (spatial − fourier) = {max_diff:.4g}  (expected)")
+print(f"padding={pad_one}: spatial − fourier = {max_diff:.4g}  (expected)")
+
+field_spatial_pad_cropped = field_spatial_pad[:, 10:190, 10:190]
+field_fourier_pad_cropped = field_fourier_pad[:, 10:190, 10:190]
+assert not np.allclose(field_spatial_pad_cropped, field_fourier_pad_cropped,
+                       atol=1e-10)
+max_diff = np.abs(field_spatial_pad_cropped - field_fourier_pad_cropped).max()
+print(f"padding={pad_one}, central crop: spatial − fourier = {max_diff:.4g}")
 
 
 def _phase(field):

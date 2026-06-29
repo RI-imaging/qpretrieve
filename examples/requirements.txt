@@ -1,2 +1,2 @@
 matplotlib
-nrefocus>=0.7.0
+nrefocus>=0.8.0

@@ -16,7 +16,7 @@ Calling its :meth:`~qpretrieve.fourier.fourier_field_data.FourierFieldData.final
 method performs the inverse FFT and returns the spatial field identically to the
 default path.
 
-.. note::
+.. admonition:: Combining `qpretrieve` and `nrefocus` pipelines
 
     The Fourier output is most useful when the result is passed directly to a
     wave propagation library such as `nrefocus
@@ -26,6 +26,13 @@ default path.
     qpretrieve/nrefocus boundary.
     For an nrefocus-integrated working example see the :ref:`sec_examples`.
 
+    *Spatial vs. Fourier inconsistency*
+
+    For unpadded, square spatial input data, the default spatial domain
+    pipeline and the fourier domain pipeline are identical. There is only
+    floating point imprecision.
+    For padded pipelines, the pipelines are not identical due to padding and
+    unpadding causing inconsistencies at the boundary of the images.
 
 
 Default: spatial output

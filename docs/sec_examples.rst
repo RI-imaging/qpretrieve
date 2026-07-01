@@ -14,5 +14,3 @@ Examples
 .. fancy_include:: fourier_scale.py
 
 .. fancy_include:: fft_batch_speeds.py
-
-.. fancy_include:: pipeline_domain_comparison.py

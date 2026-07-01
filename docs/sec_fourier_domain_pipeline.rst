@@ -16,27 +16,8 @@ Calling its :meth:`~qpretrieve.fourier.fourier_field_data.FourierFieldData.final
 method performs the inverse FFT and returns the spatial field identically to the
 default path.
 
-.. admonition:: Combining `qpretrieve` and `nrefocus` pipelines
-
-    The Fourier output is most useful when the result is passed directly to a
-    wave propagation library such as `nrefocus
-    <https://nrefocus.readthedocs.io>`_, which can consume the
-    :class:`~qpretrieve.fourier.fourier_field_data.FourierFieldData` object and
-    skip its own forward FFT. This avoids a redundant iFFT + FFT pair at the
-    qpretrieve/nrefocus boundary.
-    For an nrefocus-integrated working example see the :ref:`sec_examples`.
-
-    *Spatial vs. Fourier inconsistency*
-
-    For unpadded, square spatial input data, the default spatial domain
-    pipeline and the fourier domain pipeline are identical. There is only
-    floating point imprecision.
-    For padded pipelines, the pipelines are not identical due to padding and
-    unpadding causing inconsistencies at the boundary of the images.
-
-
-Default: spatial output
------------------------
+Spatial Output (Default)
+------------------------
 
 .. code-block:: python
 
@@ -49,8 +30,8 @@ Default: spatial output
     print(type(field))              # numpy.ndarray
     print(field.shape)              # (1, H, W)
 
-Fourier output: skip the inverse FFT
---------------------------------------
+Fourier Output (skipping the inverse FFT)
+-----------------------------------------
 
 This is useful when combined with field propagation, see the Note above.
 
@@ -68,3 +49,21 @@ This is useful when combined with field propagation, see the Note above.
     field = fourier_data.finalize()
     print(field.shape)              # (1, H, W) — identical to the default path
 
+
+.. admonition:: Combining `qpretrieve` and `nrefocus` pipelines
+
+    The Fourier output is most useful when the result is passed directly to a
+    wave propagation library such as `nrefocus
+    <https://nrefocus.readthedocs.io>`_, which can consume the
+    :class:`~qpretrieve.fourier.fourier_field_data.FourierFieldData` object and
+    skip its own forward FFT. This avoids a redundant iFFT + FFT pair at the
+    qpretrieve/nrefocus boundary.
+    For an nrefocus-integrated working example see the :ref:`sec_examples`.
+
+    *Comparing Spatial vs. Fourier Pipeline*
+
+    For unpadded, square spatial input data, the default spatial domain
+    pipeline and the fourier domain pipeline are identical. There is only
+    floating point imprecision.
+    For padded pipelines, the pipelines are not identical due to padding and
+    unpadding causing inconsistencies at the boundary of the images.

@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 from .._ndarray_backend import xp
+from ..fourier import FourierFieldData
 from .base import BaseInterferogram
 
 
@@ -12,13 +15,31 @@ class OffAxisHologram(BaseInterferogram):
         "scale_to_filter": False,
         "sideband_freq": None,
         "invert_phase": False,
+        "output_domain": "spatial",
     }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._fourier_field_data = None
+
+    @property
+    def field(self) -> xp.ndarray:
+        """Retrieved complex field information."""
+        if self._field is None:
+            if self._fourier_field_data is not None:
+                self.compute_field()
+            else:
+                self.run_pipeline(output_domain="spatial")
+        return self._field
 
     @property
     def phase(self) -> xp.ndarray:
         """Retrieved phase information"""
         if self._field is None:
-            self.run_pipeline()
+            if self._fourier_field_data is not None:
+                self.compute_field()
+            else:
+                self.run_pipeline(output_domain="spatial")
         if self._phase is None:
             self._phase = xp.angle(self._field)
         return self._phase
@@ -27,12 +48,39 @@ class OffAxisHologram(BaseInterferogram):
     def amplitude(self) -> xp.ndarray:
         """Retrieved amplitude information"""
         if self._field is None:
-            self.run_pipeline()
+            if self._fourier_field_data is not None:
+                self.compute_field()
+            else:
+                self.run_pipeline(output_domain="spatial")
         if self._amplitude is None:
             self._amplitude = xp.abs(self._field)
         return self._amplitude
 
-    def run_pipeline(self, **pipeline_kws) -> xp.ndarray:
+    def compute_field(self,
+                      propagated_fft: xp.ndarray | None = None) -> xp.ndarray:
+        """Compute the field using the current pipeline settings.
+
+        If the field was skipped previously with ``output_domain='fourier'``,
+        this will reuse the cached Fourier intermediates instead of
+        recomputing the full filter path.
+
+        Parameters
+        ----------
+        propagated_fft: ndarray, optional
+            Fourier-domain field after external propagation. If omitted,
+            the stored qpretrieve Fourier artifact is computed directly.
+
+        """
+        if self._field is None:
+            if self._fourier_field_data is None:
+                self.run_pipeline(output_domain="spatial")
+            else:
+                self._field = self._fourier_field_data.finalize(
+                    propagated_fft=propagated_fft)
+        return self._field
+
+    def run_pipeline(self, output_domain: str = "spatial",
+                     **pipeline_kws) -> xp.ndarray | FourierFieldData:
         r"""Run OAH analysis pipeline
 
         Parameters
@@ -78,7 +126,13 @@ class OffAxisHologram(BaseInterferogram):
             Illumination wavelength in meters for physical-radius mode.
         invert_phase: bool
             Invert the phase data.
+        output_domain: str
+            Either ``"spatial"`` or ``"fourier"``. Spatial returns the
+            field, Fourier returns a :class:`FourierFieldData`.
+
+            .. versionadded:: 0.7.0
         """
+        pipeline_kws["output_domain"] = output_domain
         for key in self.default_pipeline_kws:
             if key not in pipeline_kws:
                 pipeline_kws[key] = self.get_pipeline_kw(key)
@@ -101,21 +155,39 @@ class OffAxisHologram(BaseInterferogram):
         filter_size = float(fsize)
         freq_pos = tuple(float(x) for x in pipeline_kws["sideband_freq"])
 
-        field = self.fft.filter(
-            filter_name=pipeline_kws["filter_name"],
-            filter_size=filter_size,
-            freq_pos=freq_pos,
-            scale_to_filter=pipeline_kws["scale_to_filter"])
+        if pipeline_kws["output_domain"] == "spatial":
+            # spatial pipeline
+            field = self.fft.filter(
+                filter_name=pipeline_kws["filter_name"],
+                filter_size=filter_size,
+                freq_pos=freq_pos,
+                scale_to_filter=pipeline_kws["scale_to_filter"],
+                output_domain="spatial")
 
-        if pipeline_kws["invert_phase"]:
-            field.imag *= -1
+            if pipeline_kws["invert_phase"]:
+                field.imag *= -1
 
-        self._field = field
+            self._field = field
+            self._fourier_field_data = None
+        else:
+            # direct fourier pipeline
+            artifact = self.fft.filter(
+                filter_name=pipeline_kws["filter_name"],
+                filter_size=filter_size,
+                freq_pos=freq_pos,
+                scale_to_filter=pipeline_kws["scale_to_filter"],
+                output_domain="fourier")
+            self._field = None
+            self._fourier_field_data = artifact
+
         self._phase = None
         self._amplitude = None
         self.pipeline_kws.update(pipeline_kws)
 
-        return self.field
+        if pipeline_kws["output_domain"] == "spatial":
+            return self._field
+        else:
+            return self._fourier_field_data
 
 
 def find_peak_cosine(

@@ -47,6 +47,15 @@ Cupy
    :inherited-members:
 
 
+.. _sec_code_fourier_field_data:
+
+Fourier Field Data
+------------------
+.. automodule:: qpretrieve.fourier.fourier_field_data
+   :members:
+   :inherited-members:
+
+
 .. _sec_code_ifer:
 
 Interference image analysis

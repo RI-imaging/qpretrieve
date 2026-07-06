@@ -164,9 +164,9 @@ def test_get_field_filter_names(hologram):
 
 @pytest.mark.parametrize("hologram", [62, 63, 64], indirect=True)
 def test_get_field_interpretation_fourier_index(hologram):
-    """Filter size in Fourier space using Fourier index new in 0.7.0"""
+    """Filter size in Fourier space using Fourier index"""
     data = hologram
-    shape_expected = (1, hologram.shape[-2], hologram.shape[-1])
+    shape_expected = (1, data.shape[-2], data.shape[-1])
     holo = qpretrieve.OffAxisHologram(data)
 
     ft_data = holo.fft_origin
@@ -192,7 +192,7 @@ def test_get_field_interpretation_fourier_index(hologram):
 
 @pytest.mark.parametrize("hologram", [62, 63, 64], indirect=["hologram"])
 def test_get_field_interpretation_fourier_index_control(hologram):
-    """Filter size in Fourier space using Fourier index new in 0.7.0"""
+    """Filter size in Fourier space using Fourier index"""
     data = hologram
     holo = qpretrieve.OffAxisHologram(data)
 
@@ -241,7 +241,7 @@ def test_get_field_interpretation_fourier_index_mask_1(hologram, filter_size):
 @pytest.mark.parametrize("hologram", [62, 63, 64, 134, 135],
                          indirect=["hologram"])
 def test_get_field_interpretation_fourier_index_mask_2(hologram):
-    """Filter size in Fourier space using Fourier index new in 0.7.0"""
+    """Filter size in Fourier space using Fourier index"""
     data = hologram
     holo = qpretrieve.OffAxisHologram(data)
 

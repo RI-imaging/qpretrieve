@@ -3,6 +3,7 @@ import warnings
 from typing import Type
 
 from .base import FFTFilter
+from .fourier_field_data import FourierFieldData, finalize_fourier_field
 from .ff_numpy import FFTFilterNumpy
 
 try:

@@ -43,9 +43,9 @@ def set_ndarray_backend_to_cupy():
     qpretrieve.set_ndarray_backend('numpy')
 
 
-@pytest.fixture(params=[64])  # default param for size
+@pytest.fixture()
 def hologram(request):
-    size = request.param
+    size = getattr(request, "param", 64)
     x = np.arange(size).reshape(-1, 1) - size / 2
     y = np.arange(size).reshape(1, -1) - size / 2
 

@@ -8,6 +8,7 @@ from .._ndarray_backend import xp, NDArrayBackendWarning
 from .. import filter
 from ..utils import padding_3d, mean_3d
 from ..data_array_layout import convert_data_to_3d_array_layout
+from .fourier_field_data import FourierFieldData, finalize_fourier_field
 
 
 class FFTCache:
@@ -215,7 +216,9 @@ class FFTFilter(ABC):
 
     def filter(self, filter_name: str, filter_size: float,
                freq_pos: (float, float),
-               scale_to_filter: bool | float = False) -> xp.ndarray:
+               scale_to_filter: bool | float = False,
+               output_domain: str = "spatial"
+               ) -> xp.ndarray | FourierFieldData:
         """
         Parameters
         ----------
@@ -250,6 +253,12 @@ class FFTFilter(ABC):
             a boolean array but a floating-point array), the higher you
             set `scale_to_filter`, the more information will be included
             in the scaled image.
+        output_domain: str
+            Either ``"spatial"`` or ``"fourier"``. Spatial returns the
+            inverse-transformed field, Fourier returns a
+            :class:`~qpretrieve.fourier.fourier_field_data.FourierFieldData`.
+
+            .. versionadded:: 0.7.0
 
         Notes
         -----
@@ -270,6 +279,9 @@ class FFTFilter(ABC):
                                 str(scale_to_filter),
                                 str(self.dtype_conversion),
                                 ])
+
+        if output_domain not in ("spatial", "fourier"):
+            raise ValueError("`output_domain` must be 'spatial' or 'fourier'.")
 
         inv_data = FFTCache.get_item(weakref_key)
 
@@ -302,30 +314,39 @@ class FFTFilter(ABC):
                 # We now have the interesting peak already shifted to
                 # the first entry of our array in `shifted`.
                 fft_used = fft_used[:, cslice, cslice]
-
-            field = self._ifft(xp.fft.ifftshift(fft_used, axes=(-2, -1)))
-
-            if self.padding:
-                # revert padding
-                sx, sy = self.origin.shape[-2:]
-                if scale_to_filter:
-                    sx = int(xp.ceil(sx * 2 * crad / osize))
-                    sy = int(xp.ceil(sy * 2 * crad / osize))
-
-                field = field[:, :sx, :sy]
-
-                if scale_to_filter:
-                    # Scale the absolute value of the field. This does not
-                    # have any influence on the phase, but on the amplitude.
-                    field *= (2 * crad / osize) ** 2
-            # Add FFT to cache
-            # (The cache will only be cleared if this instance is deleted)
-            FFTCache.add_item(weakref_key, self.fft_origin,
-                              (filt_array, fft_used, field))
+            field = None
 
         self.fft_filtered[:] = fft_filtered
         self.fft_used = fft_used
-        return field
+        if output_domain == "spatial":
+            if field is None:
+                field = finalize_fourier_field(
+                    fft_in=fft_used,
+                    ifft_fn=self._ifft,
+                    input_shape=self.origin.shape[-2:],
+                    fft_shape=self.fft_origin.shape[-2:],
+                    padding=self.padding,
+                    scale_to_filter=scale_to_filter,
+                    crop_radius=fft_used.shape[-2] // 2 if scale_to_filter else None,  # noqa: E501
+                )
+                FFTCache.add_item(weakref_key, self.fft_origin,
+                                  (filt_array, fft_used, field))
+            return field
+
+        # Preserve the FFT intermediates so the field can be
+        # compute later without recomputing the filter.
+        FFTCache.add_item(weakref_key, self.fft_origin,
+                          (filt_array, fft_used, None))
+        crop_radius = fft_used.shape[-2] // 2 if scale_to_filter else None
+        return FourierFieldData(
+            fft_used=fft_used,
+            ifft_fn=self._ifft,
+            input_shape=self.origin.shape[-2:],
+            fft_shape=self.fft_origin.shape[-2:],
+            padding=self.padding,
+            scale_to_filter=scale_to_filter,
+            crop_radius=crop_radius,
+        )
 
     def _result_type(self, dtype_in) -> xp.dtype:
         """Wrapper on `np.result_type` to provide correct fft dtype"""

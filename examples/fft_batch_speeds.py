@@ -158,7 +158,7 @@ edgecolor = "k"
 legend_loc = "upper center"
 fontsize = 16
 
-fig, axes = plt.subplots(2, 1, figsize=(8, 10))
+fig, axes = plt.subplots(2, 1, figsize=(8, 12))
 ax1, ax2 = axes
 
 # setup plot for batch speed comparison

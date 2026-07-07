@@ -1,3 +1,5 @@
+0.7.1
+ - docs: run the fft batch speed example to reflect the latest changes (#31)
 0.7.0
  - feat: allow user to specify (output) domain to skip ifft (#28, #29)
  - docs: clarify `filter_size` in `filter.get_filter_array` (#6)

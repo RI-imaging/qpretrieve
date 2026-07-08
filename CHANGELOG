@@ -1,3 +1,5 @@
+0.8.1
+ - enh: add background subtraction method in fourier domain
 0.7.0
  - feat: allow user to specify (output) domain to skip ifft (#28, #29)
  - docs: clarify `filter_size` in `filter.get_filter_array` (#6)

@@ -103,6 +103,17 @@ def test_ffd_subtract_background(hologram):
     field_bg = ffd_bg.finalize()
 
     assert np.allclose(field_corrected, field_sample - field_bg)
+    # a typical way to calculate background correction is to subtract the
+    # angles (phase) from eachother and divide the amplitudes
+    # this is different to what the `FourierFieldData.subtract_background`
+    # method does
+    phase_corrected_real_space = np.angle(field_sample) - np.angle(field_bg)
+    phase_from_complex_difference = np.angle(field_corrected)
+    assert not np.allclose(phase_from_complex_difference,
+                           phase_corrected_real_space)
+    # the maximum difference between the two:
+    assert np.max(phase_from_complex_difference -
+                  phase_corrected_real_space) > 1e-3
 
 
 def test_ffd_subtract_background_shape_mismatch(hologram):

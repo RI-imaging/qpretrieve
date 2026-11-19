@@ -180,30 +180,29 @@ class FourierFieldData:
 
         Subtracts ``bg.fft_used`` from ``self.fft_used`` and returns a new
         :class:`FourierFieldData` with the result, without modifying ``self``.
+        After finalization, this is the spatial complex-field difference
+        ``self.field - bg.field``.
 
         .. warning::
 
-            This performs **complex-field subtraction**
-            (``field_sample - field_bg``), which is *not* the same as the
-            standard holographic background correction of subtracting phases
-            and dividing amplitudes.  The standard correction is equivalent
-            to **complex division** (``field_sample / field_bg``), which gives
-            ``angle(corrected) = φ_sample − φ_bg`` and
-            ``abs(corrected) = A_sample / A_bg``.  Complex subtraction gives
-            ``angle(field_sample − field_bg) ≠ φ_sample − φ_bg`` in general.
+            This performs **complex-field subtraction**:
+            ``field_sample - field_bg``. The inverse FFT is linear, so
+            subtracting the Fourier arrays and then finalizing gives the same
+            result as finalizing each field and subtracting the complex spatial
+            fields.
 
-            Use this method when complex-field subtraction is physically
-            appropriate for your application.  For the standard phase-only
-            background correction, reconstruct both holograms to the spatial
-            domain (e.g. via :attr:`~FourierFieldData.field`) and subtract
-            the phases directly.
-
-        Because the inverse FFT is linear,
-        ``ifft(fft_sample − fft_bg) = field_sample − field_bg``, so the
-        subtraction here is equivalent to the spatial-domain complex
-        difference.  Performing it in Fourier space avoids a redundant
-        iFFT + FFT pair when the corrected data is passed to a downstream
-        library such as `nrefocus` for wave propagation.
+            This differs from standard phase background correction, which
+            computes ``φ_sample - φ_bg`` (often by subtracting
+            ``angle(field_sample)`` and ``angle(field_bg)``). In general,
+            ``angle(field_sample - field_bg)`` is not the same thing.
+            Spatial complex-field division, ``field_sample / field_bg``, has
+            phase ``φ_sample - φ_bg`` and amplitude ratio ``A_sample / A_bg``
+            where the background field is nonzero. But dividing the Fourier
+            arrays is **not** equivalent to dividing the spatial fields:
+            inverse FFT is linear for subtraction, not for division.
+            Therefore, this method does not reproduce exactly the phase-based
+            background correction. It is up to the user to decide whether
+            either background subtraction method is relevant for their data.
 
         Both objects must have been produced by pipelines with identical
         filter settings (same ``filter_name``, ``filter_size``,
@@ -226,6 +225,7 @@ class FourierFieldData:
         ------
         ValueError
             If ``bg.fft_used.shape`` does not match ``self.fft_used.shape``.
+
         """
         if bg.fft_used.shape != self.fft_used.shape:
             raise ValueError(

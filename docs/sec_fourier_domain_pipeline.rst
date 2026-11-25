@@ -81,6 +81,10 @@ propagated plane:
 2. Propagate both Fourier fields, inverse-transform them, then divide the
    propagated fields.
 
+The first order seems to be faster with the current implementations.
+Therefore, if you need background subtraction, then use the first order
+(correct then propagate).
+
 The two orders can differ because propagation and pointwise division do not
 generally commute. The first path zero-pads the corrected spatial field to the
 same FFT grid used by the second path; differences near the image boundary can

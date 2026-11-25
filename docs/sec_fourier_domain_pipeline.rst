@@ -50,6 +50,7 @@ This is useful when combined with field propagation, see the Note above.
     print(field.shape)              # (1, H, W) — identical to the default path
 
 
+
 .. admonition:: Combining `qpretrieve` and `nrefocus` pipelines
 
     The Fourier output is most useful when the result is passed directly to a
@@ -58,7 +59,7 @@ This is useful when combined with field propagation, see the Note above.
     :class:`~qpretrieve.fourier.fourier_field_data.FourierFieldData` object and
     skip its own forward FFT. This avoids a redundant iFFT + FFT pair at the
     qpretrieve/nrefocus boundary.
-    For an nrefocus-integrated working example see the :ref:`sec_examples`.
+    For an nrefocus-integrated working example see the :ref:`sec_examples` and for background correction specifically see below.
 
     *Comparing Spatial vs. Fourier Pipeline*
 
@@ -67,3 +68,68 @@ This is useful when combined with field propagation, see the Note above.
     floating point imprecision.
     For padded pipelines, the pipelines are not identical due to padding and
     unpadding causing inconsistencies at the boundary of the images.
+
+
+Background Correction
+---------------------
+
+This example compares two orders of background correction at the same
+propagated plane:
+
+1. Inverse-transform the sample and background, divide the spatial fields,
+   then propagate the corrected field.
+2. Propagate both Fourier fields, inverse-transform them, then divide the
+   propagated fields.
+
+The two orders can differ because propagation and pointwise division do not
+generally commute. The first path zero-pads the corrected spatial field to the
+same FFT grid used by the second path; differences near the image boundary can
+reflect that boundary assumption. Each phase map is unwrapped with
+scikit-image before display. The phase difference panel is the difference of
+those two unwrapped maps; the difference map itself is not unwrapped again.
+
+The plot marks a centered 150×150 pixel square ROI on the object. The table
+below reports the phase and amplitude statistics in that ROI, including the
+statistics of the difference maps.
+
+.. image:: ../examples/compare_spatial_and_propagated_background.png
+    :alt: Correct-then-propagate and propagate-then-correct outputs at the same
+          plane, with phase and amplitude difference maps and a square object ROI.
+    :width: 100%
+
+Generate the figure and print the RST table with :download:`this script
+<../examples/compare_spatial_and_propagated_background.py>`::
+
+    python examples/compare_spatial_and_propagated_background.py
+
+.. list-table:: Statistics within the centered 150×150 pixel object ROI
+   :header-rows: 1
+
+   * - Statistic
+     - Correct, then propagate
+     - Propagate, then correct
+     - Change / difference map
+   * - Phase mean [rad]
+     - 1.8653
+     - 1.8645
+     - -0.0007
+   * - Phase standard deviation [rad]
+     - 1.6798
+     - 1.6804
+     - 0.0007
+   * - Amplitude ratio mean
+     - 1.4456
+     - 1.4456
+     - 0.0000
+   * - Amplitude ratio standard deviation
+     - 0.2515
+     - 0.2504
+     - -0.0011
+   * - Phase difference map mean ± SD [rad]
+     - —
+     - —
+     - -0.0007 ± 0.0140
+   * - Amplitude difference map mean ± SD
+     - —
+     - —
+     - 0.0126 ± 0.0131

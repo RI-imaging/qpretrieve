@@ -33,7 +33,8 @@ Spatial Output (Default)
 Fourier Output (skipping the inverse FFT)
 -----------------------------------------
 
-This is useful when combined with field propagation, see the Note above.
+This is useful when directly combined with field propagation; see the Note
+below and the :ref:`Background Correction <background-correction>` section.
 
 .. code-block:: python
 
@@ -70,24 +71,24 @@ This is useful when combined with field propagation, see the Note above.
     unpadding causing inconsistencies at the boundary of the images.
 
 
+.. _background-correction:
+
 Background Correction
 ---------------------
-There is no Fourier-domain background correction built into `qretrieve`.
+.. admonition:: Fourier-domain background correction
 
-- If you need background correction, then run the iFFT as default and do background correction: real-space sample field/background field.
-- If you do not need background correction, use the direct FFT method when you need numerical propagation.
+	There is no built-in Fourier-domain background correction in `qretrieve`.
+
+	- If you need background correction, then run the iFFT (this is done by default) and do background correction: real-space sample field/background field.
+	- If you do not need background correction, use the direct FFT method when you need numerical propagation.
 
 This example compares two orders of background correction at the same
 propagated plane:
 
 1. Inverse-transform the sample and background, divide the spatial fields,
-   then propagate the corrected field.
+   then propagate the corrected field. This is currently the faster option.
 2. Propagate both Fourier fields, inverse-transform them, then divide the
    propagated fields.
-
-The first order seems to be faster with the current implementations.
-Therefore, if you need background subtraction, then use the first order
-(correct then propagate).
 
 The two orders can differ because propagation and pointwise division do not
 generally commute. The first path zero-pads the corrected spatial field to the

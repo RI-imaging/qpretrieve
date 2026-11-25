@@ -3,7 +3,6 @@
 """
 from __future__ import annotations
 
-import dataclasses
 from dataclasses import dataclass, field as dataclass_field
 from typing import Callable
 
@@ -174,66 +173,6 @@ class FourierFieldData:
         )
         self._field = field
         return field
-
-    def subtract_background(self, bg: FourierFieldData) -> FourierFieldData:
-        """Subtract a background field in Fourier space.
-
-        Subtracts ``bg.fft_used`` from ``self.fft_used`` and returns a new
-        :class:`FourierFieldData` with the result, without modifying ``self``.
-        After finalization, this is the spatial complex-field difference
-        ``self.field - bg.field``.
-
-        .. warning::
-
-            This performs **complex-field subtraction**:
-            ``field_sample - field_bg``. The inverse FFT is linear, so
-            subtracting the Fourier arrays and then finalizing gives the same
-            result as finalizing each field and subtracting the complex spatial
-            fields.
-
-            This differs from standard phase background correction, which
-            computes ``φ_sample - φ_bg`` (often by subtracting
-            ``angle(field_sample)`` and ``angle(field_bg)``). In general,
-            ``angle(field_sample - field_bg)`` is not the same thing.
-            Spatial complex-field division, ``field_sample / field_bg``, has
-            phase ``φ_sample - φ_bg`` and amplitude ratio ``A_sample / A_bg``
-            where the background field is nonzero. But dividing the Fourier
-            arrays is **not** equivalent to dividing the spatial fields:
-            inverse FFT is linear for subtraction, not for division.
-            Therefore, this method does not reproduce exactly the phase-based
-            background correction. It is up to the user to decide whether
-            either background subtraction method is relevant for their data.
-
-        Both objects must have been produced by pipelines with identical
-        filter settings (same ``filter_name``, ``filter_size``,
-        ``freq_pos``, and ``scale_to_filter``), so that ``fft_used`` has
-        the same shape and physical meaning in both cases.
-
-        Parameters
-        ----------
-        bg : FourierFieldData
-            Fourier-domain data for the background hologram, obtained via a
-            pipeline run with the same filter configuration as ``self``.
-
-        Returns
-        -------
-        corrected : FourierFieldData
-            New instance with ``fft_used = self.fft_used - bg.fft_used``
-            and all other reconstruction metadata copied from ``self``.
-
-        Raises
-        ------
-        ValueError
-            If ``bg.fft_used.shape`` does not match ``self.fft_used.shape``.
-
-        """
-        if bg.fft_used.shape != self.fft_used.shape:
-            raise ValueError(
-                f"Shape mismatch: sample fft_used has shape "
-                f"{self.fft_used.shape}, but background fft_used has shape "
-                f"{bg.fft_used.shape}. Both must come from pipelines with "
-                f"identical filter settings.")
-        return dataclasses.replace(self, fft_used=self.fft_used - bg.fft_used)
 
     @property
     def field(self) -> xp.ndarray:

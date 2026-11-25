@@ -72,6 +72,10 @@ This is useful when combined with field propagation, see the Note above.
 
 Background Correction
 ---------------------
+There is no Fourier-domain background correction built into `qretrieve`.
+
+- If you need background correction, then run the iFFT as default and do background correction: real-space sample field/background field.
+- If you do not need background correction, use the direct FFT method when you need numerical propagation.
 
 This example compares two orders of background correction at the same
 propagated plane:
